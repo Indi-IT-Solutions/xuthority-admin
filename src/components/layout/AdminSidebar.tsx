@@ -15,7 +15,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import useAdminStore from '@/store/useAdminStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import { queryClient } from '@/lib/queryClient';
+import { useLogout } from '@/hooks/useAdminAuth';
 
 const navigationItems = [
   {
@@ -38,11 +41,11 @@ const navigationItems = [
     href: '/reviews',
     icon: Star,
   },
-  {
-    label: 'Subscription Plans',
-    href: '/subscription-plans',
-    icon: CreditCard,
-  },
+  // {
+  //   label: 'Subscription Plans',
+  //   href: '/subscription-plans',
+  //   icon: CreditCard,
+  // },
   {
     label: 'Payments',
     href: '/payments',
@@ -73,7 +76,8 @@ const navigationItems = [
 const AdminSidebar = () => {
   const location = useLocation();
   const { mobileSidebarOpen, setMobileSidebarOpen, logoutWithAPI } = useAdminStore();
-
+  const logoutMutation = useLogout();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);  
   // Close mobile sidebar when route changes
   useEffect(() => {
     setMobileSidebarOpen(false);
@@ -84,10 +88,19 @@ const AdminSidebar = () => {
     setMobileSidebarOpen(false);
   };
 
-  const handleLogout = async () => {
-    await logoutWithAPI();
-  };
 
+  const handleLogoutClick = () => setShowLogoutModal(true);
+  const handleLogout = async () => {
+    try {
+      
+      await logoutMutation.mutateAsync();
+      window.location.reload();
+      localStorage.clear();
+      queryClient.clear();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
   return (
     <>
       {/* Mobile backdrop */}
@@ -128,7 +141,7 @@ const AdminSidebar = () => {
           <div className="space-y-2 h-full">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.href;
+              const isActive = location.pathname==="/dashboard" && item.href==="/" ? true : location.pathname === item.href;
 
               return (
                 <Link
@@ -149,8 +162,8 @@ const AdminSidebar = () => {
 
             {/* Logout */}
             <button 
-              onClick={handleLogout}
-              className="flex items-center p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors w-full mt-4"
+              onClick={handleLogoutClick}
+              className="flex items-center p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors w-full mt-4 cursor-pointer"
             >
               <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-2'>
                 <LogOut className="w-5 h-5 text-red-500" />
@@ -160,6 +173,15 @@ const AdminSidebar = () => {
           </div>
         </nav>
       </div>
+      <ConfirmationModal
+        isOpen={showLogoutModal}
+        onOpenChange={setShowLogoutModal}
+        onConfirm={handleLogout}
+        title="Are you sure you want to Logout?"
+        description="You’ll be signed out of your admin session. Make sure all your changes are saved before logging out."
+        confirmText="Yes I'm Sure"
+        isLoading={logoutMutation.isPending}
+      />
     </>
   );
 };

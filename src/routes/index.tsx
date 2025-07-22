@@ -1,57 +1,57 @@
-import { createBrowserRouter } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
-import AdminLayout from '@/components/layout/AdminLayout';
-import ProtectedRoute from './ProtectedRoute';
-import PublicRoute from './PublicRoute';
+import { createBrowserRouter } from "react-router-dom";
+import { Suspense, lazy } from "react";
+import AdminLayout from "@/components/layout/AdminLayout";
+import ProtectedRoute from "./ProtectedRoute";
+import PublicRoute from "./PublicRoute";
+import { SuspenseLoader } from "@/components/common/EnhancedLoader";
 
 // Lazy load components for better performance
-const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
-const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
-const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'));
-const DashboardPage = lazy(() => import('@/pages/admin/DashboardPage'));
-const UsersPage = lazy(() => import('@/pages/admin/UsersPage'));
-const ProductsPage = lazy(() => import('@/pages/admin/ProductsPage'));
-const ReviewsPage = lazy(() => import('@/pages/admin/ReviewsPage'));
-const SettingsPage = lazy(() => import('@/pages/admin/SettingsPage'));
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+const ForgotPasswordPage = lazy(
+  () => import("@/pages/auth/ForgotPasswordPage")
+);
+const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
+const DashboardPage = lazy(() => import("@/pages/admin/DashboardPage"));
+const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
+const VendorsPage = lazy(() => import("@/pages/admin/VendorsPage"));
+const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
+const ReviewsPage = lazy(() => import("@/pages/admin/ReviewsPage"));
+const SettingsPage = lazy(() => import("@/pages/admin/SettingsPage"));
+const ProfilePage = lazy(() => import("@/pages/admin/ProfilePage"));
 
+const Loader = () => <SuspenseLoader text="Loading page..." minTime={800} />;
 // Suspense wrapper component
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    </div>
-  }>
-    {children}
-  </Suspense>
+  <Suspense fallback={<Loader />}>{children}</Suspense>
 );
 
 const AppRoutes = createBrowserRouter([
   {
-    path: '/login',
+    path: "/login",
     element: (
-        <SuspenseWrapper>
-          <LoginPage />
-        </SuspenseWrapper>
+      <SuspenseWrapper>
+        <LoginPage />
+      </SuspenseWrapper>
     ),
   },
   {
-    path: '/forgot-password',
+    path: "/forgot-password",
     element: (
-        <SuspenseWrapper>
-          <ForgotPasswordPage />
-        </SuspenseWrapper>
+      <SuspenseWrapper>
+        <ForgotPasswordPage />
+      </SuspenseWrapper>
     ),
   },
   {
-    path: '/reset-password',
+    path: "/reset-password",
     element: (
-        <SuspenseWrapper>
-          <ResetPasswordPage />
-        </SuspenseWrapper>
+      <SuspenseWrapper>
+        <ResetPasswordPage />
+      </SuspenseWrapper>
     ),
   },
   {
-    path: '/',
+    path: "/",
     element: (
       <ProtectedRoute>
         <AdminLayout />
@@ -67,7 +67,7 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
-        path: 'dashboard',
+        path: "dashboard",
         element: (
           <SuspenseWrapper>
             <DashboardPage />
@@ -75,7 +75,7 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
-        path: 'users',
+        path: "users",
         element: (
           <SuspenseWrapper>
             <UsersPage />
@@ -83,7 +83,15 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
-        path: 'products',
+        path: "vendors",
+        element: (
+          <SuspenseWrapper>
+            <VendorsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "products",
         element: (
           <SuspenseWrapper>
             <ProductsPage />
@@ -91,7 +99,7 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
-        path: 'reviews',
+        path: "reviews",
         element: (
           <SuspenseWrapper>
             <ReviewsPage />
@@ -99,10 +107,26 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
-        path: 'settings',
+        path: "settings",
         element: (
           <SuspenseWrapper>
             <SettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <SuspenseWrapper>
+            <ProfilePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "profile-settings",
+        element: (
+          <SuspenseWrapper>
+            <ProfilePage />
           </SuspenseWrapper>
         ),
       },
@@ -110,7 +134,7 @@ const AppRoutes = createBrowserRouter([
   },
   // Root redirect to admin
   {
-    path: '/',
+    path: "/",
     element: (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -124,7 +148,7 @@ const AppRoutes = createBrowserRouter([
   },
   // Fallback route
   {
-    path: '*',
+    path: "*",
     element: (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -138,4 +162,4 @@ const AppRoutes = createBrowserRouter([
   },
 ]);
 
-export default AppRoutes; 
+export default AppRoutes;

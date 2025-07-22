@@ -13,6 +13,7 @@ export interface Admin {
   lastLogin?: string;
   notes?: string;
   fullName?: string;
+  avatar?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -57,6 +58,7 @@ export interface AdminChangePasswordRequest {
 export interface AdminUpdateProfileRequest {
   firstName?: string;
   lastName?: string;
+  email?: string;
   notes?: string;
   avatar?: string;
 }
@@ -123,23 +125,84 @@ export class AdminAuthService {
     return await ApiService.patch<{ admin: Admin }>('/admin/profile', data);
   }
 
+  // Update admin profile with image
+  static async updateProfileWithImage(data: AdminUpdateProfileRequest, imageFile?: File): Promise<ApiResponse<{ admin: Admin }>> {
+    if (imageFile) {
+      const formData = new FormData();
+      
+      // Add profile data
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value);
+        }
+      });
+      
+      // Add image file
+      formData.append('avatar', imageFile);
+      
+      return await ApiService.patch<{ admin: Admin }>('/admin/profile', formData);
+    } else {
+      // If no image, use regular update
+      return await this.updateProfile(data);
+    }
+  }
+
   // Change admin password
   static async changePassword(data: AdminChangePasswordRequest): Promise<ApiResponse<null>> {
     return await ApiService.patch<null>('/admin/change-password', data);
   }
 
-  // Get admin dashboard analytics
-  static async getDashboardAnalytics(): Promise<ApiResponse<{
-    overview: {
+  // Get admin dashboard analytics with time filtering
+  static async getDashboardAnalytics(options?: {
+    period?: 'weekly' | 'monthly' | 'yearly';
+  }): Promise<ApiResponse<{
+    stats: {
       totalUsers: number;
       totalVendors: number;
-      totalProducts: number;
       totalReviews: number;
       pendingVendors: number;
     };
-    recentUsers: any[];
+    charts: {
+      userGrowth: Array<{
+        period: string;
+        users: number;
+        vendors: number;
+      }>;
+      reviewTrends: Array<{
+        period: string;
+        total: number;
+        approved: number;
+        pending: number;
+        rejected: number;
+        flagged: number;
+      }>;
+    };
+    recentReviews: Array<{
+      _id: string;
+      title: string;
+      content: string;
+      overallRating: number;
+      status: 'pending' | 'approved' | 'rejected' | 'dispute';
+      submittedAt: string;
+      reviewer: {
+        name: string;
+        avatar: string;
+        email: string;
+      };
+      product: {
+        name: string;
+        slug: string;
+        logoUrl: string;
+      };
+    }>;
   }>> {
-    return await ApiService.get('/admin/analytics');
+    const params = new URLSearchParams();
+    if (options?.period) {
+      params.append('period', options.period);
+    }
+    
+    const queryString = params.toString();
+    return await ApiService.get(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
   }
 
   // Get all users with admin filtering

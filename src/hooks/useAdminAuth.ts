@@ -302,3 +302,19 @@ export const useVerifyVendorProfile = () => {
   });
 };
 
+// Hook for admin dashboard analytics query with time filtering
+export const useAnalytics = (period: 'weekly' | 'monthly' | 'yearly' = 'weekly') => {
+  return useQuery({
+    queryKey: [...queryKeys.analytics, period],
+    queryFn: async () => {
+      const response = await AdminAuthService.getDashboardAnalytics({ period });
+      if (!response.success) {
+        throw new Error(response.error?.message || 'Failed to fetch analytics');
+      }
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+

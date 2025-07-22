@@ -1,60 +1,90 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-const weeklyData = [
-  { name: 'Mon', Published: 500, Pending: 1300, Disputed: 200 },
-  { name: 'Tue', Published: 1100, Pending: 2000, Disputed: 300 },
-  { name: 'Wed', Published: 900, Pending: 1800, Disputed: 400 },
-  { name: 'Thu', Published: 600, Pending: 2100, Disputed: 350 },
-  { name: 'Fri', Published: 1200, Pending: 1200, Disputed: 200 },
-  { name: 'Sat', Published: 750, Pending: 1500, Disputed: 250 },
-  { name: 'Sun', Published: 1800, Pending: 2200, Disputed: 600 },
+// Fallback data for when API data is not available
+const fallbackData = [
+  { name: 'No Data', Published: 0, Pending: 0, Disputed: 0 },
 ];
 
-const monthlyData = [
-  { name: 'Mon', Published: 3500, Pending: 8300, Disputed: 1200 },
-  { name: 'Tue', Published: 4100, Pending: 12000, Disputed: 1800 },
-  { name: 'Wed', Published: 3900, Pending: 11800, Disputed: 2400 },
-  { name: 'Thu', Published: 3600, Pending: 13100, Disputed: 2350 },
-  { name: 'Fri', Published: 5200, Pending: 9200, Disputed: 1200 },
-  { name: 'Sat', Published: 4750, Pending: 10500, Disputed: 1750 },
-  { name: 'Sun', Published: 7800, Pending: 15200, Disputed: 4600 },
-];
-
-const yearlyData = [
-  { name: 'Mon', Published: 35000, Pending: 83000, Disputed: 12000 },
-  { name: 'Tue', Published: 41000, Pending: 120000, Disputed: 18000 },
-  { name: 'Wed', Published: 39000, Pending: 118000, Disputed: 24000 },
-  { name: 'Thu', Published: 36000, Pending: 131000, Disputed: 23500 },
-  { name: 'Fri', Published: 52000, Pending: 92000, Disputed: 12000 },
-  { name: 'Sat', Published: 47500, Pending: 105000, Disputed: 17500 },
-  { name: 'Sun', Published: 78000, Pending: 152000, Disputed: 46000 },
-];
+interface ReviewTrendsData {
+  period: string;
+  total: number;
+  approved: number;
+  pending: number;
+  rejected: number;
+  flagged: number;
+}
 
 interface ReviewsChartProps {
   activeFilter: 'Weekly' | 'Monthly' | 'Yearly';
+  data?: ReviewTrendsData[];
 }
 
-const ReviewsChart = ({ activeFilter }: ReviewsChartProps) => {
-  const getData = () => {
-    switch (activeFilter) {
-      case 'Weekly': return weeklyData;
-      case 'Monthly': return monthlyData;
-      case 'Yearly': return yearlyData;
-      default: return weeklyData;
+const ReviewsChart = ({ activeFilter, data }: ReviewsChartProps) => {
+  const formatChartData = () => {
+    if (!data || data.length === 0) {
+      return fallbackData;
+    }
+
+    return data.map((item) => ({
+      name: formatPeriodLabel(item.period, activeFilter),
+      Published: item.approved, // Map approved to Published for UI consistency
+      Pending: item.pending,
+      Disputed: item.flagged, // Map flagged to Disputed for UI consistency
+      Rejected: item.rejected
+    }));
+  };
+
+  const formatPeriodLabel = (period: string, filter: 'Weekly' | 'Monthly' | 'Yearly') => {
+    try {
+      const date = new Date(period);
+      
+      switch (filter) {
+        case 'Weekly':
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        case 'Monthly':
+          return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        case 'Yearly':
+          return date.getFullYear().toString();
+        default:
+          return period;
+      }
+    } catch {
+      return period;
     }
   };
 
   const getMaxValue = () => {
-    switch (activeFilter) {
-      case 'Weekly': return 2500;
-      case 'Monthly': return 20000;
-      case 'Yearly': return 200000;
-      default: return 2500;
-    }
+    const chartData = formatChartData();
+    if (chartData.length === 0) return 100;
+    
+    const maxValue = Math.max(...chartData.map(item => 
+      Math.max(item.Published, item.Pending, item.Disputed, item.Rejected || 0)
+    ));
+    return Math.ceil(maxValue * 1.2); // Add 20% padding
   };
 
-  const data = getData();
+  const chartData = formatChartData();
   const maxValue = getMaxValue();
+
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-900 mb-2">{label}</p>
+          <div className="space-y-1">
+            {payload.map((entry: any, index: number) => (
+              <p key={index} className="text-sm" style={{ color: entry.color }}>
+                <span className="font-medium">{entry.dataKey}: </span>
+                {entry.value?.toLocaleString()}
+              </p>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   const CustomLegend = () => (
     <div className="flex items-center justify-center space-x-4 md:space-x-6 mt-3 md:mt-4">
@@ -83,7 +113,7 @@ const ReviewsChart = ({ activeFilter }: ReviewsChartProps) => {
       {/* Chart */}
       <div className="h-64 md:h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+          <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
             <CartesianGrid strokeDasharray="0" stroke="#f1f5f9" vertical={false} />
             <XAxis 
               dataKey="name" 
@@ -100,6 +130,7 @@ const ReviewsChart = ({ activeFilter }: ReviewsChartProps) => {
               tickCount={6}
               width={40}
             />
+            <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="Published" 
               fill="#10b981" 

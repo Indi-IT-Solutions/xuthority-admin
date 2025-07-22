@@ -130,8 +130,12 @@ const useAdminStore = create<AdminStore>()(
             const userInfo: AdminUser = {
               id: response.data.admin._id,
               displayName: `${response.data.admin.firstName} ${response.data.admin.lastName}`,
-              ...response.data.admin,
-              role: 'admin'
+              firstName: response.data.admin.firstName,
+              lastName: response.data.admin.lastName,
+              email: response.data.admin.email,
+              avatar: response.data.admin.avatar,
+              role: 'admin',
+              ...response.data.admin, // Include any other fields from the response
             };
             
             // Extract accessToken from admin object
@@ -180,8 +184,12 @@ const useAdminStore = create<AdminStore>()(
           const userInfo: AdminUser = {
             id: user._id || user.id,
             displayName: `${user.firstName} ${user.lastName}`,
-            ...user,
-            role: 'admin'
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            avatar: user.avatar,
+            role: 'admin',
+            ...user, // Include any other fields from the response
           };
           
           set({
@@ -209,8 +217,12 @@ const useAdminStore = create<AdminStore>()(
             const userInfo: AdminUser = {
               id: response.data.admin._id,
               displayName: `${response.data.admin.firstName} ${response.data.admin.lastName}`,
-              ...response.data.admin,
-              role: 'admin'
+              firstName: response.data.admin.firstName,
+              lastName: response.data.admin.lastName,
+              email: response.data.admin.email,
+              avatar: response.data.admin.avatar,
+              role: 'admin',
+              ...response.data.admin, // Include any other fields from the response
             };
             
             set({

@@ -1,60 +1,95 @@
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-const weeklyData = [
-  { name: 'Mon', value: 110 },
-  { name: 'Tue', value: 80 },
-  { name: 'Wed', value: 85 },
-  { name: 'Thu', value: 70 },
-  { name: 'Fri', value: 170 },
-  { name: 'Sat', value: 160 },
-  { name: 'Sun', value: 250 },
+// Fallback data for when API data is not available
+const fallbackData = [
+  { name: 'No Data', value: 0 },
 ];
 
-const monthlyData = [
-  { name: 'Mon', value: 1500 },
-  { name: 'Tue', value: 1800 },
-  { name: 'Wed', value: 1200 },
-  { name: 'Thu', value: 1400 },
-  { name: 'Fri', value: 2200 },
-  { name: 'Sat', value: 2000 },
-  { name: 'Sun', value: 2800 },
-];
-
-const yearlyData = [
-  { name: 'Mon', value: 15000 },
-  { name: 'Tue', value: 18000 },
-  { name: 'Wed', value: 12000 },
-  { name: 'Thu', value: 14000 },
-  { name: 'Fri', value: 22000 },
-  { name: 'Sat', value: 20000 },
-  { name: 'Sun', value: 28000 },
-];
+interface UserGrowthData {
+  period: string;
+  users: number;
+  vendors: number;
+}
 
 interface UserGrowthChartProps {
   activeFilter: 'Weekly' | 'Monthly' | 'Yearly';
+  data?: UserGrowthData[];
 }
 
-const UserGrowthChart = ({ activeFilter }: UserGrowthChartProps) => {
-  const getData = () => {
-    switch (activeFilter) {
-      case 'Weekly': return weeklyData;
-      case 'Monthly': return monthlyData;
-      case 'Yearly': return yearlyData;
-      default: return weeklyData;
+const UserGrowthChart = ({ activeFilter, data }: UserGrowthChartProps) => {
+  const formatChartData = () => {
+    if (!data || data.length === 0) {
+      return fallbackData;
+    }
+
+    return data.map((item) => ({
+      name: formatPeriodLabel(item.period, activeFilter),
+      value: item.users + item.vendors, // Total users + vendors
+      users: item.users,
+      vendors: item.vendors
+    }));
+  };
+
+  const formatPeriodLabel = (period: string, filter: 'Weekly' | 'Monthly' | 'Yearly') => {
+    try {
+      const date = new Date(period);
+      
+      switch (filter) {
+        case 'Weekly':
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        case 'Monthly':
+          return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        case 'Yearly':
+          return date.getFullYear().toString();
+        default:
+          return period;
+      }
+    } catch {
+      return period;
     }
   };
 
   const getMaxValue = () => {
-    switch (activeFilter) {
-      case 'Weekly': return 250;
-      case 'Monthly': return 3000;
-      case 'Yearly': return 30000;
-      default: return 250;
-    }
+    const chartData = formatChartData();
+    if (chartData.length === 0) return 100;
+    
+    const maxValue = Math.max(...chartData.map(item => item.value));
+    return Math.ceil(maxValue * 1.2); // Add 20% padding
   };
 
-  const data = getData();
+  const chartData = formatChartData();
   const maxValue = getMaxValue();
+
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-900 mb-2">{label}</p>
+          <div className="space-y-1">
+            <p className="text-sm text-blue-600">
+              <span className="font-medium">Total Growth: </span>
+              {payload[0].value?.toLocaleString()}
+            </p>
+            {data.users !== undefined && (
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Users: </span>
+                {data.users?.toLocaleString()}
+              </p>
+            )}
+            {data.vendors !== undefined && (
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Vendors: </span>
+                {data.vendors?.toLocaleString()}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
@@ -66,7 +101,7 @@ const UserGrowthChart = ({ activeFilter }: UserGrowthChartProps) => {
       {/* Chart */}
       <div className="h-64 md:h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+          <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
             <defs>
               <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -89,6 +124,7 @@ const UserGrowthChart = ({ activeFilter }: UserGrowthChartProps) => {
               tickCount={6}
               width={40}
             />
+            <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
               dataKey="value"

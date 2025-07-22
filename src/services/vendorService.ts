@@ -1,0 +1,264 @@
+import { ApiService } from './api';
+import { ApiResponse } from '../types/api';
+
+export interface VendorQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: 'approved' | 'pending' | 'blocked' | 'approved,blocked'; // Support single status or combined for approved tab
+  sortBy?: 'createdAt' | 'firstName' | 'lastName' | 'email' | 'role';
+  sortOrder?: 'asc' | 'desc';
+  // Date filtering parameters
+  period?: 'weekly' | 'monthly' | 'yearly';
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface RawVendorData {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
+  companyName?: string;
+  companyEmail?: string;
+  companyAvatar?: string;
+  industry?: string;
+  companySize?: string;
+  role: 'vendor';
+  isVerified: boolean;
+  status: 'approved' | 'pending' | 'blocked';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransformedVendor {
+  id: number;
+  company: {
+    name: string;
+    email: string;
+    logo: string;
+  };
+  owner: {
+    name: string;
+    email: string;
+    avatar: string;
+  };
+  industry: string;
+  companySize: string;
+  joinedOn: string;
+  status: 'Active' | 'Blocked' | 'Pending';
+}
+
+export interface VendorsApiResponse {
+  vendors: TransformedVendor[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+/**
+ * Transform raw vendor data from API to match VendorsTable format
+ */
+const transformVendorData = (rawVendor: RawVendorData, index: number): TransformedVendor => {
+  // Format the joined date
+  const joinedDate = new Date(rawVendor.createdAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+
+  // Map backend status to frontend status
+  const statusMap: Record<string, 'Active' | 'Blocked' | 'Pending'> = {
+    'approved': 'Active',
+    'blocked': 'Blocked',
+    'pending': 'Pending'
+  };
+  const status = statusMap[rawVendor.status] || 'Pending';
+
+  return {
+    id: index + 1, // Using index as ID since VendorsTable expects number
+    _id: rawVendor._id, // Add the actual MongoDB ID for API calls
+    company: {
+      name: rawVendor.companyName || 'Unknown Company',
+      email: rawVendor.companyEmail || rawVendor.email,
+      logo: rawVendor.companyAvatar || ''
+    },
+    owner: {
+      name: `${rawVendor.firstName} ${rawVendor.lastName}`,
+      email: rawVendor.email,
+      avatar: rawVendor.avatar || ''
+    },
+    industry: rawVendor.industry || 'Not specified',
+    companySize: rawVendor.companySize || 'Not specified',
+    joinedOn: joinedDate,
+    status
+  };
+};
+
+/**
+ * Vendor Service Class
+ */
+export class VendorService {
+  /**
+   * Get vendors with filtering, search, and pagination
+   */
+  static async getVendors(params: VendorQueryParams = {}): Promise<ApiResponse<VendorsApiResponse>> {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      // Always filter by vendor role
+      queryParams.append('role', 'vendor');
+      
+      // Add pagination params
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      
+      // Add search param
+      if (params.search && params.search.trim()) {
+        queryParams.append('search', params.search.trim());
+      }
+      
+      // Add status filter
+      if (params.status) {
+        queryParams.append('status', params.status);
+      }
+      
+      // Add sorting params
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+      const response = await ApiService.get<RawVendorData[]>(`/admin/users?${queryParams.toString()}`);
+
+      // Debug logging to see actual response structure (remove in production)
+      // console.log('API Response:', response);
+      // console.log('Response data:', response.data);
+      // console.log('Response meta:', response.meta);
+
+      if (response.success && response.data) {
+        // Get pagination from meta field
+        const pagination = response.meta?.pagination || {
+          page: 1,
+          limit: params.limit || 10,
+          total: response.data.length,
+          totalPages: 1
+        };
+
+        // Transform the raw data to match VendorsTable format
+        const transformedVendors = response.data.map((vendor, index) => 
+          transformVendorData(vendor, (pagination.page - 1) * pagination.limit + index)
+        );
+
+        return {
+          success: true,
+          data: {
+            vendors: transformedVendors,
+            pagination: {
+              page: pagination.page || pagination.currentPage || 1,
+              limit: pagination.limit || pagination.itemsPerPage || 10,
+              total: pagination.total || pagination.totalItems || response.data.length,
+              totalPages: pagination.totalPages || Math.ceil((pagination.total || response.data.length) / (pagination.limit || 10))
+            }
+          },
+          message: response.message
+        };
+      }
+
+      throw new Error(response.message || 'Failed to fetch vendors');
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify a vendor (approve) - Legacy endpoint
+   */
+  static async verifyVendor(vendorId: string): Promise<ApiResponse<{ user: RawVendorData }>> {
+    try {
+      return await ApiService.patch(`/admin/users/${vendorId}/verify`);
+    } catch (error) {
+      console.error('Error verifying vendor:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Approve a vendor
+   */
+  static async approveVendor(vendorId: string): Promise<ApiResponse<{ user: RawVendorData }>> {
+    try {
+      return await ApiService.patch(`/admin/users/${vendorId}/approve`);
+    } catch (error) {
+      console.error('Error approving vendor:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reject a vendor
+   */
+  static async rejectVendor(vendorId: string, reason?: string): Promise<ApiResponse<{ user: RawVendorData }>> {
+    try {
+      const payload = reason ? { reason } : {};
+      return await ApiService.patch(`/admin/users/${vendorId}/reject`, payload);
+    } catch (error) {
+      console.error('Error rejecting vendor:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Block a vendor
+   */
+  static async blockVendor(vendorId: string): Promise<ApiResponse<{ user: RawVendorData }>> {
+    try {
+      return await ApiService.patch(`/admin/users/${vendorId}/block`);
+    } catch (error) {
+      console.error('Error blocking vendor:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Unblock a vendor
+   */
+  static async unblockVendor(vendorId: string): Promise<ApiResponse<{ user: RawVendorData }>> {
+    try {
+      return await ApiService.patch(`/admin/users/${vendorId}/unblock`);
+    } catch (error) {
+      console.error('Error unblocking vendor:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a vendor
+   */
+  static async deleteVendor(vendorId: string): Promise<ApiResponse<{ user: any }>> {
+    try {
+      return await ApiService.delete(`/admin/users/${vendorId}`);
+    } catch (error) {
+      console.error('Error deleting vendor:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk delete vendors (this would need to be implemented in backend)
+   */
+  static async bulkDeleteVendors(vendorIds: string[]): Promise<ApiResponse<any>> {
+    try {
+      // This endpoint would need to be implemented in the backend
+      return await ApiService.post(`/admin/users/bulk-delete`, { userIds: vendorIds });
+    } catch (error) {
+      console.error('Error bulk deleting vendors:', error);
+      throw error;
+    }
+  }
+}
+
+export default VendorService; 

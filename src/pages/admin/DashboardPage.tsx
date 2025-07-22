@@ -1,108 +1,75 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Package, Star, TrendingUp } from 'lucide-react';
 import { StatsCard, TimeFilter, ReviewsTable } from '@/components/common';
 import { UserGrowthChart, ReviewsChart } from '@/components/charts';
+import { useAnalytics } from '@/hooks/useAdminAuth';
+import EnhancedLoader from '@/components/common/EnhancedLoader';
 
 const DashboardPage = () => {
   const [activeFilter, setActiveFilter] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Weekly');
   const [selectedReviews, setSelectedReviews] = useState<number[]>([]);
 
-  // Mock data - replace with actual API calls
-  const stats = [
-    {
-      title: 'Total Users',
-      value: '10,340',
-      icon: Users,
-      iconColor: 'text-green-600',
-      iconBgColor: 'bg-green-100',
-    },
-    {
-      title: 'Total Vendors',
-      value: '234',
-      icon: Package,
-      iconColor: 'text-blue-600',
-      iconBgColor: 'bg-blue-100',
-    },
-    {
-      title: 'Total Reviews',
-      value: '15,256',
-      icon: Star,
-      iconColor: 'text-yellow-600',
-      iconBgColor: 'bg-yellow-100',
-    },
-    {
-      title: 'Revenue',
-      value: '$45,231',
-      icon: TrendingUp,
-      iconColor: 'text-purple-600',
-      iconBgColor: 'bg-purple-100',
-    },
-  ];
+  // Convert filter to lowercase for API
+  const period = useMemo(() => {
+    return activeFilter.toLowerCase() as 'weekly' | 'monthly' | 'yearly';
+  }, [activeFilter]);
 
-  // Sample reviews data matching the image
-  const sampleReviews = [
-    {
-      id: 1,
-      reviewer: {
-        name: 'Regina Pacheco',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b2496d1c?w=100&h=100&fit=crop&crop=face'
+  // Fetch analytics data with time filtering
+  const { data: analyticsData, isLoading, error } = useAnalytics(period);
+
+  // Format stats data for the UI
+  const stats = useMemo(() => {
+    if (!analyticsData?.stats) return [];
+    
+    return [
+      {
+        title: 'Total Users',
+        value: analyticsData.stats.totalUsers.toLocaleString(),
+        icon: Users,
+        iconColor: 'text-green-600',
+        iconBgColor: 'bg-green-100',
       },
-      product: 'Freshbook',
-      review: 'Super intuitive and easy to manage invoices...',
-      rating: 5,
-      date: 'Jul 10, 2025',
-      status: 'Published' as const
-    },
-    {
-      id: 2,
-      reviewer: {
-        name: 'Dave Stewart',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
+      {
+        title: 'Total Vendors',
+        value: analyticsData.stats.totalVendors.toLocaleString(),
+        icon: Package,
+        iconColor: 'text-blue-600',
+        iconBgColor: 'bg-blue-100',
       },
-      product: 'ZenHR',
-      review: 'A bit clunky on mobile, but great on desktop.',
-      rating: 4,
-      date: 'Jul 05, 2025',
-      status: 'Pending' as const
-    },
-    {
-      id: 3,
-      reviewer: {
-        name: 'Daniel King',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face'
+      {
+        title: 'Total Reviews',
+        value: analyticsData.stats.totalReviews.toLocaleString(),
+        icon: Star,
+        iconColor: 'text-yellow-600',
+        iconBgColor: 'bg-yellow-100',
       },
-      product: 'Notion',
-      review: 'Fast onboarding, excellent support team.',
-      rating: 2,
-      date: 'Jun 27, 2025',
-      status: 'Dispute' as const
-    },
-    {
-      id: 4,
+    ];
+  }, [analyticsData?.stats]);
+
+  // Format recent reviews data for the UI
+  const recentReviews = useMemo(() => {
+    if (!analyticsData?.recentReviews) return [];
+    
+    return analyticsData.recentReviews.map((review, index) => ({
+      id: index + 1, // Use index as ID since ReviewsTable expects number
       reviewer: {
-        name: 'Dorothy Miller',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face'
+        name: review.reviewer.name,
+        avatar: review.reviewer.avatar
       },
-      product: 'Build Smart',
-      review: 'Buggy interface. Support didn\'t help.',
-      rating: 4,
-      date: 'Jun 18, 2025',
-      status: 'Published' as const
-    },
-    {
-      id: 5,
-      reviewer: {
-        name: 'Laila Faheem',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face'
-      },
-      product: 'ZenHR',
-      review: 'A bit clunky on mobile, but great on desktop.',
-      rating: 3,
-      date: 'Jun 16, 2025',
-      status: 'Pending' as const
-    }
-  ];
+      product: review.product.name,
+      review: review.content.length > 50 ? `${review.content.substring(0, 50)}...` : review.content,
+      rating: review.overallRating,
+      date: new Date(review.submittedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      }),
+      status: (review.status === 'approved' ? 'Published' : 
+              review.status === 'pending' ? 'Pending' : 
+              review.status === 'dispute' ? 'Dispute' : 'Rejected') as 'Published' | 'Pending' | 'Dispute'
+    }));
+  }, [analyticsData?.recentReviews]);
 
   // Action handlers for reviews
   const handleSeeAllReviews = () => {
@@ -170,6 +137,31 @@ const DashboardPage = () => {
     }
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <EnhancedLoader />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Failed to load dashboard data
+          </h3>
+          <p className="text-gray-600">
+            {error.message || 'An error occurred while fetching analytics data.'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header with Time Filter */}
@@ -204,15 +196,19 @@ const DashboardPage = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
-        <UserGrowthChart activeFilter={activeFilter} />
-        <ReviewsChart activeFilter={activeFilter} />
+        <UserGrowthChart 
+          activeFilter={activeFilter} 
+          data={analyticsData?.charts?.userGrowth || []}
+        />
+        <ReviewsChart 
+          activeFilter={activeFilter} 
+          data={analyticsData?.charts?.reviewTrends || []}
+        />
       </div>
-
-
 
       {/* Recent Reviews Table */}
       <ReviewsTable 
-        reviews={sampleReviews} 
+        reviews={recentReviews} 
         onSeeAll={handleSeeAllReviews}
         onViewDetails={handleViewDetails}
         onDeleteReview={handleDeleteReview}
@@ -222,8 +218,6 @@ const DashboardPage = () => {
         onSelectedReviewsChange={handleSelectedReviewsChange}
         onBulkDelete={handleBulkDelete}
       />
-
-     
     </div>
   );
 };
