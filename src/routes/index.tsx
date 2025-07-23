@@ -150,20 +150,6 @@ const AppRoutes = createBrowserRouter([
       },
     ],
   },
-  // Root redirect to admin
-  {
-    path: "/",
-    element: (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Xuthority Admin</h1>
-          <a href="/dashboard" className="text-blue-600 hover:underline">
-            Go to Admin Panel
-          </a>
-        </div>
-      </div>
-    ),
-  },
   // Fallback route
   {
     path: "*",
@@ -178,6 +164,8 @@ const AppRoutes = createBrowserRouter([
       </div>
     ),
   },
-]);
+], {
+  basename: "/admin"
+});
 
 export default AppRoutes;

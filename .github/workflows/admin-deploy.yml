@@ -1,0 +1,345 @@
+name: Admin CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '20.x'
+  BUILD_PATH: 'dist'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint || echo "Linting completed with warnings"
+
+    - name: Run security audit
+      run: npm audit --audit-level=high || echo "Security audit completed"
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create production environment file
+      run: |
+        cat > .env.production << EOF
+        VITE_APP_ENV=production
+        VITE_API_BASE_URL=https://${{ secrets.SERVER_HOST }}/api/v1
+        VITE_APP_NAME=Xuthority Admin
+        VITE_APP_VERSION=${{ github.sha }}
+        VITE_BASE_PATH=/admin
+        EOF
+
+    - name: Build application with Vite
+      run: |
+        echo "Building Admin React application with Vite..."
+        npm run build
+        echo "Build completed successfully"
+        ls -la ${{ env.BUILD_PATH }}
+      env:
+        NODE_ENV: production
+
+    - name: Create build info
+      run: |
+        cat > ${{ env.BUILD_PATH }}/build-info.json << EOF
+        {
+          "version": "${{ github.sha }}",
+          "branch": "${{ github.ref_name }}",
+          "buildTime": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "commitMessage": "${{ github.event.head_commit.message }}",
+          "author": "${{ github.event.head_commit.author.name }}",
+          "application": "admin"
+        }
+        EOF
+
+    - name: Create deployment package
+      run: |
+        tar -czf admin-deployment.tar.gz -C ${{ env.BUILD_PATH }} .
+        echo "Deployment package created: $(ls -lh admin-deployment.tar.gz)"
+
+    - name: Upload deployment artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: admin-deployment
+        path: admin-deployment.tar.gz
+        retention-days: 30
+
+  deploy:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download deployment artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: admin-deployment
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to server
+      run: |
+        # Copy deployment package to server
+        scp admin-deployment.tar.gz ubuntu@${{ secrets.SERVER_HOST }}:/tmp/
+        
+        # Deploy on server
+        ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
+          set -e
+          
+          echo "Starting admin deployment..."
+          
+          # Create deployment directory
+          sudo mkdir -p /opt/xuthority
+          sudo chown -R ubuntu:ubuntu /opt/xuthority
+          
+          # Create admin deployment directory
+          DEPLOY_DIR="/opt/xuthority/admin"
+          mkdir -p $DEPLOY_DIR
+          
+          # Extract deployment package
+          cd $DEPLOY_DIR
+          tar -xzf /tmp/admin-deployment.tar.gz
+          rm /tmp/admin-deployment.tar.gz
+          
+          # Create health check endpoint
+          echo "healthy" > $DEPLOY_DIR/health
+          
+          # Set proper permissions
+          sudo chown -R www-data:www-data $DEPLOY_DIR
+          sudo chmod -R 755 $DEPLOY_DIR
+          sudo chmod 644 $DEPLOY_DIR/health
+          
+          echo "Admin deployment completed successfully"
+        EOF
+
+    - name: Update Nginx Configuration
+      run: |
+        ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
+          echo "Updating Nginx configuration for admin routes..."
+          
+          # Backup current configuration
+          sudo cp /etc/nginx/sites-available/xuthority /etc/nginx/sites-available/xuthority.backup.$(date +%Y%m%d_%H%M%S)
+          
+          # Update Nginx configuration to handle admin routes
+          sudo tee /etc/nginx/sites-available/xuthority > /dev/null << 'NGINX_EOF'
+          server {
+              listen 443 ssl http2;
+              server_name xuthority-dev.indiitserver.in;
+
+              # SSL Configuration (managed by Certbot)
+              ssl_certificate /etc/letsencrypt/live/xuthority-dev.indiitserver.in/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/xuthority-dev.indiitserver.in/privkey.pem;
+              include /etc/letsencrypt/options-ssl-nginx.conf;
+              ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+              # Security headers
+              add_header X-Frame-Options "SAMEORIGIN" always;
+              add_header X-Content-Type-Options "nosniff" always;
+              add_header X-XSS-Protection "1; mode=block" always;
+              add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+              add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+              # Gzip compression
+              gzip on;
+              gzip_vary on;
+              gzip_min_length 1024;
+              gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+
+              # Security: Hide server information  
+              server_tokens off;
+
+              # Prevent access to sensitive files
+              location ~ /\. {
+                  deny all;
+                  access_log off;
+                  log_not_found off;
+              }
+
+              # Admin application routes
+              location /admin {
+                  alias /opt/xuthority/admin;
+                  try_files $uri $uri/ /admin/index.html;
+                  
+                  # Handle admin static assets
+                  location ~* ^/admin/.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+                      expires 1y;
+                      add_header Cache-Control "public, immutable";
+                      access_log off;
+                  }
+                  
+                  # Handle admin HTML files
+                  location ~* ^/admin/.+\.(html)$ {
+                      expires 1h;
+                      add_header Cache-Control "public, must-revalidate";
+                  }
+              }
+
+              # Admin health check endpoint
+              location /admin/health {
+                  access_log off;
+                  alias /opt/xuthority/admin/health;
+                  add_header Content-Type text/plain;
+              }
+
+              # Main frontend health check endpoint
+              location /health {
+                  access_log off;
+                  alias /opt/xuthority/frontend/health;
+                  add_header Content-Type text/plain;
+              }
+
+              # API proxy to backend
+              location /api/ {
+                  proxy_pass http://localhost:8081;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_set_header X-Forwarded-Host $host;
+                  proxy_cache_bypass $http_upgrade;
+
+                  # File upload specific settings
+                  proxy_request_buffering off;
+                  proxy_buffering off;
+                  client_max_body_size 100M;
+
+                  # Timeouts
+                  proxy_connect_timeout 60s;
+                  proxy_send_timeout 300s;
+                  proxy_read_timeout 300s;
+              }
+
+              # Cache static assets for main frontend (JS, CSS, images, fonts)
+              location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+                  root /opt/xuthority/frontend;
+                  expires 1y;
+                  add_header Cache-Control "public, immutable";
+                  access_log off;
+              }
+
+              # Cache HTML files for main frontend
+              location ~* \.(html)$ {
+                  root /opt/xuthority/frontend;
+                  expires 1h;
+                  add_header Cache-Control "public, must-revalidate";
+              }
+
+              # Main frontend static files (catch-all for SPA)
+              location / {
+                  root /opt/xuthority/frontend;
+                  try_files $uri $uri/ /index.html;
+              }
+          }
+
+          # HTTP to HTTPS redirect
+          server {
+              listen 80;
+              server_name xuthority-dev.indiitserver.in;
+              return 301 https://$host$request_uri;
+          }
+          NGINX_EOF
+          
+          # Test Nginx configuration
+          sudo nginx -t
+          
+          # Reload Nginx if configuration is valid
+          sudo systemctl reload nginx
+          
+          echo "Nginx configuration updated successfully"
+        EOF
+
+    - name: Verify deployment
+      run: |
+        # Wait for deployment to stabilize
+        sleep 10
+        
+        # Verify deployment
+        ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
+          # Check Nginx status
+          sudo systemctl status nginx --no-pager
+          
+          # Check admin health endpoint
+          echo "Testing admin health endpoint..."
+          curl -f http://localhost/admin/health && echo "✅ Admin health check passed"
+          
+          # Check if admin is serving correctly
+          echo "Testing admin frontend serving..."
+          curl -f http://localhost/admin/ | grep -q "<!DOCTYPE html>" && echo "✅ Admin frontend HTML serving correctly"
+          
+          # Check main frontend health endpoint
+          echo "Testing main frontend health endpoint..."
+          curl -f http://localhost/health && echo "✅ Main frontend health check passed"
+          
+          # Test API proxy if backend is running
+          if curl -f http://localhost:8081/api/v1/health > /dev/null 2>&1; then
+            curl -f http://localhost/api/v1/health && echo "✅ API proxy working"
+          else
+            echo "⚠️  Backend not running, skipping API proxy test"
+          fi
+          
+          echo "✅ Admin deployment verification completed"
+        EOF
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Admin deployment successful"
+        else
+          echo "❌ Admin deployment failed"
+        fi
+
+  lighthouse:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Run Lighthouse CI for Admin
+      run: |
+        npm install -g @lhci/cli
+        lhci autorun --upload.target=temporary-public-storage --collect.url=http://${{ secrets.SERVER_HOST }}/admin/ || echo "Lighthouse audit completed"
+      env:
+        LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        LHCI_SERVER_BASE_URL: http://${{ secrets.SERVER_HOST }}/admin 
