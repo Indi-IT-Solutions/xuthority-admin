@@ -8,24 +8,27 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 
-interface VendorFilterProps {
-  onFilterChange: (filters: VendorFilters) => void;
-  currentFilters: VendorFilters;
+interface UserFilterProps {
+  onFilterChange: (filters: UserFilters) => void;
+  currentFilters: UserFilters;
 }
 
-export interface VendorFilters {
+export interface UserFilters {
   dateFilter: 'weekly' | 'monthly' | 'yearly' | 'custom' | null;
   dateFrom?: string;
   dateTo?: string;
+  status?: 'approved' | 'blocked' | null;
+  loginType?: 'email' | 'google' | 'linkedin' | null;
+  isVerified?: boolean | null;
   appliedAt?: number; // Timestamp to force refresh even when same filter is applied
 }
 
-const VendorFilter: React.FC<VendorFilterProps> = ({
+const UserFilter: React.FC<UserFilterProps> = ({
   onFilterChange,
   currentFilters,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [localFilters, setLocalFilters] = useState<VendorFilters>(currentFilters);
+  const [localFilters, setLocalFilters] = useState<UserFilters>(currentFilters);
 
   // Sync localFilters with currentFilters when popover opens
   useEffect(() => {
@@ -52,6 +55,30 @@ const VendorFilter: React.FC<VendorFilterProps> = ({
     }));
   };
 
+  const handleStatusFilterChange = (status: 'approved' | 'blocked' | null) => {
+    console.log('Status filter changed to:', status);
+    setLocalFilters(prev => ({
+      ...prev,
+      status: status
+    }));
+  };
+
+  const handleLoginTypeFilterChange = (loginType: 'email' | 'google' | 'linkedin' | null) => {
+    console.log('Login type filter changed to:', loginType);
+    setLocalFilters(prev => ({
+      ...prev,
+      loginType: loginType
+    }));
+  };
+
+  const handleVerificationFilterChange = (isVerified: boolean | null) => {
+    console.log('Verification filter changed to:', isVerified);
+    setLocalFilters(prev => ({
+      ...prev,
+      isVerified: isVerified
+    }));
+  };
+
   const handleApplyFilter = () => {
     const filtersWithTimestamp = {
       ...localFilters,
@@ -63,10 +90,13 @@ const VendorFilter: React.FC<VendorFilterProps> = ({
   };
 
   const handleClearAll = () => {
-    const clearedFilters: VendorFilters = {
+    const clearedFilters: UserFilters = {
       dateFilter: null,
       dateFrom: undefined,
       dateTo: undefined,
+      status: null,
+      loginType: null,
+      isVerified: null,
       appliedAt: Date.now()
     };
     setLocalFilters(clearedFilters);
@@ -181,6 +211,7 @@ const VendorFilter: React.FC<VendorFilterProps> = ({
             </div>
           )}
 
+
           {/* Action Buttons */}
           <div className="flex gap-3">
             <Button
@@ -205,4 +236,4 @@ const VendorFilter: React.FC<VendorFilterProps> = ({
   );
 };
 
-export default VendorFilter; 
+export default UserFilter; 

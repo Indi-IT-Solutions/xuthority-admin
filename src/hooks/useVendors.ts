@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { VendorService, VendorQueryParams, VendorsApiResponse } from '@/services/vendorService';
+import { VendorService, VendorQueryParams, VendorsApiResponse, VendorProductQueryParams } from '@/services/vendorService';
 import toast from 'react-hot-toast';
 
 // Query keys for caching
@@ -120,11 +120,48 @@ export const useBlockVendor = () => {
       }
       return response.data;
     },
+    onMutate: async (vendorId: string) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: vendorKeys.all });
+      await queryClient.cancelQueries({ queryKey: ['vendor-details'] });
+      await queryClient.cancelQueries({ queryKey: ['vendor-profile-stats'] });
+
+      // Optimistically update all vendor-related queries
+      queryClient.setQueriesData({ queryKey: vendorKeys.all }, (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        // Update vendor in lists
+        if (oldData.vendors) {
+          return {
+            ...oldData,
+            vendors: oldData.vendors.map((vendor: any) => 
+              vendor._id === vendorId ? { ...vendor, status: 'blocked' } : vendor
+            )
+          };
+        }
+        
+        return oldData;
+      });
+
+      // Update vendor detail queries
+      queryClient.setQueriesData({ queryKey: ['vendor-details'] }, (oldData: any) => {
+        if (!oldData) return oldData;
+        if (oldData.data?._id === vendorId) {
+          return { ...oldData, data: { ...oldData.data, status: 'blocked' } };
+        }
+        return oldData;
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['vendor-details'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-profile-stats'] });
       toast.success('Vendor blocked successfully');
     },
-    onError: (error: any) => {
+    onError: (error: any, vendorId: string, context: any) => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['vendor-details'] });
       const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to block vendor';
       toast.error(errorMessage);
     },
@@ -145,11 +182,48 @@ export const useUnblockVendor = () => {
       }
       return response.data;
     },
+    onMutate: async (vendorId: string) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: vendorKeys.all });
+      await queryClient.cancelQueries({ queryKey: ['vendor-details'] });
+      await queryClient.cancelQueries({ queryKey: ['vendor-profile-stats'] });
+
+      // Optimistically update all vendor-related queries
+      queryClient.setQueriesData({ queryKey: vendorKeys.all }, (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        // Update vendor in lists
+        if (oldData.vendors) {
+          return {
+            ...oldData,
+            vendors: oldData.vendors.map((vendor: any) => 
+              vendor._id === vendorId ? { ...vendor, status: 'approved' } : vendor
+            )
+          };
+        }
+        
+        return oldData;
+      });
+
+      // Update vendor detail queries
+      queryClient.setQueriesData({ queryKey: ['vendor-details'] }, (oldData: any) => {
+        if (!oldData) return oldData;
+        if (oldData.data?._id === vendorId) {
+          return { ...oldData, data: { ...oldData.data, status: 'approved' } };
+        }
+        return oldData;
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['vendor-details'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-profile-stats'] });
       toast.success('Vendor unblocked successfully');
     },
-    onError: (error: any) => {
+    onError: (error: any, vendorId: string, context: any) => {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['vendor-details'] });
       const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to unblock vendor';
       toast.error(errorMessage);
     },
@@ -203,5 +277,41 @@ export const useBulkDeleteVendors = () => {
       const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to delete vendors';
       toast.error(errorMessage);
     },
+  });
+};
+
+/**
+ * Hook to get vendor details by slug
+ */
+export const useVendorDetails = (slug: string) => {
+  return useQuery({
+    queryKey: ['vendor-details', slug],
+    queryFn: () => VendorService.getVendorBySlug(slug),
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+/**
+ * Hook to get vendor profile statistics by slug
+ */
+export const useVendorProfileStats = (slug: string) => {
+  return useQuery({
+    queryKey: ['vendor-profile-stats', slug],
+    queryFn: () => VendorService.getVendorProfileStatsBySlug(slug),
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+/**
+ * Hook to get vendor products by user ID
+ */
+export const useVendorProducts = (userId: string, params: VendorProductQueryParams = {}) => {
+  return useQuery({
+    queryKey: ['vendor-products', userId, params],
+    queryFn: () => VendorService.getVendorProducts(userId, params),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }; 

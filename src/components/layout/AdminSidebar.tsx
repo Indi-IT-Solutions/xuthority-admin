@@ -46,11 +46,11 @@ const navigationItems = [
   //   href: '/subscription-plans',
   //   icon: CreditCard,
   // },
-  {
-    label: 'Payments',
-    href: '/payments',
-    icon: CreditCard,
-  },
+  // {
+  //   label: 'Payments',
+  //   href: '/payments',
+  //   icon: CreditCard,
+  // },
   {
     label: 'Badges',
     href: '/badges',

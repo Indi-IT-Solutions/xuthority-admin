@@ -70,12 +70,7 @@ const ActionMenu = ({
             color: 'text-red-600',
             onClick: () => onBlockVendor?.(vendor._id || vendor.id.toString())
           },
-          {
-            label: 'Delete',
-            icon: Trash2,
-            color: 'text-red-600',
-            onClick: () => onDeleteVendor?.(vendor._id || vendor.id.toString())
-          }
+     
         ];
       case 'Blocked':
         return [
@@ -91,12 +86,7 @@ const ActionMenu = ({
             color: 'text-green-600',
             onClick: () => onUnblockVendor?.(vendor._id || vendor.id.toString())
           },
-          {
-            label: 'Delete',
-            icon: Trash2,
-            color: 'text-red-600',
-            onClick: () => onDeleteVendor?.(vendor._id || vendor.id.toString())
-          }
+      
         ];
       case 'Pending':
         return [

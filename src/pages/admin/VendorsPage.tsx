@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Filter } from "lucide-react";
 import { VendorsTable, Pagination, VendorFilter } from "@/components/common";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import { TransformedVendor } from "@/services/vendorService";
 // import { EnhancedLoader } from "@/components/common";
 
 const VendorsPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"approved" | "pending">("approved");
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,6 +32,7 @@ const VendorsPage = () => {
     dateFilter: null,
     dateFrom: undefined,
     dateTo: undefined,
+    appliedAt: undefined,
   });
 
   // Confirmation modal states
@@ -71,6 +74,13 @@ const VendorsPage = () => {
       }
     }
 
+    // Include appliedAt timestamp to force new API calls even with same filters
+    if (filters.appliedAt) {
+      params.appliedAt = filters.appliedAt;
+    }
+
+    console.log('API Params being sent:', params);
+    console.log('Current filters:', filters);
     return params;
   }, [currentPage, itemsPerPage, debouncedSearchQuery, activeTab, filters]);
 
@@ -127,7 +137,13 @@ const VendorsPage = () => {
 
   // Action handlers
   const handleViewDetails = (vendorId: string) => {
-    console.log("View details for vendor:", vendorId);
+    const vendor = displayVendors.find(v => v._id === vendorId || v.id.toString() === vendorId);
+    console.log('vendor', vendor)
+    if (vendor && vendor.slug) {
+      navigate(`/vendors/${vendor.slug}`);
+    } else {
+      console.error("Vendor not found or missing slug:", vendorId);
+    }
   };
 
   // Helper function to get vendor name

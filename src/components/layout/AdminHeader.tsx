@@ -37,7 +37,7 @@ const AdminHeader = () => {
         </Sheet>
 
         {/* User Profile */}
-        <div className="flex items-center space-x-2 md:space-x-3 cursor-pointer" onClick={() => navigate('/profile')}>
+        <div className="flex items-center space-x-2 md:space-x-3 cursor-pointer" onClick={() => navigate('/profile-settings')}>
           <Avatar className="w-8 h-8 md:w-12 md:h-12">
             <AvatarImage 
               src={user?.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"} 

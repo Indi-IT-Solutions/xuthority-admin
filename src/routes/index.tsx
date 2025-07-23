@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
-import { SuspenseLoader } from "@/components/common/EnhancedLoader";
+import { SuspenseLoader } from "@/components/common";
 
 // Lazy load components for better performance
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
@@ -14,6 +14,8 @@ const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 const DashboardPage = lazy(() => import("@/pages/admin/DashboardPage"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
 const VendorsPage = lazy(() => import("@/pages/admin/VendorsPage"));
+const VendorDetailPage = lazy(() => import("@/pages/admin/VendorDetailPage"));
+const UserDetailPage = lazy(() => import("@/pages/admin/UserDetailPage"));
 const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
 const ReviewsPage = lazy(() => import("@/pages/admin/ReviewsPage"));
 const SettingsPage = lazy(() => import("@/pages/admin/SettingsPage"));
@@ -83,10 +85,26 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
+        path: "users/:slug",
+        element: (
+          <SuspenseWrapper>
+            <UserDetailPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
         path: "vendors",
         element: (
           <SuspenseWrapper>
             <VendorsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "vendors/:slug",
+        element: (
+          <SuspenseWrapper>
+            <VendorDetailPage />
           </SuspenseWrapper>
         ),
       },
