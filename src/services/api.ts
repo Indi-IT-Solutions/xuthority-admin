@@ -3,6 +3,9 @@ import toast from 'react-hot-toast';
 
 // API Configuration
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8081/api/v1';
+console.log('🔧 API_BASE_URL configured as:', API_BASE_URL);
+console.log('🔧 Environment:', (import.meta as any).env?.VITE_APP_ENV || 'development');
+
 const API_TIMEOUT = 30000; // 30 seconds
 const FILE_UPLOAD_TIMEOUT = 300000; // 5 minutes for file uploads
 
@@ -96,8 +99,9 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenStorage.getToken();
-    console.log("Request to:", config.url);
-    console.log("Token from storage:", token);
+    const fullUrl = `${config.baseURL}${config.url}`;
+    console.log("🌐 API Request to:", fullUrl);
+    console.log("🔐 Token from storage:", token ? 'Present' : 'Missing');
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
