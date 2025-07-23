@@ -1,10 +1,23 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import toast from 'react-hot-toast';
 
+// Debug all available environment variables
+console.log('🔍 All available import.meta.env:', import.meta);
+console.log('🔍 VITE_API_BASE_URL from env:', (import.meta as any).env?.VITE_API_BASE_URL);
+console.log('🔍 VITE_APP_ENV from env:', (import.meta as any).env?.VITE_APP_ENV);
+console.log('🔍 All VITE_ variables:', Object.keys((import.meta as any).env || {}).filter(key => key.startsWith('VITE_')));
+
 // API Configuration
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8081/api/v1';
 console.log('🔧 API_BASE_URL configured as:', API_BASE_URL);
 console.log('🔧 Environment:', (import.meta as any).env?.VITE_APP_ENV || 'development');
+
+// Validate API_BASE_URL format
+if (API_BASE_URL.startsWith('https://api/')) {
+  console.error('❌ CRITICAL: API_BASE_URL is malformed!', API_BASE_URL);
+  console.error('❌ Expected format: https://domain.com/api/v1');
+  console.error('❌ Check GitHub Secrets: SERVER_HOST should be just the domain name');
+}
 
 const API_TIMEOUT = 30000; // 30 seconds
 const FILE_UPLOAD_TIMEOUT = 300000; // 5 minutes for file uploads
