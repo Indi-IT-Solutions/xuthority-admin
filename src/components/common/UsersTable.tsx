@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { MoreHorizontal, Eye, Trash2, Ban, Check, User } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/getInitials';
@@ -50,6 +50,8 @@ const ActionMenu = ({
   onVerifyUser
 }: ActionMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   const getActions = () => {
     switch (user.status) {
@@ -106,12 +108,74 @@ const ActionMenu = ({
     }
   };
 
+  const updateDropdownPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const dropdownWidth = 192; // w-48 = 12rem = 192px
+      const dropdownHeight = 200; // Approximate height
+      
+      let top = rect.bottom + 4; // 4px margin, using viewport coordinates
+      let left = rect.right - dropdownWidth; // Align right edge
+      
+      // Adjust if dropdown would go off-screen
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Adjust horizontal position if off-screen
+      if (left < 10) {
+        left = rect.left; // Align to left edge of button
+      }
+      if (left + dropdownWidth > viewportWidth - 10) {
+        left = viewportWidth - dropdownWidth - 10;
+      }
+      
+      // Adjust vertical position if off-screen
+      if (top + dropdownHeight > viewportHeight - 10) {
+        top = rect.top - dropdownHeight - 4; // Show above button
+      }
+      
+      setDropdownPosition({ top, left });
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (!isOpen) {
+      updateDropdownPosition();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  // Close dropdown on scroll
+  React.useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => {
+        setIsOpen(false);
+      };
+
+      const handleResize = () => {
+        if (isOpen) {
+          updateDropdownPosition();
+        }
+      };
+
+      // Add scroll listeners to both window and potential scroll containers
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [isOpen]);
+
   const actions = getActions();
 
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={handleButtonClick}
         className="p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
       >
         <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
@@ -121,12 +185,18 @@ const ActionMenu = ({
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-10 cursor-pointer" 
+            className="fixed inset-0 z-40 cursor-pointer" 
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Dropdown menu */}
-          <div className="absolute right-0 mt-1 w-40 md:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+          {/* Dropdown menu with fixed positioning */}
+          <div 
+            className="fixed w-40 md:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+          >
             {actions.map((action, index) => (
               <button
                 key={index}
@@ -252,7 +322,7 @@ const UsersTable = ({
         </div>
       )}
 
-      <div className="overflow-auto gap-3 rounded-2xl bg-white shadow-sm border border-gray-100 min-h-[65vh]">
+      <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-100 min-h-[65vh] relative">
         <table className="w-full min-w-[1200px]">
           {/* Table Header */}
           <thead className="bg-gray-100 rounded-b-2xl">

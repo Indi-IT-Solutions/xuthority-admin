@@ -173,7 +173,7 @@ const VendorDetailPage = () => {
         <div className="flex items-center text-xs sm:text-sm text-gray-600">
           <button 
             onClick={() => navigate('/vendors')}
-            className="hover:text-gray-800 transition-colors"
+            className="hover:text-gray-800 transition-colors cursor-pointer"
           >
             Vendors
           </button>

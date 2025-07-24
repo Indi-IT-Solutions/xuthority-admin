@@ -4,12 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedLoader } from "@/components/common";
 import { useUserDetailsBySlug, useUserProfileStatsBySlug, useUserReviewsBySlug, useBlockUser, useUnblockUser } from "@/hooks/useUsers";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import StarRating from "@/components/common/StartRating";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useQueryClient } from '@tanstack/react-query';
+import { useReviewTabRefetch } from '@/hooks/useTabRefetch';
 
 const UserDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     type: 'block' | 'unblock' | null;
@@ -25,12 +30,13 @@ const UserDetailPage = () => {
   // Reviews state
   const [currentReviewsPage, setCurrentReviewsPage] = useState(1);
   const [activeReviewTab, setActiveReviewTab] = useState<'all' | 'approved' | 'pending' | 'disputed'>('all');
+  const [reviewsRefetchTrigger, setReviewsRefetchTrigger] = useState(Date.now());
 
   const { data: userResponse, isLoading, error } = useUserDetailsBySlug(slug || '');
   const { data: userStatsResponse, isLoading: isStatsLoading } = useUserProfileStatsBySlug(slug || '');
   
   // Get user reviews with pagination and filtering
-  const { data: userReviewsResponse, isLoading: isReviewsLoading } = useUserReviewsBySlug(
+  const { data: userReviewsResponse, isLoading: isReviewsLoading, refetch: refetchReviews } = useUserReviewsBySlug(
     slug || '', 
     {
       page: currentReviewsPage,
@@ -43,6 +49,9 @@ const UserDetailPage = () => {
 
   const blockUserMutation = useBlockUser();
   const unblockUserMutation = useUnblockUser();
+
+  // Use the utility hook to handle tab changes and API refetching
+  const { isTabChanged } = useReviewTabRefetch(activeReviewTab, slug, refetchReviews);
 
   if (isLoading) {
     return <EnhancedLoader loadingText="Loading user details..." minDisplayTime={800} />;
@@ -103,10 +112,19 @@ const UserDetailPage = () => {
   const handleReviewTabChange = (tab: 'all' | 'approved' | 'pending' | 'disputed') => {
     setActiveReviewTab(tab);
     setCurrentReviewsPage(1);
+    setReviewsRefetchTrigger(Date.now());
+    
+    // The useReviewTabRefetch hook will automatically handle the API refetch
+    // when activeReviewTab changes, ensuring fresh data is loaded
   };
 
   const handleReviewPageChange = (page: number) => {
     setCurrentReviewsPage(page);
+    
+    // Manual refetch for pagination changes
+    setTimeout(() => {
+      refetchReviews();
+    }, 50);
   };
 
   const formatDate = (dateString: string) => {
@@ -168,7 +186,7 @@ const UserDetailPage = () => {
         <div className="flex items-center text-xs sm:text-sm text-gray-600">
           <button 
             onClick={() => navigate('/users')}
-            className="hover:text-gray-800 transition-colors"
+            className="hover:text-gray-800 transition-colors cursor-pointer"
           >
             Users Management
           </button>
@@ -286,23 +304,23 @@ const UserDetailPage = () => {
               </div>
 
               {/* Row 3: Review Posted, Approved, Pending, Disputed, Login Type */}
-              {!isStatsLoading && userStatsResponse?.success && (
+              {!isStatsLoading && userStatsResponse && (
                 <>
                   <div>
                     <label className="text-xs sm:text-sm text-gray-500 block mb-1">Review Posted</label>
-                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.data.totalReviews || 0}</p>
+                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.totalReviews || 0}</p>
                   </div>
                   <div>
                     <label className="text-xs sm:text-sm text-gray-500 block mb-1">Approved</label>
-                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.data.approved || 0}</p>
+                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.approved || 0}</p>
                   </div>
                   <div>
                     <label className="text-xs sm:text-sm text-gray-500 block mb-1">Pending</label>
-                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.data.pending || 0}</p>
+                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.pending || 0}</p>
                   </div>
                   <div>
                     <label className="text-xs sm:text-sm text-gray-500 block mb-1">Disputed</label>
-                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.data.disputed || 0}</p>
+                    <p className="text-sm sm:text-base text-gray-900">{userStatsResponse.disputed || 0}</p>
                   </div>
                 </>
               )}
@@ -362,58 +380,66 @@ const UserDetailPage = () => {
          
 
           {/* Reviews Content */}
-          {isReviewsLoading ? (
+          {(isReviewsLoading || isTabChanged) ? (
             <div className="bg-white rounded-lg lg:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8 min-h-[300px]">
               <div className="text-center">
-                <EnhancedLoader loadingText="Loading reviews..." minDisplayTime={800} />
+                <EnhancedLoader 
+                  loadingText={isTabChanged ? "Loading filtered reviews..." : "Loading reviews..."} 
+                  minDisplayTime={800} 
+                />
               </div>
             </div>
-          ) : userReviewsResponse?.success && userReviewsResponse.data.reviews.length > 0 ? (
+          ) : userReviewsResponse && userReviewsResponse.reviews.length > 0 ? (
             <div className="space-y-4 min-h-[300px]">
-              {userReviewsResponse.data.reviews.map((review, index) => (
+              {userReviewsResponse.reviews.map((review, index) => (
                 <div key={review._id || index} className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
                   {/* Review Header */}
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <span className="text-orange-600 font-bold">
-                        {review.product?.name?.charAt(0) || 'P'}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              {/* Product Logo */}
+              <Avatar className="w-12 h-12 sm:w-16 sm:h-16 rounded-md text-white flex-shrink-0 flex  justify-center items-center" style={{backgroundColor: review.product?.brandColors }}>
+                <AvatarImage src={review.product?.logoUrl} alt={review.product?.name} className="object-cover h-12 w-12 rounded-md"/>
+                <AvatarFallback>
+                  {review.product?.name?.charAt(0) || 'P'}
+                </AvatarFallback>
+              </Avatar>
+              {/* Product Details */}
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-lg sm:text-xl font-semibold text-gray-900 leading-tight capitalize truncate">
+                  {review.product?.name || 'Unknown Product'}
+                </span>
+                <div className="flex items-center">
+                         <StarRating rating={review.product?.avgRating || 0} />
+                          <span className="ml-1 text-sm text-gray-600">({review.product?.totalReviews || 0})</span>
+                        </div>
+              </div>
+            </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-gray-900">{review.product?.name || 'Product'}</h3>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < (review.overallRating || 0)
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                          <span className="ml-1 text-sm text-gray-600">({review.overallRating || 0})</span>
-                        </div>
+                     
                       </div>
-                      <p className="text-sm text-gray-600">{formatDate(review.submittedAt || review.createdAt)}</p>
                     </div>
                   </div>
 
                   {/* Review Title */}
-                  {review.title && (
-                    <h4 className="font-medium text-gray-900 mb-3">"{review.title}"</h4>
-                  )}
+                    <h4 className="font-medium text-gray-900">"{review.title}"</h4>
+                   <div className="flex items-center gap-2">
+                   <StarRating rating={review.overallRating || 0} size="lg" />
+                   <p className="text-sm text-gray-600">{formatDate(review.submittedAt || review.createdAt)}</p>
+                   </div>
+                   
+                  
 
                   {/* Review Content */}
-                  <p className="text-gray-700 leading-relaxed text-sm">
+                  <div className="text-gray-700 leading-relaxed text-sm whitespace-pre-line mt-3">
                     {review.content || review.review || 'No review content available.'}
-                  </p>
+                  </div>
                 </div>
               ))}
 
               {/* Reviews Pagination */}
-              {userReviewsResponse.data.pagination.totalPages > 1 && (
+              {userReviewsResponse.pagination.totalPages > 1 && (
                 <div className="flex justify-center mt-6">
                   <div className="flex gap-2">
                     <Button
@@ -425,13 +451,13 @@ const UserDetailPage = () => {
                       Previous
                     </Button>
                     <span className="flex items-center px-4 text-sm text-gray-600">
-                      Page {currentReviewsPage} of {userReviewsResponse.data.pagination.totalPages}
+                      Page {currentReviewsPage} of {userReviewsResponse.pagination.totalPages}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleReviewPageChange(currentReviewsPage + 1)}
-                      disabled={currentReviewsPage === userReviewsResponse.data.pagination.totalPages}
+                      disabled={currentReviewsPage === userReviewsResponse.pagination.totalPages}
                     >
                       Next
                     </Button>

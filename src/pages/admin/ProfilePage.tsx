@@ -73,18 +73,6 @@ const ProfilePage = () => {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Debug: Check authentication state
-  useEffect(() => {
-    const token = AdminAuthService.getToken();
-
-    if (!token || !isLoggedIn) {
-      console.log("❌ Authentication issue detected");
-      toast.error("Please log in to access your profile");
-      // Optionally redirect to login
-      // window.location.href = '/login';
-    }
-  }, [user, isLoggedIn]);
-
   // Query to get current profile
   const {
     data: profileData,
@@ -105,12 +93,7 @@ const ProfilePage = () => {
     enabled: isLoggedIn && AdminAuthService.isAuthenticated(), // Only run if authenticated
   });
 
-  // Log any query errors
-  useEffect(() => {
-    if (error) {
-      console.log("❌ Profile query error:", error);
-    }
-  }, [error]);
+
 
   // Cleanup preview URL on unmount
   useEffect(() => {

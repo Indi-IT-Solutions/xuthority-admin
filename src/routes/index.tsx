@@ -17,7 +17,9 @@ const VendorsPage = lazy(() => import("@/pages/admin/VendorsPage"));
 const VendorDetailPage = lazy(() => import("@/pages/admin/VendorDetailPage"));
 const UserDetailPage = lazy(() => import("@/pages/admin/UserDetailPage"));
 const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
+const BadgesPage = lazy(() => import("@/pages/admin/BadgesPage"));
 const ReviewsPage = lazy(() => import("@/pages/admin/ReviewsPage"));
+const ReviewDetailPage = lazy(() => import("@/pages/admin/ReviewDetailPage"));
 const SettingsPage = lazy(() => import("@/pages/admin/SettingsPage"));
 const ProfilePage = lazy(() => import("@/pages/admin/ProfilePage"));
 
@@ -117,10 +119,26 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
+        path: "badges",
+        element: (
+          <SuspenseWrapper>
+            <BadgesPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
         path: "reviews",
         element: (
           <SuspenseWrapper>
             <ReviewsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "reviews/:id",
+        element: (
+          <SuspenseWrapper>
+            <ReviewDetailPage />
           </SuspenseWrapper>
         ),
       },
@@ -157,7 +175,7 @@ const AppRoutes = createBrowserRouter([
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Page Not Found</h1>
-          <a href="/dashboard" className="text-blue-600 hover:underline">
+          <a href="/admin/dashboard" className="text-blue-600 hover:underline">
             Go to Admin Panel
           </a>
         </div>
@@ -165,7 +183,7 @@ const AppRoutes = createBrowserRouter([
     ),
   },
 ], {
-  basename: "/admin"
+  basename: "/"
 });
 
 export default AppRoutes;

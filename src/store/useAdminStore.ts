@@ -64,6 +64,9 @@ const useAdminStore = create<AdminStore>()(
       },
 
       logout: () => {
+        // Clear token from API service storage first
+        AdminAuthService.tokenStorage.removeToken();
+        
         set({
           isLoggedIn: false,
           user: null,
@@ -192,6 +195,9 @@ const useAdminStore = create<AdminStore>()(
             ...user, // Include any other fields from the response
           };
           
+          // Set the token in storage
+          AdminAuthService.tokenStorage.setToken(token);
+          
           set({
             user: userInfo,
             token: token,
@@ -317,5 +323,32 @@ const useAdminStore = create<AdminStore>()(
     }
   )
 );
+
+// --- Global effect to sync isLoggedIn with token on app load and token changes ---
+// This should be placed after the store definition
+if (typeof window !== 'undefined') {
+  const syncAuthState = () => {
+    const token = AdminAuthService.tokenStorage.getToken();
+    const { isLoggedIn, logout } = useAdminStore.getState();
+    if (!token && isLoggedIn) {
+      // Token missing but store says logged in: force logout
+      useAdminStore.getState().logout();
+    } else if (token && !isLoggedIn) {
+      // Token present but store says not logged in: try to rehydrate (optional)
+      // You could fetch profile here if needed
+      // For now, do nothing (user must log in again)
+    }
+  };
+
+  // Run on app load
+  syncAuthState();
+
+  // Listen for storage changes (e.g., logout in another tab)
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'xuthority_access_token') {
+      syncAuthState();
+    }
+  });
+}
 
 export default useAdminStore; 

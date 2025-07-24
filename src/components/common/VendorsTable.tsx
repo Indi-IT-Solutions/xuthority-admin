@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { MoreHorizontal, Eye, Trash2, Check, X, Ban } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/getInitials';
@@ -53,6 +53,8 @@ const ActionMenu = ({
   onRejectVendor,
 }: ActionMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   const getActions = () => {
     switch (vendor.status) {
@@ -116,10 +118,72 @@ const ActionMenu = ({
 
   const actions = getActions();
 
+  const updateDropdownPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const dropdownWidth = 176; // w-44 = 11rem = 176px
+      const dropdownHeight = 200; // Approximate height for vendor actions
+      
+      let top = rect.bottom + 4; // 4px margin, using viewport coordinates
+      let left = rect.right - dropdownWidth; // Align right edge
+      
+      // Adjust if dropdown would go off-screen
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Adjust horizontal position if off-screen
+      if (left < 10) {
+        left = rect.left; // Align to left edge of button
+      }
+      if (left + dropdownWidth > viewportWidth - 10) {
+        left = viewportWidth - dropdownWidth - 10;
+      }
+      
+      // Adjust vertical position if off-screen
+      if (top + dropdownHeight > viewportHeight - 10) {
+        top = rect.top - dropdownHeight - 4; // Show above button
+      }
+      
+      setDropdownPosition({ top, left });
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (!isOpen) {
+      updateDropdownPosition();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  // Close dropdown on scroll
+  React.useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => {
+        setIsOpen(false);
+      };
+
+      const handleResize = () => {
+        if (isOpen) {
+          updateDropdownPosition();
+        }
+      };
+
+      // Add scroll listeners to both window and potential scroll containers
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [isOpen]);
+
   return (
     <div className="relative">
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={handleButtonClick}
         className="p-1 md:p-2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
       >
         <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5" />
@@ -129,12 +193,18 @@ const ActionMenu = ({
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-10" 
+            className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
           
           {/* Dropdown Menu */}
-          <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+          <div 
+            className="fixed w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+          >
             {actions.map((action, index) => {
               const Icon = action.icon;
               return (

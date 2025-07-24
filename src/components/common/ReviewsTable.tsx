@@ -1,41 +1,63 @@
-import { useState } from 'react';
-import { Star, MoreHorizontal, Eye, Trash2, Check, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Star, MoreHorizontal, Eye, Trash2, Check, X, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { getInitials } from '@/utils/getInitials';
-import StarRating from './StartRating';
+import { getUserDisplayName, getUserInitials } from '@/utils/userHelpers';
 
 interface Review {
   id: number;
+  _id: string; // MongoDB ID for API calls
   reviewer: {
-    name: string;
+    id: string;
+    firstName: string;
+    lastName: string; 
+    email: string;
     avatar: string;
+    slug?: string;
+    companyName?: string;
+    isVerified?: boolean;
   };
-  product: string;
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    logo?: string;
+    totalReviews?: number;
+    avgRating?: number;
+    userId: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      avatar: string;
+      slug?: string;
+      companyName?: string;
+    };
+  };
   review: string;
   rating: number;
+  comments: number;
   date: string;
-  status: 'Published' | 'Pending' | 'Dispute';
+  status: 'Published' | 'Pending' | 'Disputed';
 }
 
 interface ReviewsTableProps {
   reviews: Review[];
-  onSeeAll?: () => void;
-  onViewDetails?: (reviewId: number) => void;
-  onDeleteReview?: (reviewId: number) => void;
-  onApproveReview?: (reviewId: number) => void;
-  onRejectReview?: (reviewId: number) => void;
-  onResolveDispute?: (reviewId: number) => void;
-  onSelectedReviewsChange?: (selectedIds: number[]) => void;
-  onBulkDelete?: (selectedIds: number[]) => void;
+  onViewDetails?: (reviewId: string) => void;
+  onDeleteReview?: (reviewId: string) => void;
+  onApproveReview?: (reviewId: string) => void;
+  onRejectReview?: (reviewId: string) => void;
+  onResolveDispute?: (reviewId: string) => void;
+  onSelectedReviewsChange?: (selectedIds: string[]) => void;
+  onBulkDelete?: (selectedIds: string[]) => void;
 }
 
 interface ActionMenuProps {
   review: Review;
-  onViewDetails?: (reviewId: number) => void;
-  onDeleteReview?: (reviewId: number) => void;
-  onApproveReview?: (reviewId: number) => void;
-  onRejectReview?: (reviewId: number) => void;
-  onResolveDispute?: (reviewId: number) => void;
+  onViewDetails?: (reviewId: string) => void;
+  onDeleteReview?: (reviewId: string) => void;
+  onApproveReview?: (reviewId: string) => void;
+  onRejectReview?: (reviewId: string) => void;
+  onResolveDispute?: (reviewId: string) => void;
 }
 
 const ActionMenu = ({ 
@@ -47,6 +69,8 @@ const ActionMenu = ({
   onResolveDispute 
 }: ActionMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   const getActions = () => {
     switch (review.status) {
@@ -56,13 +80,13 @@ const ActionMenu = ({
             label: 'View Details',
             icon: Eye,
             color: 'text-blue-600',
-            onClick: () => onViewDetails?.(review.id)
+            onClick: () => onViewDetails?.(review._id)
           },
           {
             label: 'Delete Review',
             icon: Trash2,
             color: 'text-red-600',
-            onClick: () => onDeleteReview?.(review.id)
+            onClick: () => onDeleteReview?.(review._id)
           }
         ];
       case 'Pending':
@@ -71,40 +95,40 @@ const ActionMenu = ({
             label: 'View Details',
             icon: Eye,
             color: 'text-blue-600',
-            onClick: () => onViewDetails?.(review.id)
+            onClick: () => onViewDetails?.(review._id)
           },
           {
             label: 'Approve',
             icon: Check,
             color: 'text-green-600',
-            onClick: () => onApproveReview?.(review.id)
+            onClick: () => onApproveReview?.(review._id)
           },
           {
             label: 'Reject',
             icon: X,
             color: 'text-red-600',
-            onClick: () => onRejectReview?.(review.id)
+            onClick: () => onRejectReview?.(review._id)
           }
         ];
-      case 'Dispute':
+      case 'Disputed':
         return [
           {
             label: 'View Details',
             icon: Eye,
             color: 'text-blue-600',
-            onClick: () => onViewDetails?.(review.id)
+            onClick: () => onViewDetails?.(review._id)
           },
           {
             label: 'Resolve',
             icon: Check,
             color: 'text-green-600',
-            onClick: () => onResolveDispute?.(review.id)
+            onClick: () => onResolveDispute?.(review._id)
           },
           {
             label: 'Delete',
-            icon: X,
+            icon: Trash2,
             color: 'text-red-600',
-            onClick: () => onDeleteReview?.(review.id)
+            onClick: () => onDeleteReview?.(review._id)
           }
         ];
       default:
@@ -112,43 +136,106 @@ const ActionMenu = ({
     }
   };
 
-  const actions = getActions();
+  const updateDropdownPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const dropdownWidth = 192; // w-48 = 12rem = 192px
+      const dropdownHeight = 200; // Approximate height for review actions
+      
+      let top = rect.bottom + 4; // 4px margin, using viewport coordinates
+      let left = rect.right - dropdownWidth; // Align right edge
+      
+      // Adjust if dropdown would go off-screen
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Adjust horizontal position if off-screen
+      if (left < 10) {
+        left = rect.left; // Align to left edge of button
+      }
+      if (left + dropdownWidth > viewportWidth - 10) {
+        left = viewportWidth - dropdownWidth - 10;
+      }
+      
+      // Adjust vertical position if off-screen
+      if (top + dropdownHeight > viewportHeight - 10) {
+        top = rect.top - dropdownHeight - 4; // Show above button
+      }
+      
+      setDropdownPosition({ top, left });
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (!isOpen) {
+      updateDropdownPosition();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  // Close dropdown on scroll
+  React.useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => {
+        setIsOpen(false);
+      };
+
+      const handleResize = () => {
+        if (isOpen) {
+          updateDropdownPosition();
+        }
+      };
+
+      // Add scroll listeners to both window and potential scroll containers
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [isOpen]);
 
   return (
     <div className="relative">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1 md:p-2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer    "
+      <button
+        ref={buttonRef}
+        onClick={handleButtonClick}
+        className="w-8 h-8 md:w-9 md:h-9 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
       >
-        <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5" />
+        <MoreHorizontal className="w-4 h-4 text-gray-600" />
       </button>
 
       {isOpen && (
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-10" 
+            className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
           
           {/* Dropdown Menu */}
-          <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
-            {actions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => {
-                    action.onClick();
-                    setIsOpen(false);
-                  }}
-                  className="w-full flex items-center px-4 py-2 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  <Icon className={`w-4 h-4 mr-3 ${action.color}`} />
-                  <span className="text-gray-700">{action.label}</span>
-                </button>
-              );
-            })}
+          <div 
+            className="fixed w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+          >
+            {getActions().map((action, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  action.onClick();
+                  setIsOpen(false);
+                }}
+                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center space-x-2 ${action.color} cursor-pointer`}
+              >
+                <action.icon className="w-4 h-4" />
+                <span>{action.label}</span>
+              </button>
+            ))}
           </div>
         </>
       )}
@@ -156,42 +243,33 @@ const ActionMenu = ({
   );
 };
 
-const ReviewsTable = ({ 
-  reviews, 
-  onSeeAll, 
-  onViewDetails, 
-  onDeleteReview, 
-  onApproveReview, 
-  onRejectReview, 
+// Status badge component
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'Published':
+      return 'inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full whitespace-nowrap';
+    case 'Pending':
+      return 'inline-flex items-center px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full whitespace-nowrap';
+    case 'Disputed':
+      return 'inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full whitespace-nowrap';
+    default:
+      return 'inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full whitespace-nowrap';
+  }
+};
+
+const ReviewsTable = ({
+  reviews,
+  onViewDetails,
+  onDeleteReview,
+  onApproveReview,
+  onRejectReview,
   onResolveDispute,
   onSelectedReviewsChange,
-  onBulkDelete 
+  onBulkDelete
 }: ReviewsTableProps) => {
-  const [selectedReviews, setSelectedReviews] = useState<number[]>([]);
+  const [selectedReviews, setSelectedReviews] = useState<string[]>([]);
 
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium";
-    
-    switch (status) {
-      case 'Published':
-        return `${baseClasses} bg-green-100 text-green-700`;
-      case 'Pending':
-        return `${baseClasses} bg-yellow-100 text-yellow-700`;
-      case 'Dispute':
-        return `${baseClasses} bg-red-100 text-red-700`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-700`;
-    }
-  };
-
-  const renderStars = (rating: number) => {
-    return <StarRating rating={rating} />
-  };
-
-  // Check if all reviews are selected
   const isAllSelected = reviews.length > 0 && selectedReviews.length === reviews.length;
-  
-  // Check if some reviews are selected (for indeterminate state)
   const isIndeterminate = selectedReviews.length > 0 && selectedReviews.length < reviews.length;
 
   // Handle select all checkbox
@@ -202,14 +280,14 @@ const ReviewsTable = ({
       onSelectedReviewsChange?.([]);
     } else {
       // Select all
-      const allIds = reviews.map(review => review.id);
+      const allIds = reviews.map(review => review._id);
       setSelectedReviews(allIds);
       onSelectedReviewsChange?.(allIds);
     }
   };
 
   // Handle individual checkbox
-  const handleSelectReview = (reviewId: number) => {
+  const handleSelectReview = (reviewId: string) => {
     const newSelection = selectedReviews.includes(reviewId)
       ? selectedReviews.filter(id => id !== reviewId)
       : [...selectedReviews, reviewId];
@@ -228,44 +306,29 @@ const ReviewsTable = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-      {/* Header */}
-      <div className="flex  justify-between gap-3 p-4 md:p-6 ">
-        <div className="flex items-center gap-4">
-          <h3 className="text-lg md:text-xl font-semibold text-gray-900">Recent Reviews</h3>
-          
-         
+    <div className="space-y-4">
+      {/* Bulk Actions */}
+      {selectedReviews.length > 0 && (
+        <div className="flex items-center justify-between p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <span className="text-xs md:text-sm font-medium text-blue-800">
+            {selectedReviews.length} review{selectedReviews.length > 1 ? 's' : ''} selected
+          </span>
+          <button
+            onClick={handleBulkDelete}
+            className="px-3 py-1 md:px-4 md:py-2 bg-red-600 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1 md:space-x-2"
+          >
+            <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+            <span>Delete Selected</span>
+          </button>
         </div>
+      )}
 
- 
-        <button 
-          onClick={onSeeAll}
-          className="px-3 py-2 md:px-4 md:py-2 bg-blue-500 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors self-start sm:self-auto cursor-pointer"
-        >
-          See All
-        </button>
-      </div>
-    {/* Bulk Delete Button */}
- {selectedReviews.length > 0 && (
-<div className='flex items-center gap-2 self-end w-full justify-end  px-4 md:px-6 mb-4 '>
-
-            <button
-              onClick={handleBulkDelete}
-              className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-red-500 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
-            >
-              <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
-              Delete ({selectedReviews.length})
-            </button>
-            </div>
-          )}
-
-      {/* Table */}
-      <div className="overflow-auto gap-3 mx-4 md:mx-6  rounded-2xl ">
-        <table className="w-full min-w-[800px]">
+      <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-100 min-h-[65vh] relative">
+        <table className="w-full min-w-[1400px]">
           {/* Table Header */}
-          <thead className="bg-gray-100 rounded-b-2xl ">
+          <thead className="bg-gray-100 rounded-b-2xl">
             <tr>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[80px]">
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[120px]">
                 <div className="flex items-center space-x-2 md:space-x-3">
                   <input 
                     type="checkbox" 
@@ -279,10 +342,13 @@ const ReviewsTable = ({
                   <span>S. No.</span>
                 </div>
               </th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Reviewer</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Products</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Review</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Ratings</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Reviewer Details</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Vendor Details</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Product</th>
+
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[300px]">Review</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Comments</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Rating</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Date</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Status</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th>
@@ -292,83 +358,135 @@ const ReviewsTable = ({
           {/* Table Body */}
           <tbody>
             {reviews.map((review, index) => (
-              <tr key={review.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                {/* S. No. with checkbox */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
-                  <div className="flex items-center space-x-2 md:space-x-3">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedReviews.includes(review.id)}
-                      onChange={() => handleSelectReview(review.id)}
-                      className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span className="text-xs md:text-sm font-medium text-gray-900">
-                      #{index + 1}
-                    </span>
-                  </div>
-                </td>
-
-                {/* Reviewer */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
-                  <div className="flex items-center space-x-2 md:space-x-3">
-                    <Avatar className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0">
-                      <AvatarImage 
-                        src={review.reviewer.avatar} 
-                        alt={review.reviewer.name}
-                        className="object-cover"
+                <tr key={review.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  {/* S. No. with checkbox */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <div className="flex items-center space-x-2 md:space-x-3">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedReviews.includes(review._id)}
+                        onChange={() => handleSelectReview(review._id)}
+                        className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                       />
-                      <AvatarFallback className="bg-blue-100 text-blue-600 text-xs md:text-sm font-semibold">
-                        {getInitials(review.reviewer.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs md:text-sm font-medium text-gray-900 truncate">
-                      {review.reviewer.name}
+                      <span className="text-xs md:text-sm font-medium text-gray-900">
+                        #{index + 1}
+                      </span>
+                    </div>
+                  </td>
+  
+                  {/* Reviewer Details */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/public-profile/${review.reviewer.slug}`, '_blank')}>
+                      <Avatar className="w-10 h-10 flex-shrink-0">
+                        <AvatarImage 
+                          src={review.reviewer?.avatar || ''} 
+                          alt={review.reviewer?.firstName || 'Reviewer'}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
+                          {getUserInitials(review.reviewer)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900 truncate">
+                            {getUserDisplayName(review.reviewer) || 'Unknown Reviewer'}
+                          </span>
+                          
+                        </div>
+                       
+                      </div>
+                    </div>
+                  </td>
+  
+  
+                  {/* Vendor Details */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/public-profile/${review.product?.userId?.slug}`, '_blank')}>
+                      <Avatar className="w-10 h-10 flex-shrink-0">
+                        <AvatarImage 
+                          src={review.product?.userId?.avatar || ''} 
+                          alt={review.product?.userId?.firstName || 'Owner'}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-purple-100 text-purple-600 text-sm font-semibold">
+                          {getUserInitials(review.product?.userId)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900 truncate">
+                            {getUserDisplayName(review.product?.userId)  || 'Unknown Owner'}
+                          </span>
+                       
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {review.product?.userId?.email || 'No email'}
+                        </div>
+                    
+                      </div>
+                    </div>
+                  </td>
+
+                                  {/* Product Details */}
+                                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/product-detail/${review.product?.slug}`, '_blank')}>
+                    
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900 truncate">
+                            {review.product?.name || 'Unknown Product'}
+                          </span>
+                        </div>
+                        
+                      </div>
+                    </div>
+                  </td>
+  
+  
+                  {/* Review */}
+                  <td className="py-3 px-3 md:py-4 md:px-6 max-w-xs">
+                    <p className="text-xs md:text-sm text-gray-600 line-clamp-3">
+                      {review.review || 'No review content'}
+                    </p>
+                  </td>
+  
+                  {/* Comments */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <span className="text-xs md:text-sm text-gray-900 font-medium">{review.comments || 0}</span>
+                  </td>
+  
+                  {/* Rating */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-xs md:text-sm font-medium">{review.rating || 0}/5</span>
+                    </div>
+                  </td>
+  
+                  {/* Date */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">{review.date || 'Unknown'}</span>
+                  </td>
+  
+                  {/* Status */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <span className={getStatusBadge(review.status)}>
+                      {review.status}
                     </span>
-                  </div>
-                </td>
-
-                {/* Products */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
-                  <span className="text-xs md:text-sm text-gray-900">{review.product}</span>
-                </td>
-
-                {/* Review */}
-                <td className="py-3 px-3 md:py-4 md:px-6 max-w-xs">
-                  <p className="text-xs md:text-sm text-gray-600 truncate">
-                    "{review.review}"
-                  </p>
-                </td>
-
-                {/* Ratings */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
-                  <div className="flex items-center space-x-1">
-                    {renderStars(review.rating)}
-                  </div>
-                </td>
-
-                {/* Date */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
-                  <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">{review.date}</span>
-                </td>
-
-                {/* Status */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
-                  <span className={getStatusBadge(review.status)}>
-                    {review.status}
-                  </span>
-                </td>
-
-                {/* Actions */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
-                  <ActionMenu 
-                    review={review}
-                    onViewDetails={onViewDetails}
-                    onDeleteReview={onDeleteReview}
-                    onApproveReview={onApproveReview}
-                    onRejectReview={onRejectReview}
-                    onResolveDispute={onResolveDispute}
-                  />
-                </td>
+                  </td>
+  
+                  {/* Actions */}
+                  <td className="py-3 px-3 md:py-4 md:px-6">
+                    <ActionMenu 
+                      review={review}
+                      onViewDetails={onViewDetails}
+                      onDeleteReview={onDeleteReview}
+                      onApproveReview={onApproveReview}
+                      onRejectReview={onRejectReview}
+                      onResolveDispute={onResolveDispute}
+                    />
+                                  </td>
               </tr>
             ))}
           </tbody>

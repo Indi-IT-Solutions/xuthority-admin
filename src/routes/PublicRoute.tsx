@@ -7,11 +7,10 @@ interface PublicRouteProps {
 
 const PublicRoute = ({ children }: PublicRouteProps) => {
   const isAuthenticated = useAdminStore((state) => state.isLoggedIn);
-
+  // Only allow access to /login, /forgot-password, /reset-password if not authenticated
   if (isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
-
   return <>{children}</>;
 };
 

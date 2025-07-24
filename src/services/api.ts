@@ -1,24 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import toast from 'react-hot-toast';
 
-// Debug all available environment variables
-console.log('🔍 All available import.meta.env:', import.meta);
-console.log('🔍 VITE_API_BASE_URL from env:', (import.meta as any).env?.VITE_API_BASE_URL);
-console.log('🔍 VITE_APP_ENV from env:', (import.meta as any).env?.VITE_APP_ENV);
-console.log('🔍 All VITE_ variables:', Object.keys((import.meta as any).env || {}).filter(key => key.startsWith('VITE_')));
-
 // API Configuration
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8081/api/v1';
-console.log('🔧 API_BASE_URL configured as:', API_BASE_URL);
-console.log('🔧 Environment:', (import.meta as any).env?.VITE_APP_ENV || 'development');
-
-// Validate API_BASE_URL format
-if (API_BASE_URL.startsWith('https://api/')) {
-  console.error('❌ CRITICAL: API_BASE_URL is malformed!', API_BASE_URL);
-  console.error('❌ Expected format: https://domain.com/api/v1');
-  console.error('❌ Check GitHub Secrets: SERVER_HOST should be just the domain name');
-}
-
 const API_TIMEOUT = 30000; // 30 seconds
 const FILE_UPLOAD_TIMEOUT = 300000; // 5 minutes for file uploads
 
@@ -112,9 +96,8 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenStorage.getToken();
-    const fullUrl = `${config.baseURL}${config.url}`;
-    console.log("🌐 API Request to:", fullUrl);
-    console.log("🔐 Token from storage:", token ? 'Present' : 'Missing');
+    console.log("Request to:", config.url);
+    console.log("Token from storage:", token);
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -143,16 +126,8 @@ api.interceptors.response.use(
   async (error: AxiosError<ApiResponse>) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
     
-    // Get the request URL to check if it's an auth endpoint
-    const requestUrl = originalRequest.url || '';
-    const isAuthEndpoint = requestUrl.includes('/auth/login') || 
-                          requestUrl.includes('/auth/forgot-password') || 
-                          requestUrl.includes('/auth/reset-password') || 
-                          requestUrl.includes('/auth/verify-reset-token') ||
-                          requestUrl.includes('/auth/register');
-    
-    // Handle 401 Unauthorized errors (but skip retry for auth endpoints)
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    // Handle 401 Unauthorized errors
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
       // Check if we have a refresh token
@@ -191,12 +166,10 @@ api.interceptors.response.use(
                         error.message || 
                         'An unexpected error occurred';
     
-    // Show error toast for non-401 errors or auth endpoint 401s
-    if (error.response?.status !== 401 || isAuthEndpoint) {
-      if (error.response?.status !== 404) {
-        toast.dismiss()
-        toast.error(errorMessage);
-      }
+    // Show error toast for non-401 errors
+    if (error.response?.status !== 401 && error.response?.status !== 404) {
+      toast.dismiss()
+      toast.error(errorMessage);
     }
     
     return Promise.reject(error);

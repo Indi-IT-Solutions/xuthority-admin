@@ -15,6 +15,8 @@ export interface UserQueryParams {
   period?: 'weekly' | 'monthly' | 'yearly';
   dateFrom?: string;
   dateTo?: string;
+  // Review statistics inclusion
+  includeStats?: boolean;
   // Cache invalidation parameter (not sent to backend)
   appliedAt?: number;
 }
@@ -43,6 +45,11 @@ export interface RawUserData {
   followingCount?: number;
   totalProducts?: number;
   totalDisputes?: number;
+  // Review statistics from backend aggregation
+  reviewsWritten?: number;
+  reviewsApproved?: number;
+  reviewsPending?: number;
+  reviewsDisputed?: number;
   socialLinks?: {
     linkedin?: string;
     twitter?: string;
@@ -122,10 +129,10 @@ const transformUserData = (rawUser: RawUserData, index: number): TransformedUser
       email: rawUser.email,
       avatar: rawUser.avatar || ''
     },
-    reviewPosted: 0, // Placeholder - would need separate API call to get actual review count
-    approved: 0, // Placeholder
-    pending: 0, // Placeholder  
-    disputed: rawUser.totalDisputes || 0,
+    reviewPosted: rawUser.reviewsWritten || 0,
+    approved: rawUser.reviewsApproved || 0,
+    pending: rawUser.reviewsPending || 0,
+    disputed: rawUser.reviewsDisputed || 0,
     loginType,
     joinedOn: joinedDate,
     status,
@@ -185,6 +192,9 @@ export class UserService {
       if (params.dateTo) {
         queryParams.append('dateTo', params.dateTo);
       }
+
+      // Include review statistics (default to true for admin interface)
+      queryParams.append('includeStats', (params.includeStats !== false).toString());
 
       const url = `/admin/users?${queryParams.toString()}`;
       console.log('Final Users API URL:', url);
