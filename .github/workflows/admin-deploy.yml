@@ -178,6 +178,7 @@ jobs:
           echo "Admin deployment completed successfully"
         EOF
 
+
     - name: Update Nginx Configuration
       run: |
         ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
