@@ -322,7 +322,7 @@ const ReviewsTable = ({
           </button>
         </div>
       )}
-
+    
       <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-100 min-h-[65vh] relative">
         <table className="w-full min-w-[1400px]">
           {/* Table Header */}

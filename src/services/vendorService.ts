@@ -99,12 +99,14 @@ export interface VendorProduct {
   id: number;
   _id: string;
   name: string;
-  logo: string;
+  logoUrl: string;
   industry: string;
   marketSegments: string;
   avgRating: number;
   totalReviews: number;
   createdAt: string;
+  slug: string;
+  brandColors: string;
 }
 
 export interface VendorProductsResponse {

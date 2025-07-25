@@ -208,14 +208,19 @@ const BadgesTable = ({
   return (
     <div>
       {/* Bulk Delete Button */}
-      {selectedBadges.length > 0 && (
-        <div className='flex items-center gap-2 self-end w-full justify-end mb-4'>
+ 
+
+{selectedBadges.length > 0 && (
+        <div className="flex items-center justify-between p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
+          <span className="text-xs md:text-sm font-medium text-blue-800">
+            {selectedBadges.length} badge{selectedBadges.length > 1 ? 's' : ''} selected
+          </span>
           <button
             onClick={handleBulkDelete}
-            className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-red-500 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
+            className="px-3 py-1 md:px-4 md:py-2 bg-red-600 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1 md:space-x-2"
           >
             <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
-            Delete ({selectedBadges.length})
+            <span>Delete Selected</span>
           </button>
         </div>
       )}

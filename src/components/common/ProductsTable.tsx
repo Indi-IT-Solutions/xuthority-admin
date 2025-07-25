@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Star, MoreHorizontal, Eye, Trash2 } from 'lucide-react';
 import { VendorProduct } from '@/services/vendorService';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import StarRating from './StartRating';
 
 interface ProductsTableProps {
   products: VendorProduct[];
@@ -30,7 +32,7 @@ const ActionMenu = ({
       label: 'View Details',
       icon: Eye,
       color: 'text-blue-600',
-      onClick: () => onViewDetails?.(product._id)
+      onClick: () => onViewDetails?.(product.slug)
     },
     {
       label: 'Delete',
@@ -281,7 +283,7 @@ const ProductsTable = ({
                       className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                     />
                     <span className="text-xs md:text-sm font-medium text-gray-900">
-                      #{product.id}
+                    #{index + 1}
                     </span>
                   </div>
                 </td>
@@ -289,38 +291,31 @@ const ProductsTable = ({
                 {/* Product Name with Logo */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      {product.logo ? (
-                        <img 
-                          src={product.logo} 
-                          alt={product.name} 
-                          className="w-6 h-6 md:w-8 md:h-8 rounded object-cover"
-                        />
-                      ) : (
-                        <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">
-                            {product.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-md text-white flex-shrink-0 flex  justify-center items-center" style={{backgroundColor: product?.brandColors }}>
+                <AvatarImage src={product?.logoUrl} alt={product?.name} className="object-cover h-12 w-12 rounded-md"/>
+                <AvatarFallback>
+                  {product?.name?.charAt(0) || 'P'}
+                </AvatarFallback>
+              </Avatar>
+        
                     <span className="text-xs md:text-sm font-medium text-gray-900 truncate">
                       {product.name}
                     </span>
                   </div>
+            
                 </td>
 
                 {/* Market Segments */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <span className="text-xs md:text-sm text-gray-700">
-                    {product.marketSegments || 'Not specified'}
+                    {product.marketSegments || '-'}
                   </span>
                 </td>
 
                 {/* Industry */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <span className="text-xs md:text-sm text-gray-700">
-                    {product.industry}
+                    {product.industry || '-'}
                   </span>
                 </td>
 

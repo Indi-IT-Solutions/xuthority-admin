@@ -4,17 +4,21 @@ import { TwitterIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedLoader } from "@/components/common";
-import { useVendorDetails, useVendorProfileStats, useVendorProducts, useBlockVendor, useUnblockVendor } from "@/hooks/useVendors";
+import { useVendorDetails, useVendorProfileStats, useVendorProducts, useBlockVendor, useUnblockVendor, useApproveVendor, useRejectVendor } from "@/hooks/useVendors";
 import { useState } from "react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { ProductsTable, Pagination } from "@/components/common";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const VendorDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
-    type: 'block' | 'unblock' | null;
+    type: 'block' | 'unblock' | 'approve' | 'reject' | null;
     vendorId: string | null;
     vendorName: string | null;
   }>({
@@ -44,6 +48,8 @@ const VendorDetailPage = () => {
 
   const blockVendorMutation = useBlockVendor();
   const unblockVendorMutation = useUnblockVendor();
+  const approveVendorMutation = useApproveVendor();
+  const rejectVendorMutation = useRejectVendor();
 
   if (isLoading) {
     return <EnhancedLoader loadingText="Loading vendor details..." minDisplayTime={800} />;
@@ -66,6 +72,7 @@ const VendorDetailPage = () => {
 
   const vendor = vendorResponse.data;
   const isBlocked = vendor.status === 'blocked';
+  const isPending = vendor.status === 'pending';
 
   const handleBlockVendor = () => {
     setConfirmModal({
@@ -85,14 +92,55 @@ const VendorDetailPage = () => {
     });
   };
 
+  const handleApproveVendor = () => {
+    setConfirmModal({
+      isOpen: true,
+      type: 'approve',
+      vendorId: vendor._id,
+      vendorName: vendor.companyName || `${vendor.firstName} ${vendor.lastName}`,
+    });
+  };
+
+  const handleRejectVendor = () => {
+    setConfirmModal({
+      isOpen: true,
+      type: 'reject',
+      vendorId: vendor._id,
+      vendorName: vendor.companyName || `${vendor.firstName} ${vendor.lastName}`,
+    });
+  };
+
   const handleConfirmAction = async () => {
     if (!confirmModal.vendorId || !confirmModal.type) return;
 
     try {
       if (confirmModal.type === 'block') {
         await blockVendorMutation.mutateAsync(confirmModal.vendorId);
-      } else {
+        
+        // Invalidate vendor detail queries for immediate UI update
+        await queryClient.invalidateQueries({ queryKey: ['vendor-details', slug] });
+        await queryClient.invalidateQueries({ queryKey: ['vendor-profile-stats', slug] });
+        
+      } else if (confirmModal.type === 'unblock') {
         await unblockVendorMutation.mutateAsync(confirmModal.vendorId);
+        
+        // Invalidate vendor detail queries for immediate UI update
+        await queryClient.invalidateQueries({ queryKey: ['vendor-details', slug] });
+        await queryClient.invalidateQueries({ queryKey: ['vendor-profile-stats', slug] });
+      } else if (confirmModal.type === 'approve') {
+        await approveVendorMutation.mutateAsync(confirmModal.vendorId);
+        
+        // Invalidate vendor detail queries for immediate UI update
+        await queryClient.invalidateQueries({ queryKey: ['vendor-details', slug] });
+        await queryClient.invalidateQueries({ queryKey: ['vendor-profile-stats', slug] });
+        await queryClient.invalidateQueries({ queryKey: ['vendor-products'] });
+        
+      } else if (confirmModal.type === 'reject') {
+        await rejectVendorMutation.mutateAsync({ vendorId: confirmModal.vendorId });
+        
+        // Navigate back to vendors list after successful rejection
+        navigate('/vendors');
+        return; // Early return to avoid closing modal since we're navigating away
       }
     } catch (error) {
       console.error('Error performing vendor action:', error);
@@ -102,8 +150,9 @@ const VendorDetailPage = () => {
   };
 
   // Product handlers
-  const handleViewProductDetails = (productId: string) => {
-    console.log("View product details:", productId);
+  const handleViewProductDetails = (slug: string) => {
+    console.log("View product details:", slug);
+    navigate(`/product-details/${slug}`);
     // You can navigate to product detail page or open a modal
   };
 
@@ -178,17 +227,40 @@ const VendorDetailPage = () => {
             Vendors
           </button>
           <span className="mx-2">/</span>
-          <span className="text-gray-800 font-medium">Approved Vendors Details</span>
+          <span className="text-gray-800 font-medium">
+            {isPending ? 'Pending Vendor Details' : 'Approved Vendors Details'}
+          </span>
         </div>
         
-        <Button
-          onClick={isBlocked ? handleUnblockVendor : handleBlockVendor}
-          variant={'destructive'}
-          className="rounded-full bg-red-600 hover:bg-red-700 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2"
-          size="sm"
-        >
-          {isBlocked ? 'Unblock Vendor' : 'Block Vendor'}
-        </Button>
+        {/* Action Buttons based on status */}
+        <div className="flex items-center flex-row-reverse gap-2">
+          {isPending ? (
+            <>
+              <Button
+                onClick={handleApproveVendor}
+                variant={'default'}
+                className="rounded-full bg-blue-600 hover:bg-blue-500 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 text-white"
+              >
+                Approve Vendor
+              </Button>
+              <Button
+                onClick={handleRejectVendor}
+                variant={'destructive'}
+                className="rounded-full bg-red-600 hover:bg-red-700 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2"
+              >
+                Reject Vendor
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={isBlocked ? handleUnblockVendor : handleBlockVendor}
+              variant={'destructive'}
+              className="rounded-full bg-red-600 hover:bg-red-700 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2"
+            >
+              {isBlocked ? 'Unblock Vendor' : 'Block Vendor'}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Main Content Card */}
@@ -329,8 +401,8 @@ const VendorDetailPage = () => {
           </div>
            </div>
         </div>
-  {/* Review Summary and Badges Section */}
-  {!isStatsLoading && vendorStatsResponse?.success && (
+  {/* Review Summary and Badges Section - Only show for approved/active vendors */}
+  {!isPending && !isStatsLoading && vendorStatsResponse?.success && (
     <div className="flex flex-col lg:flex-row mt-6 lg:mt-8 gap-6 lg:gap-8">
       {/* Review Summary */}
       <div className="flex flex-col gap-4 lg:w-[350px] flex-shrink-0">
@@ -447,9 +519,10 @@ const VendorDetailPage = () => {
     </div>
   )}
 
-      {/* Products Section */}
-      <div className="mt-6 lg:mt-8">
-        {!isProductsLoading && vendorProductsResponse?.success ? (
+      {/* Products Section - Only show for approved/active vendors */}
+      {!isPending && (
+        <div className="mt-6 lg:mt-8">
+          {!isProductsLoading && vendorProductsResponse?.success ? (
           <>
             <ProductsTable
               products={vendorProductsResponse.data.products}
@@ -485,7 +558,8 @@ const VendorDetailPage = () => {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
       
        </div>
 
@@ -496,12 +570,20 @@ const VendorDetailPage = () => {
         isOpen={confirmModal.isOpen}
         onOpenChange={(isOpen) => !isOpen && setConfirmModal({ isOpen: false, type: null, vendorId: null, vendorName: null })}
         onConfirm={handleConfirmAction}
-        title={`${confirmModal.type === 'block' ? 'Block' : 'Unblock'} Vendor`}
-        description={`Are you sure you want to ${confirmModal.type === 'block' ? 'block' : 'unblock'} "${confirmModal.vendorName}"? ${confirmModal.type === 'block' ? 'This vendor will no longer be able to access their account.' : 'This vendor will regain access to their account.'}`}
-        confirmText={confirmModal.type === 'block' ? 'Block' : 'Unblock'}
+        title={`${confirmModal.type === 'block' ? 'Block' : confirmModal.type === 'unblock' ? 'Unblock' : confirmModal.type === 'approve' ? 'Approve' : 'Reject'} Vendor`}
+        description={`Are you sure you want to ${confirmModal.type === 'block' ? 'block' : confirmModal.type === 'unblock' ? 'unblock' : confirmModal.type === 'approve' ? 'approve' : 'reject'} "${confirmModal.vendorName}"? ${
+          confirmModal.type === 'block' 
+            ? 'This vendor will no longer be able to access their account.' 
+            : confirmModal.type === 'unblock' 
+            ? 'This vendor will regain access to their account.'
+            : confirmModal.type === 'approve'
+            ? 'This vendor will be activated and able to access their account.'
+            : 'This vendor will be permanently deleted from the system.'
+        }`}
+        confirmText={confirmModal.type === 'block' ? 'Block' : confirmModal.type === 'unblock' ? 'Unblock' : confirmModal.type === 'approve' ? 'Approve' : 'Reject'}
         cancelText="Cancel"
-        isLoading={blockVendorMutation.isPending || unblockVendorMutation.isPending}
-        confirmVariant={confirmModal.type === 'block' ? 'destructive' : 'default'}
+        isLoading={blockVendorMutation.isPending || unblockVendorMutation.isPending || approveVendorMutation.isPending || rejectVendorMutation.isPending}
+        confirmVariant={confirmModal.type === 'block' || confirmModal.type === 'reject' ? 'destructive' : 'default'}
       />
     </div>
   );

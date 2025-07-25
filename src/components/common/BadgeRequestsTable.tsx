@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MoreHorizontal, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { MoreHorizontal, Eye, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BadgeRequest } from '@/services/badgeService';
 
@@ -8,6 +8,8 @@ interface BadgeRequestsTableProps {
   onViewDetails?: (requestId: string) => void;
   onApproveRequest?: (requestId: string) => void;
   onRejectRequest?: (requestId: string) => void;
+  onSelectedRequestsChange?: (selectedIds: string[]) => void;
+  onBulkDelete?: (selectedIds: string[]) => void;
 }
 
 interface ActionMenuProps {
@@ -27,38 +29,51 @@ const ActionMenu = ({
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
-  const actions = [
-    {
-      label: 'View Details',
-      icon: Eye,
-      color: 'text-blue-600',
-      onClick: () => onViewDetails?.(request._id),
-      show: true
-    },
-    {
-      label: 'Approve Request',
-      icon: CheckCircle,
-      color: 'text-green-600',
-      onClick: () => onApproveRequest?.(request._id),
-      show: request.status === 'requested'
-    },
-    {
-      label: 'Reject Request',
-      icon: XCircle,
-      color: 'text-red-600',
-      onClick: () => onRejectRequest?.(request._id),
-      show: request.status === 'requested'
+  const getActions = () => {
+    switch (request.status) {
+      case 'requested':
+        return [
+          {
+            label: 'View Details',
+            icon: Eye,
+            color: 'text-blue-600',
+            onClick: () => onViewDetails?.(request._id)
+          },
+          {
+            label: 'Approve',
+            icon: CheckCircle,
+            color: 'text-green-600',
+            onClick: () => onApproveRequest?.(request._id)
+          },
+          {
+            label: 'Reject',
+            icon: XCircle,
+            color: 'text-red-600',
+            onClick: () => onRejectRequest?.(request._id)
+          }
+        ];
+      default:
+        return [
+          {
+            label: 'View Details',
+            icon: Eye,
+            color: 'text-blue-600',
+            onClick: () => onViewDetails?.(request._id)
+          }
+        ];
     }
-  ].filter(action => action.show);
+  };
 
-  const handleButtonClick = () => {
-    if (!isOpen && buttonRef.current) {
+  const actions = getActions();
+
+  const updateDropdownPosition = () => {
+    if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const dropdownWidth = 192; // w-48 = 12rem = 192px
-      const dropdownHeight = 150; // Approximate height for badge actions
+      const dropdownWidth = 176; // w-44 = 11rem = 176px
+      const dropdownHeight = 200; // Approximate height for request actions
       
-      let top = rect.bottom + window.scrollY + 4; // 4px margin
-      let left = rect.right + window.scrollX - dropdownWidth; // Align right edge
+      let top = rect.bottom + 4; // 4px margin, using viewport coordinates
+      let left = rect.right - dropdownWidth; // Align right edge
       
       // Adjust if dropdown would go off-screen
       const viewportWidth = window.innerWidth;
@@ -66,58 +81,94 @@ const ActionMenu = ({
       
       // Adjust horizontal position if off-screen
       if (left < 10) {
-        left = rect.left + window.scrollX; // Align to left edge of button
+        left = rect.left; // Align to left edge of button
       }
       if (left + dropdownWidth > viewportWidth - 10) {
         left = viewportWidth - dropdownWidth - 10;
       }
       
       // Adjust vertical position if off-screen
-      if (top + dropdownHeight > viewportHeight + window.scrollY - 10) {
-        top = rect.top + window.scrollY - dropdownHeight - 4; // Show above button
+      if (top + dropdownHeight > viewportHeight - 10) {
+        top = rect.top - dropdownHeight - 4; // Show above button
       }
       
       setDropdownPosition({ top, left });
     }
+  };
+
+  const handleButtonClick = () => {
+    if (!isOpen) {
+      updateDropdownPosition();
+    }
     setIsOpen(!isOpen);
   };
 
+  // Close dropdown on scroll
+  React.useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => {
+        setIsOpen(false);
+      };
+
+      const handleResize = () => {
+        if (isOpen) {
+          updateDropdownPosition();
+        }
+      };
+
+      // Add scroll listeners to both window and potential scroll containers
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [isOpen]);
+
   return (
     <div className="relative">
-      <button
+      <button 
         ref={buttonRef}
         onClick={handleButtonClick}
-        className="p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors"
+        className="p-1 md:p-2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
       >
-        <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+        <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5" />
       </button>
 
       {isOpen && (
         <>
+          {/* Backdrop */}
           <div 
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
+          
+          {/* Dropdown Menu */}
           <div 
-            className="fixed w-40 md:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            className="fixed w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
             }}
           >
-            {actions.map((action, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  action.onClick();
-                  setIsOpen(false);
-                }}
-                className={`w-full px-3 md:px-4 py-2 text-left text-xs md:text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2 ${action.color}`}
-              >
-                <action.icon className="w-3 h-3 md:w-4 md:h-4" />
-                <span>{action.label}</span>
-              </button>
-            ))}
+            {actions.map((action, index) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={index}
+                  onClick={() => {
+                    action.onClick();
+                    setIsOpen(false);
+                  }}
+                  className="w-full flex items-center px-4 py-2 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <Icon className={`w-4 h-4 mr-3 ${action.color}`} />
+                  <span className="text-gray-700">{action.label}</span>
+                </button>
+              );
+            })}
           </div>
         </>
       )}
@@ -128,28 +179,24 @@ const ActionMenu = ({
 const StatusBadge = ({ status }: { status: BadgeRequest['status'] }) => {
   const statusConfig = {
     requested: {
-      variant: 'secondary' as const,
       icon: Clock,
       label: 'Pending',
-      className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      className: 'bg-yellow-100 text-yellow-800'
     },
     approved: {
-      variant: 'secondary' as const,
       icon: CheckCircle,
       label: 'Approved',
-      className: 'bg-green-100 text-green-800 border-green-200'
+      className: 'bg-green-100 text-green-800'
     },
     rejected: {
-      variant: 'secondary' as const,
       icon: XCircle,
       label: 'Rejected',
-      className: 'bg-red-100 text-red-800 border-red-200'
+      className: 'bg-red-100 text-red-800'
     },
     canceled: {
-      variant: 'secondary' as const,
       icon: XCircle,
       label: 'Canceled',
-      className: 'bg-gray-100 text-gray-800 border-gray-200'
+      className: 'bg-gray-100 text-gray-800'
     }
   };
 
@@ -157,13 +204,10 @@ const StatusBadge = ({ status }: { status: BadgeRequest['status'] }) => {
   const IconComponent = config.icon;
 
   return (
-    <Badge 
-      variant={config.variant}
-      className={`flex items-center gap-1 text-xs ${config.className}`}
-    >
+    <span className={`px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 w-fit ${config.className}`}>
       <IconComponent className="w-3 h-3" />
       {config.label}
-    </Badge>
+    </span>
   );
 };
 
@@ -171,8 +215,12 @@ const BadgeRequestsTable = ({
   badgeRequests, 
   onViewDetails, 
   onApproveRequest,
-  onRejectRequest
+  onRejectRequest,
+  onSelectedRequestsChange,
+  onBulkDelete 
 }: BadgeRequestsTableProps) => {
+  const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
+
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) {
       return 'No date available';
@@ -190,7 +238,6 @@ const BadgeRequestsTable = ({
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-        
       });
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -198,8 +245,44 @@ const BadgeRequestsTable = ({
     }
   };
 
-  // Use the badge requests as-is since sorting is handled by the database
-  const sortedBadgeRequests = badgeRequests;
+  // Check if all requests are selected
+  const isAllSelected = badgeRequests.length > 0 && selectedRequests.length === badgeRequests.length;
+  
+  // Check if some requests are selected (for indeterminate state)
+  const isIndeterminate = selectedRequests.length > 0 && selectedRequests.length < badgeRequests.length;
+
+  // Handle select all checkbox
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      // Deselect all
+      setSelectedRequests([]);
+      onSelectedRequestsChange?.([]);
+    } else {
+      // Select all
+      const allIds = badgeRequests.map(request => request._id);
+      setSelectedRequests(allIds);
+      onSelectedRequestsChange?.(allIds);
+    }
+  };
+
+  // Handle individual checkbox
+  const handleSelectRequest = (requestId: string) => {
+    const newSelection = selectedRequests.includes(requestId)
+      ? selectedRequests.filter(id => id !== requestId)
+      : [...selectedRequests, requestId];
+    
+    setSelectedRequests(newSelection);
+    onSelectedRequestsChange?.(newSelection);
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    if (selectedRequests.length > 0 && onBulkDelete) {
+      onBulkDelete(selectedRequests);
+      setSelectedRequests([]);
+      onSelectedRequestsChange?.([]);
+    }
+  };
 
   const getUserName = (user: BadgeRequest['user']) => {
     if (!user) return 'Unknown User';
@@ -224,167 +307,146 @@ const BadgeRequestsTable = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-      {/* Desktop Table */}
-      <div className="hidden md:block">
-        <div className="overflow-x-auto relative">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left px-6 py-4 font-medium text-gray-900 text-sm">
-                  Badge
-                </th>
-                <th className="text-left px-6 py-4 font-medium text-gray-900 text-sm">
-                  Requested By
-                </th>
-                <th className="text-left px-6 py-4 font-medium text-gray-900 text-sm">
-                  Status
-                </th>
-                <th className="text-left px-6 py-4 font-medium text-gray-900 text-sm">
-                  Requested Date
-                </th>
-                <th className="text-left px-6 py-4 font-medium text-gray-900 text-sm">
-                  Reason
-                </th>
-                <th className="text-center px-6 py-4 font-medium text-gray-900 text-sm">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedBadgeRequests.map((request) => (
-                <tr key={request._id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
-                        style={{ backgroundColor: getBadgeColor(request.badge) }}
-                      >
-                        {getBadgeIcon(request.badge)}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">
-                          {getBadgeTitle(request.badge)}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate max-w-[200px]">
-                          {getBadgeDescription(request.badge)}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="font-medium text-gray-900 text-sm">
-                        {getUserName(request.user)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {request.user?.email || 'No email'}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={request.status} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      {formatDate(request.createdAt)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 max-w-[200px] truncate">
-                      {request.reason || 'No reason provided'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <ActionMenu
-                      request={request}
-                      onViewDetails={onViewDetails}
-                      onApproveRequest={onApproveRequest}
-                      onRejectRequest={onRejectRequest}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div>
+      {/* Bulk Delete Button */}
+
+
+{selectedRequests.length > 0 && (
+        <div className="flex items-center justify-between p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
+          <span className="text-xs md:text-sm font-medium text-blue-800">
+            {selectedRequests.length} badge request{selectedRequests.length > 1 ? 's' : ''} selected
+          </span>
+          <button
+            onClick={handleBulkDelete}
+            className="px-3 py-1 md:px-4 md:py-2 bg-red-600 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1 md:space-x-2"
+          >
+            <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+            <span>Delete Selected</span>
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* Mobile Cards */}
-      <div className="md:hidden">
-        <div className="divide-y divide-gray-100">
-          {sortedBadgeRequests.map((request) => (
-            <div key={request._id} className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3 flex-1">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: getBadgeColor(request.badge) }}
-                  >
-                    {getBadgeIcon(request.badge)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm">
-                      {getBadgeTitle(request.badge)}
-                    </div>
-                    <div className="text-xs text-gray-500 truncate">
-                      {getBadgeDescription(request.badge)}
-                    </div>
-                  </div>
+
+      {/* Table */}
+      <div className="overflow-auto gap-3 rounded-2xl bg-white shadow-sm border border-gray-100 min-h-[65vh]">
+        <table className="w-full min-w-[1000px]">
+          {/* Table Header */}
+          <thead className="bg-gray-100 rounded-b-2xl">
+            <tr>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[120px]">
+                <div className="flex items-center space-x-2 md:space-x-3">
+                  <input 
+                    type="checkbox" 
+                    checked={isAllSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = isIndeterminate;
+                    }}
+                    onChange={handleSelectAll}
+                    className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                  />
+                  <span>S. No.</span>
                 </div>
-                <ActionMenu
-                  request={request}
-                  onViewDetails={onViewDetails}
-                  onApproveRequest={onApproveRequest}
-                  onRejectRequest={onRejectRequest}
-                />
-              </div>
+              </th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Badge Details</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Requested By</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Status</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Request Date</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Reason</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th>
+            </tr>
+          </thead>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Requested by:</span>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
+          {/* Table Body */}
+          <tbody>
+            {badgeRequests.map((request, index) => (
+              <tr key={request._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                {/* S. No. with checkbox */}
+                <td className="py-3 px-3 md:py-4 md:px-6">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedRequests.includes(request._id)}
+                      onChange={() => handleSelectRequest(request._id)}
+                      className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    />
+                    <span className="text-xs md:text-sm font-medium text-gray-900">
+                      #{index + 1}
+                    </span>
+                  </div>
+                </td>
+
+                {/* Badge Details */}
+                <td className="py-3 px-3 md:py-4 md:px-6">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <div 
+                      className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white text-sm md:text-base font-medium flex-shrink-0"
+                      style={{ backgroundColor: getBadgeColor(request.badge) }}
+                    >
+                      {getBadgeIcon(request.badge)}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
+                        {getBadgeTitle(request.badge)}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate max-w-[200px]">
+                        {getBadgeDescription(request.badge)}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                {/* Requested By */}
+                <td className="py-3 px-3 md:py-4 md:px-6">
+                  <div className="min-w-0">
+                    <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
                       {getUserName(request.user)}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 truncate">
                       {request.user?.email || 'No email'}
                     </div>
                   </div>
-                </div>
+                </td>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Status:</span>
+                {/* Status */}
+                <td className="py-3 px-3 md:py-4 md:px-6">
                   <StatusBadge status={request.status} />
-                </div>
+                </td>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Date:</span>
-                  <span className="text-xs text-gray-900">
+                {/* Request Date */}
+                <td className="py-3 px-3 md:py-4 md:px-6">
+                  <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">
                     {formatDate(request.createdAt)}
                   </span>
-                </div>
+                </td>
 
-                {request.reason && (
-                  <div className="flex items-start justify-between">
-                    <span className="text-xs text-gray-500">Reason:</span>
-                    <span className="text-xs text-gray-900 text-right max-w-[200px]">
-                      {request.reason}
-                    </span>
+                {/* Reason */}
+                <td className="py-3 px-3 md:py-4 md:px-6">
+                  <div className="text-xs md:text-sm text-gray-900 max-w-[200px] truncate">
+                    {request.reason || 'No reason provided'}
                   </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+                </td>
 
-      {/* Empty State */}
-      {sortedBadgeRequests.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-500">No badge requests found</div>
-        </div>
-      )}
+                {/* Actions */}
+                <td className="py-3 px-3 md:py-4 md:px-6">
+                  <ActionMenu
+                    request={request}
+                    onViewDetails={onViewDetails}
+                    onApproveRequest={onApproveRequest}
+                    onRejectRequest={onRejectRequest}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Empty State */}
+        {badgeRequests.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-500">No badge requests found</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
