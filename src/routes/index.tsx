@@ -24,6 +24,7 @@ const SettingsPage = lazy(() => import("@/pages/admin/SettingsPage"));
 const ProfilePage = lazy(() => import("@/pages/admin/ProfilePage"));
 const ResourceCenterPage = lazy(() => import("@/pages/admin/ResourceCenterPage"));
 const AddResourcePage = lazy(() => import("@/pages/admin/AddResourcePage"));
+const EditResourcePage = lazy(() => import("@/pages/admin/EditResourcePage"));
 
 const Loader = () => <SuspenseLoader text="Loading page..." minTime={800} />;
 // Suspense wrapper component
@@ -173,6 +174,14 @@ const AppRoutes = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <AddResourcePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "resource-center/edit/:id",
+        element: (
+          <SuspenseWrapper>
+            <EditResourcePage />
           </SuspenseWrapper>
         ),
       },
