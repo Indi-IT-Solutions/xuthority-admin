@@ -275,8 +275,16 @@ const BadgesTable = ({
 
                 {/* Badge Icon */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg md:text-xl">{badge.icon}</span>
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {badge.icon && badge.icon.startsWith('http') ? (
+                      <img 
+                        src={badge.icon} 
+                        alt={badge.title}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="text-lg md:text-xl">{badge.icon || "🏆"}</span>
+                    )}
                   </div>
                 </td>
 

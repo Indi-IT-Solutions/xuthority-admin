@@ -182,8 +182,7 @@ const BadgesPage = () => {
   };
 
   const handleEditBadge = (badgeId: string) => {
-    console.log('Edit badge:', badgeId);
-    // Navigate to edit badge page when implemented
+    navigate(`/badges/edit/${badgeId}`);
   };
 
   const handleDeleteBadge = (badgeId: string) => {
@@ -282,12 +281,15 @@ const BadgesPage = () => {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
           Badges
         </h1>
-        {/* {activeTab === 'list' && (
-          <Button className="flex items-center gap-2">
+        {activeTab === 'list' && (
+          <Button 
+            onClick={() => navigate('/badges/add')}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white cursor-pointer rounded-full"
+          >
             <Plus className="w-4 h-4" />
             Add Badge
           </Button>
-        )} */}
+        )}
       </div>
 
       {/* Tabs and Search */}

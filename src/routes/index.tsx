@@ -25,6 +25,8 @@ const ProfilePage = lazy(() => import("@/pages/admin/ProfilePage"));
 const ResourceCenterPage = lazy(() => import("@/pages/admin/ResourceCenterPage"));
 const AddResourcePage = lazy(() => import("@/pages/admin/AddResourcePage"));
 const EditResourcePage = lazy(() => import("@/pages/admin/EditResourcePage"));
+const EditBadgePage = lazy(() => import("@/pages/admin/EditBadgePage"));
+const AddBadgePage = lazy(() => import("@/pages/admin/AddBadgePage"));
 
 const Loader = () => <SuspenseLoader text="Loading page..." minTime={800} />;
 // Suspense wrapper component
@@ -126,6 +128,22 @@ const AppRoutes = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <BadgesPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "badges/edit/:id",
+        element: (
+          <SuspenseWrapper>
+            <EditBadgePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "badges/add",
+        element: (
+          <SuspenseWrapper>
+            <AddBadgePage />
           </SuspenseWrapper>
         ),
       },

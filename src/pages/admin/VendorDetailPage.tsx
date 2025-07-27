@@ -471,10 +471,18 @@ const VendorDetailPage = () => {
                 {/* Mobile Layout */}
                 <div className="flex items-center justify-between sm:hidden">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm font-bold">
-                        {badge.icon || badge.name.charAt(0)}
-                      </span>
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {badge.icon && badge.icon.startsWith('http') ? (
+                        <img 
+                          src={badge.icon} 
+                          alt={badge.name}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <span className="text-white text-sm font-bold">
+                          {badge.icon || badge.name.charAt(0)}
+                        </span>
+                      )}
                     </div>
                     <span className="text-gray-900 font-medium">{badge.name}</span>
                   </div>
@@ -489,10 +497,18 @@ const VendorDetailPage = () => {
                 
                 {/* Desktop Layout */}
                 <div className="hidden sm:flex px-3 sm:px-4 py-4 items-center">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">
-                      {badge.icon || badge.name.charAt(0)}
-                    </span>
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden">
+                    {badge.icon && badge.icon.startsWith('http') ? (
+                      <img 
+                        src={badge.icon} 
+                        alt={badge.name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="text-white text-sm font-bold">
+                        {badge.icon || badge.name.charAt(0)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="hidden sm:flex px-3 sm:px-4 py-4 items-center">

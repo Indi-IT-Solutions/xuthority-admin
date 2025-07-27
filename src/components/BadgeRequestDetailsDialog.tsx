@@ -115,10 +115,18 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
               <div 
-                className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold"
+                className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden"
                 style={{ backgroundColor: badgeRequest.badge?.colorCode || '#3B82F6' }}
               >
-                {badgeRequest.badge?.icon || '🏆'}
+                {badgeRequest.badge?.icon && badgeRequest.badge?.icon.startsWith('http') ? (
+                  <img 
+                    src={badgeRequest.badge.icon} 
+                    alt={badgeRequest.badge?.title || 'Badge'}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <span>{badgeRequest.badge?.icon || '🏆'}</span>
+                )}
               </div>
             </div>
           </div>

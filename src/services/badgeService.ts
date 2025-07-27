@@ -441,4 +441,31 @@ export const getBadgeRequestDetails = async (requestId: string): Promise<BadgeRe
     console.error('Error fetching badge request details:', error);
     throw error;
   }
+};
+
+export const getBadgeById = async (badgeId: string): Promise<TransformedBadge> => {
+  try {
+    const response = await api.get(`/admin/badges/${badgeId}`);
+    
+    if (response.data.success && response.data.data) {
+      const badge = response.data.data;
+      return transformBadgeData(badge, 0);
+    }
+    
+    throw new Error('Badge not found');
+  } catch (error: any) {
+    console.error('Error fetching badge by ID:', error);
+    
+    // Fallback to sample data if API is not available
+    if (error?.response?.status === 404 || error?.code === 'ERR_NETWORK') {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const badge = sampleBadges.find(b => b._id === badgeId);
+      if (badge) {
+        return transformBadgeData(badge, 0);
+      }
+    }
+    
+    throw error;
+  }
 }; 

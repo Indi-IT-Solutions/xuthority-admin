@@ -10,6 +10,7 @@ import {
   approveBadgeRequest,
   rejectBadgeRequest,
   getBadgeRequestDetails,
+  getBadgeById,
   BadgeParams,
   TransformedBadge,
 } from '@/services/badgeService';
@@ -19,6 +20,7 @@ export const BADGE_QUERY_KEYS = {
   all: ['badges'] as const,
   lists: () => [...BADGE_QUERY_KEYS.all, 'list'] as const,
   list: (params: BadgeParams) => [...BADGE_QUERY_KEYS.lists(), params] as const,
+  detail: (id: string) => [...BADGE_QUERY_KEYS.all, 'detail', id] as const,
   requests: () => [...BADGE_QUERY_KEYS.all, 'requests'] as const,
   requestList: (params: BadgeParams) => [...BADGE_QUERY_KEYS.requests(), params] as const,
   requestDetails: (id: string) => [...BADGE_QUERY_KEYS.requests(), 'detail', id] as const,
@@ -86,9 +88,12 @@ export const useUpdateBadge = () => {
   return useMutation({
     mutationFn: ({ badgeId, badgeData }: { badgeId: string; badgeData: Partial<TransformedBadge> }) =>
       updateBadge(badgeId, badgeData),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast.success('Badge updated successfully');
+      
+      // Invalidate all badge lists and the specific badge detail
       queryClient.invalidateQueries({ queryKey: BADGE_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: BADGE_QUERY_KEYS.detail(variables.badgeId) });
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.message || 'Failed to update badge';
@@ -156,6 +161,17 @@ export const useBadgeRequestDetails = (requestId: string) => {
     queryKey: BADGE_QUERY_KEYS.requestDetails(requestId),
     queryFn: () => getBadgeRequestDetails(requestId),
     enabled: !!requestId,
+    staleTime: 30000, // 30 seconds
+    gcTime: 300000, // 5 minutes
+  });
+};
+
+// Get Badge by ID Hook
+export const useGetBadge = (badgeId: string) => {
+  return useQuery({
+    queryKey: BADGE_QUERY_KEYS.detail(badgeId),
+    queryFn: () => getBadgeById(badgeId),
+    enabled: !!badgeId,
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
   });
