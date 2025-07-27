@@ -185,9 +185,10 @@ const AddResourcePage: React.FC = () => {
       }
 
       // Find the resource category ID based on the selected resource type
-      const resourceCategory = resourceCategories?.data?.find(
+      const resourceCategory = resourceCategories?.find(
         cat => cat.slug === data.resourceType
       );
+      console.log('resourceCategory', data.resourceType)
 
       if (!resourceCategory) {
         console.error('Available categories:', resourceCategories?.data?.map(cat => ({name: cat.name, slug: cat.slug})));

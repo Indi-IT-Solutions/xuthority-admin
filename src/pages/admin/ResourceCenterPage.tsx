@@ -123,6 +123,7 @@ const ResourceCenterPage: React.FC = () => {
     const blog = blogs.find(b => b._id === id);
     const title = blog?.title || 'this resource';
     openDeleteModal(id, title);
+    // Note: Actual deletion and refetch happens in useResourceDelete hook
   };
 
   const handleResourceClick = (id: string) => {
@@ -131,6 +132,7 @@ const ResourceCenterPage: React.FC = () => {
 
   const handleEdit = (id: string) => {
     navigate(`/resource-center/edit/${id}`);
+    // Note: Data refetch happens automatically when returning due to query invalidation in EditResourcePage
   };
 
   const handleAddNewResource = () => {

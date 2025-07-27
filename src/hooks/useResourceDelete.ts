@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BlogService } from '@/services/blogService';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 
 export interface ResourceDeleteState {
   isModalOpen: boolean;
@@ -22,10 +22,12 @@ export const useResourceDelete = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => BlogService.deleteBlog(id),
     onSuccess: (response) => {
-      // Invalidate and refetch admin blogs list
+      // Invalidate and refetch all admin blog queries
       queryClient.invalidateQueries({ queryKey: ['admin-blogs'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-blogs-with-fallback'] });
       
       // Show success toast
+      console.log('response', response)
       toast.success(response.message || 'Resource deleted successfully');
       
       // Close modal

@@ -35,6 +35,8 @@ export const useAdminBlogsWithFallback = (params: AdminBlogParams = {}): UseAdmi
     refetch
   } = useQuery({
     queryKey: ['admin-blogs-with-fallback', params],
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    staleTime: 30000, // Consider data stale after 30 seconds
     queryFn: async () => {
       try {
         // First, try the specific search

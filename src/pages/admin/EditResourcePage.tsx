@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -47,7 +47,7 @@ const editResourceSchema = z.object({
     .min(3, 'Title must be at least 3 characters long')
     .max(200, 'Title cannot exceed 200 characters')
     .refine((val) => val.length > 0, 'Title cannot be empty'),
-  resourceType: z
+    resourceType: z
     .string()
     .min(1, 'Resource type is required')
     .refine((val) => val.length > 0, 'Please select a resource type'),
@@ -194,41 +194,67 @@ const EditResourcePage: React.FC = () => {
     },
   });
 
-  const { handleSubmit, setValue, reset,getValues, register, control, trigger, formState: { isSubmitting, errors },clearErrors } = methods;
+  const { handleSubmit, setValue, reset, getValues, register, control, trigger, formState: { isSubmitting, errors, touchedFields, isSubmitted }, clearErrors } = methods;
+
+  // Helper function to determine when to show error styling
+  const shouldShowError = (fieldName: keyof EditResourceFormData) => {
+    return errors[fieldName] && (touchedFields[fieldName] || isSubmitted);
+  };
+
+  // Memoize the form reset data to prevent unnecessary re-renders
+  const formResetData = useMemo(() => {
+    if (!resourceData) return null;
+
+    // Find the resource type slug from the category
+    const resourceCategory = resourceData.resourceCategoryId;
+    let resourceTypeSlug = '';
+    
+    if (resourceCategory && typeof resourceCategory === 'object' && 'slug' in resourceCategory) {
+      resourceTypeSlug = resourceCategory.slug;
+    } else if (resourceCategories && typeof resourceCategory === 'string') {
+      const category = resourceCategories.find(cat => cat._id === resourceCategory);
+      resourceTypeSlug = category?.slug || '';
+    }
+
+    return {
+      title: resourceData.title || '',
+      resourceType: resourceTypeSlug,
+      contentType: resourceData.tag || '',
+      description: resourceData.description || '',
+      videoLink: resourceData.watchUrl || ''
+    };
+  }, [resourceData, resourceCategories]);
+
+  // Memoize the reset function to prevent it from changing on every render
+  const resetForm = useCallback((data: any) => {
+    reset(data);
+    clearErrors();
+  }, [reset, clearErrors]);
 
   // Pre-populate form when resource data is loaded
   useEffect(() => {
-    if (resourceData) {
-      // Find the resource type slug from the category
-      const resourceCategory = resourceData.resourceCategoryId;
-      let resourceTypeSlug = '';
-      
-      if (resourceCategory && typeof resourceCategory === 'object' && 'slug' in resourceCategory) {
-        resourceTypeSlug = resourceCategory.slug;
-      } else if (resourceCategories && typeof resourceCategory === 'string') {
-        const category = resourceCategories.find(cat => cat._id === resourceCategory);
-        resourceTypeSlug = category?.slug || '';
-      }
-
+    if (resourceData && formResetData) {
       // Set current image URL for preview
-      if (resourceData.mediaUrl) {
+      if (resourceData.mediaUrl && currentImageUrl !== resourceData.mediaUrl) {
         setCurrentImageUrl(resourceData.mediaUrl);
         setPreviewUrl(resourceData.mediaUrl);
       }
-      reset({
-        title: resourceData.title || '',
-        resourceType: resourceTypeSlug,
-        contentType: resourceData.tag || '',
-        description: resourceData.description || '',
-        videoLink: resourceData.watchUrl || ''
-      });
-      clearErrors()
+      
+      // Only reset if the form data has actually changed
+      const currentValues = getValues();
+      const hasChanged = Object.keys(formResetData).some(key => 
+        currentValues[key as keyof typeof currentValues] !== formResetData[key as keyof typeof formResetData]
+      );
+      
+      if (hasChanged) {
+        resetForm(formResetData);
+      }
     }
-  }, [resourceData, resourceCategories]);
+  }, [resourceData, formResetData, resetForm, currentImageUrl, getValues]);
 
 
   // File upload handlers (same as AddResourcePage)
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
       toast.error('File size must be less than 5MB');
       return;
@@ -243,7 +269,7 @@ const EditResourcePage: React.FC = () => {
     setValue('mediaFile', file);
     setPreviewUrl(URL.createObjectURL(file));
     
-    await trigger('mediaFile');
+    trigger('mediaFile');
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,6 +305,12 @@ const EditResourcePage: React.FC = () => {
 
   const onSubmit = async (data: EditResourceFormData) => {
     try {
+      // Trigger validation for all fields before submission
+      const isValid = await trigger();
+      if (!isValid) {
+        return; // Stop submission if validation fails
+      }
+      
       await updateResourceMutation.mutateAsync(data);
     } catch (error) {
       console.error('Form submission error:', error);
@@ -360,7 +392,7 @@ const EditResourcePage: React.FC = () => {
               {/* Upload Banner/Thumbnail Section */}
               <div className="mb-8">
                 <Label className="text-base font-medium text-gray-900 mb-4 block">
-                  Upload Banner/Thumbnail Image <span className="text-gray-400">(Optional - keep existing or upload new)</span>
+                  Upload Banner/Thumbnail Image 
                 </Label>
                 <div
                   className={cn(
@@ -371,7 +403,7 @@ const EditResourcePage: React.FC = () => {
                       ? 'border-blue-400 bg-blue-50'
                       : 'border-gray-300',
                     !isFormDisabled && !isDragActive && 'hover:border-gray-400 hover:bg-gray-100',
-                    errors.mediaFile && 'border-red-500 bg-red-50'
+                    shouldShowError('mediaFile') && 'border-red-500 bg-red-50'
                   )}
                   onDragOver={!isFormDisabled ? handleDragOver : undefined}
                   onDragLeave={!isFormDisabled ? handleDragLeave : undefined}
@@ -385,16 +417,8 @@ const EditResourcePage: React.FC = () => {
                         alt="Preview"
                         className="h-full w-full rounded-lg object-cover"
                       />
-                      {selectedFile && (
-                        <div className="absolute bottom-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs">
-                          New image selected
-                        </div>
-                      )}
-                      {!selectedFile && currentImageUrl && (
-                        <div className="absolute bottom-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs">
-                          Current image
-                        </div>
-                      )}
+                   
+                  
                     </div>
                   ) : (
                     <div className="space-y-4 flex flex-col justify-center items-center h-46">
@@ -417,8 +441,8 @@ const EditResourcePage: React.FC = () => {
                     className="hidden"
                   />
                 </div>
-                {errors.mediaFile && resourceData && (
-                  <p className="mt-2 text-sm text-red-600">{errors.mediaFile.message}</p>
+                {shouldShowError('mediaFile') && (
+                  <p className="mt-2 text-sm text-red-600">{errors.mediaFile?.message}</p>
                 )}
               </div>
 
@@ -435,11 +459,11 @@ const EditResourcePage: React.FC = () => {
                     disabled={isFormDisabled}
                     className={cn(
                       "rounded-full h-14",
-                      errors.title && "border-red-500"
+                      shouldShowError('title') && "border-red-500"
                     )}
                   />
-                  {errors.title && resourceData && (
-                    <p className="mt-2 text-sm text-red-600">{errors.title.message}</p>
+                  {shouldShowError('title') && (
+                    <p className="mt-2 text-sm text-red-600">{errors.title?.message}</p>
                   )}
                 </div>
 
@@ -453,16 +477,16 @@ const EditResourcePage: React.FC = () => {
                     control={control}
                     render={({ field }) => (
                       <Select
-                        onValueChange={async (value) => {
+                        onValueChange={(value) => {
                           field.onChange(value);
-                          await trigger('resourceType');
+                          trigger('resourceType');
                         }}
                         value={field.value}
                         disabled={isFormDisabled}
                       >
                         <SelectTrigger className={cn(
                           "h-14 rounded-full border-gray-300",
-                          errors.resourceType && "border-red-500"
+                          shouldShowError('resourceType') && "border-red-500"
                         )}>
                           <SelectValue placeholder="Select resource type" />
                         </SelectTrigger>
@@ -480,8 +504,8 @@ const EditResourcePage: React.FC = () => {
                       </Select>
                     )}
                   />
-                  {errors.resourceType && resourceData && (
-                    <p className="mt-2 text-sm text-red-600">{errors.resourceType.message}</p>
+                  {shouldShowError('resourceType') && (
+                    <p className="mt-2 text-sm text-red-600">{errors.resourceType?.message}</p>
                   )}
                 </div>
 
@@ -495,16 +519,16 @@ const EditResourcePage: React.FC = () => {
                     control={control}
                     render={({ field }) => (
                       <Select
-                        onValueChange={async (value) => {
+                        onValueChange={(value) => {
                           field.onChange(value);
-                          await trigger('contentType');
+                          trigger('contentType');
                         }}
                         value={field.value}
                         disabled={isFormDisabled}
                       >
                         <SelectTrigger className={cn(
                           "h-14 rounded-full border-gray-300",
-                          errors.contentType && "border-red-500"
+                          shouldShowError('contentType') && "border-red-500"
                         )}>
                           <SelectValue placeholder="Select content type" />
                         </SelectTrigger>
@@ -518,8 +542,8 @@ const EditResourcePage: React.FC = () => {
                       </Select>
                     )}
                   />
-                  {errors.contentType && resourceData && (
-                    <p className="mt-2 text-sm text-red-600">{errors.contentType.message}</p>
+                  {shouldShowError('contentType') && (
+                    <p className="mt-2 text-sm text-red-600">{errors.contentType?.message}</p>
                   )}
                 </div>
               </div>
@@ -536,11 +560,11 @@ const EditResourcePage: React.FC = () => {
                   disabled={isFormDisabled}
                   className={cn(
                     "rounded-lg max-h-[400px] min-h-[200px] resize-none",
-                    errors.description && "border-red-500"
+                    shouldShowError('description') && "border-red-500"
                   )}
                 />
-                {errors.description && resourceData && (
-                  <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>
+                {shouldShowError('description') && (
+                  <p className="mt-2 text-sm text-red-600">{errors.description?.message}</p>
                 )}
               </div>
 
@@ -556,11 +580,11 @@ const EditResourcePage: React.FC = () => {
                   disabled={isFormDisabled}
                   className={cn(
                     "rounded-full h-14",
-                    errors.videoLink && "border-red-500"
+                    shouldShowError('videoLink') && "border-red-500"
                   )}
                 />
-                {errors.videoLink && (
-                  <p className="mt-2 text-sm text-red-600">{errors.videoLink.message}</p>
+                {shouldShowError('videoLink') && (
+                  <p className="mt-2 text-sm text-red-600">{errors.videoLink?.message}</p>
                 )}
               </div>
             </div>
