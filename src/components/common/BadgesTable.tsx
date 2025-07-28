@@ -111,7 +111,8 @@ const ActionMenu = ({
       <button
         ref={buttonRef}
         onClick={handleButtonClick}
-        className="p-1 md:p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+       className="p-2 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 cursor-pointer"
+        aria-label="More actions"
       >
         <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
       </button>

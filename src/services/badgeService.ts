@@ -263,10 +263,25 @@ export const getBadges = async (params: BadgeParams = {}): Promise<BadgesRespons
     return response.data;
   } catch (error: any) {
     console.error('Error fetching badges:', error);
+    console.error('Error details:', {
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      code: error?.code,
+      message: error?.message,
+      url: error?.config?.url,
+      baseURL: error?.config?.baseURL
+    });
     
-    // Fallback to sample data if API is not available
-    if (error?.response?.status === 404 || error?.code === 'ERR_NETWORK') {
-      console.warn('Badge API not available, using sample data');
+    // Only fallback to sample data in development when API is truly unavailable
+    // In production, we should show an error instead
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isNetworkError = error?.code === 'ERR_NETWORK' || error?.code === 'ECONNREFUSED';
+    const isApiNotFound = error?.response?.status === 404;
+    
+    if (isDevelopment && (isNetworkError || isApiNotFound)) {
+      console.warn('⚠️ Badge API not available in development, using sample data');
+      console.warn('💡 Make sure the backend server is running on the correct port');
+      console.warn('🔧 Check VITE_API_BASE_URL environment variable');
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
       
       // Filter sample data based on params
@@ -312,7 +327,8 @@ export const getBadges = async (params: BadgeParams = {}): Promise<BadgesRespons
       };
     }
     
-    throw error;
+    // In production or if it's not a network error, throw the error
+    throw new Error(`Failed to fetch badges: ${error?.message || 'Unknown error'}`);
   }
 };
 

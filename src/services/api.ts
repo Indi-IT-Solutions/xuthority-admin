@@ -6,6 +6,9 @@ const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://loca
 const API_TIMEOUT = 30000; // 30 seconds
 const FILE_UPLOAD_TIMEOUT = 300000; // 5 minutes for file uploads
 
+// Log the API URL being used for debugging
+console.log('🔗 API Base URL:', API_BASE_URL);
+
 // Token storage keys
 const TOKEN_KEY = 'xuthority_access_token';
 const REFRESH_TOKEN_KEY = 'xuthority_refresh_token';

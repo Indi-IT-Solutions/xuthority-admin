@@ -27,6 +27,10 @@ const AddResourcePage = lazy(() => import("@/pages/admin/AddResourcePage"));
 const EditResourcePage = lazy(() => import("@/pages/admin/EditResourcePage"));
 const EditBadgePage = lazy(() => import("@/pages/admin/EditBadgePage"));
 const AddBadgePage = lazy(() => import("@/pages/admin/AddBadgePage"));
+const PagesPage = lazy(() => import("@/pages/admin/PagesPage"));
+const PageDetailsPage = lazy(() => import("@/pages/admin/PageDetailsPage"));
+const PageViewPage = lazy(() => import("@/pages/admin/PageViewPage"));
+const SystemPageView = lazy(() => import("@/pages/admin/SystemPageView"));
 
 const Loader = () => <SuspenseLoader text="Loading page..." minTime={800} />;
 // Suspense wrapper component
@@ -163,6 +167,39 @@ const AppRoutes = createBrowserRouter([
           </SuspenseWrapper>
         ),
       },
+              {
+          path: "pages",
+          element: (
+            <SuspenseWrapper>
+              <PagesPage />
+            </SuspenseWrapper>
+          ),
+        },
+        {
+          path: "pages/system",
+          element: (
+            <SuspenseWrapper>
+              <SystemPageView />
+            </SuspenseWrapper>
+          ),
+        },
+        {
+          path: "pages/view/:slug",
+          element: (
+            <SuspenseWrapper>
+              <PageViewPage />
+            </SuspenseWrapper>
+          ),
+        },
+      
+        {
+          path: "pages/:pageSlug",
+          element: (
+            <SuspenseWrapper>
+              <PageDetailsPage />
+            </SuspenseWrapper>
+          ),
+        },
       {
         path: "settings",
         element: (
@@ -211,6 +248,7 @@ const AppRoutes = createBrowserRouter([
           </SuspenseWrapper>
         ),
       },
+   
     ],
   },
   // Fallback route
