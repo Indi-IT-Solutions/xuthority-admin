@@ -135,3 +135,42 @@
     margin-left: -8px !important;
   }
 }
+
+/* Fix z-index for Select and Dropdown components */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+/* Ensure Select content appears above other elements */
+[role="listbox"],
+[data-state="open"][data-side] {
+  z-index: 9999 !important;
+}
+
+/* Fix for dropdown menus */
+[data-radix-collection-item] {
+  z-index: 9999 !important;
+}
+
+/* Additional fix for Shadcn Select and DropdownMenu components */
+.fixed[role="presentation"] {
+  z-index: 9999 !important;
+}
+
+/* Specific fix for Radix UI Select and DropdownMenu portals */
+[data-radix-portal] {
+  z-index: 9999 !important;
+}
+
+/* Ensure dropdown content is not cut off */
+[data-radix-select-content],
+[data-radix-dropdown-menu-content] {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+/* Fix for the viewport */
+[data-radix-select-viewport] {
+  max-height: var(--radix-select-content-available-height);
+  z-index: 9999 !important;
+}

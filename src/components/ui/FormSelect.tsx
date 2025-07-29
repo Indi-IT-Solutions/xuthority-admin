@@ -163,11 +163,11 @@ export const FormSelect: React.FC<FormSelectProps> = ({
       <div className="flex items-center justify-between w-full">
         <div className="flex flex-wrap gap-1 flex-1 min-w-0">
       
-              {selectedLabels.slice(0, 3).map((label, index) => (
+              {selectedLabels.slice(0, 5).map((label, index) => (
                 <Badge
                   key={selectedValues[index]}
                   variant="secondary"
-                  className={`text-xs flex items-center gap-1 truncate pr-1 p-2 rounded-full ${selectedValues.length > 3 ? ' max-w-24' : 'max-w-28'}`}
+                  className={`text-xs flex items-center gap-1 truncate pr-1 p-2 rounded-full ${selectedValues.length > 5 ? ' max-w-28' : 'max-w-38'}`}
                 >
                   <span className="truncate">{label}</span>
                   <button
@@ -184,9 +184,9 @@ export const FormSelect: React.FC<FormSelectProps> = ({
                   </button>
                 </Badge>
               ))}
-              {selectedValues.length > 3 && (
+              {selectedValues.length > 5 && (
                 <Badge variant="outline" className="text-xs p-2 rounded-full">
-                  +{selectedValues.length - 3} more
+                  +{selectedValues.length - 5} more
                 </Badge>
               )}
     
@@ -216,9 +216,11 @@ export const FormSelect: React.FC<FormSelectProps> = ({
 
   return (
     <div className="w-full">
-      <Label htmlFor={name} className={error ? 'text-red-500' : ''}>
-        {label}
-      </Label>
+      {label && (
+        <Label htmlFor={name} className={`${error ? 'text-red-500' : ''} text-sm font-medium text-gray-700 block`}>
+          {label}
+        </Label>
+      )}
       <Controller
         name={name}
         control={control}
@@ -246,7 +248,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
                 <div
                   ref={field.ref}
                   id={name}
-                  className={`mt-2 rounded-full w-full min-h-14 px-3 py-2 border cursor-pointer flex items-center ${
+                  className={`${label ? 'mt-1' : ''} rounded-full w-full min-h-14 px-3 py-2 border cursor-pointer flex items-center ${
                     error ? 'border-red-500' : 'border-gray-300'
                   } ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:border-gray-400'}`}
                   onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -348,7 +350,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
               <SelectTrigger
                 id={name}
                 ref={field.ref}
-                className={`mt-2 rounded-full w-full ${error ? 'border-red-500' : 'border-gray-300'}`}
+                className={`${label ? 'mt-1' : ''} rounded-full w-full h-14 ${error ? 'border-red-500' : 'border-gray-300'}`}
                 disabled={disabled}
               >
                 <SelectValue placeholder={placeholder} />
