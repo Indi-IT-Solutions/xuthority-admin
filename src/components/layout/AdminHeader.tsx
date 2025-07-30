@@ -5,10 +5,12 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/getInitials';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
+import { useUnreadCount } from '@/hooks/useNotifications';
 
 const AdminHeader = () => {
   const { user, toggleMobileSidebar } = useAdminStore();
   const navigate = useNavigate();
+  const { data: unreadData } = useUnreadCount();
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 md:px-7 py-4 md:py-5 flex items-center justify-between md:justify-end">
@@ -26,9 +28,11 @@ const AdminHeader = () => {
           <SheetTrigger asChild>
             <button className="relative p-2 md:p-3 text-gray-600 hover:text-gray-900 transition-colors bg-gray-100 rounded-full cursor-pointer">
               <Bell className="w-5 h-5 md:w-6 md:h-6" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center font-medium">
-                2
-              </span>
+              {unreadData?.data?.count > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center font-medium">
+                  {unreadData.data.count > 99 ? '99+' : unreadData.data.count}
+                </span>
+              )}
             </button>
           </SheetTrigger>
           <SheetContent side="right" className="p-0 bg-white sm:min-w-md">

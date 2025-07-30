@@ -7,7 +7,6 @@ export const useProductsBySoftware = (softwareId: string | null, enabled: boolea
     queryKey: ['products', 'bySoftware', softwareId, 'sorted'],
     queryFn: () => {
       if (!softwareId) return Promise.resolve({ data: [] });
-      // Fetch products sorted by avgRating in descending order
       return ProductService.getProductsBySoftware(softwareId, {
         sortBy: 'avgRating',
         sortOrder: 'desc'

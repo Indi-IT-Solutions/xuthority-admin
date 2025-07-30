@@ -1,7 +1,7 @@
-import { LandingPagesContainer } from "@/components/landing-pages";
+import { LandingPagesContainerV2 } from "@/components/landing-pages-v2/LandingPagesContainerV2";
 
 const LandingPagesPage = () => {
-  return <LandingPagesContainer />;
+  return <LandingPagesContainerV2 />;
 };
 
 export default LandingPagesPage;
