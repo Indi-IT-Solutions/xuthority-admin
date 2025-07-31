@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ChangePasswordModal } from "@/components/ChangePasswordModal";
+import { ProfileSettingsSkeleton } from "@/components/common";
 
 // Zod validation schema
 const profileSchema = z.object({
@@ -89,7 +90,7 @@ const ProfilePage = () => {
       }
       throw new Error(response.message || "Failed to fetch profile");
     },
-    retry: 1,
+    retry: false, // Disable retries to prevent duplicate toast notifications
     enabled: isLoggedIn && AdminAuthService.isAuthenticated(), // Only run if authenticated
   });
 
@@ -229,11 +230,7 @@ const ProfilePage = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <ProfileSettingsSkeleton />;
   }
 
   return (

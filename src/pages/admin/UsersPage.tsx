@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { UsersTable, Pagination, UserFilter } from "@/components/common";
+import { UsersTable, Pagination, UserFilter, TableSkeleton } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -337,11 +337,7 @@ const UsersPage = () => {
  
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500">Loading users...</div>
-        </div>
-      )}
+      {isLoading && <TableSkeleton rows={10} />}
 
       {/* Error State */}
       {error && (

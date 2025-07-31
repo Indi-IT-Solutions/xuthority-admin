@@ -1,46 +1,47 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import {
-  getBadges,
-  getBadgeRequests,
-  updateBadgeStatus,
-  createBadge,
-  updateBadge,
-  deleteBadge,
-  approveBadgeRequest,
-  rejectBadgeRequest,
-  getBadgeRequestDetails,
+import { 
+  getBadges, 
+  getBadgeRequests, 
+  updateBadgeStatus, 
+  createBadge, 
+  updateBadge, 
+  deleteBadge, 
+  approveBadgeRequest, 
+  rejectBadgeRequest, 
+  getBadgeRequestDetails, 
   getBadgeById,
   BadgeParams,
-  TransformedBadge,
+  BadgeRequestParams,
+  TransformedBadge 
 } from '@/services/badgeService';
 
-// Query Keys
-export const BADGE_QUERY_KEYS = {
-  all: ['badges'] as const,
-  lists: () => [...BADGE_QUERY_KEYS.all, 'list'] as const,
-  list: (params: BadgeParams) => [...BADGE_QUERY_KEYS.lists(), params] as const,
-  detail: (id: string) => [...BADGE_QUERY_KEYS.all, 'detail', id] as const,
-  requests: () => [...BADGE_QUERY_KEYS.all, 'requests'] as const,
-  requestList: (params: BadgeParams) => [...BADGE_QUERY_KEYS.requests(), params] as const,
-  requestDetails: (id: string) => [...BADGE_QUERY_KEYS.requests(), 'detail', id] as const,
-};
+// Query keys for badges
+const BADGE_QUERY_KEYS = {
+  lists: () => ['badges', 'list'],
+  list: (params: BadgeParams) => ['badges', 'list', params],
+  detail: (id: string) => ['badges', 'detail', id],
+  requests: () => ['badge-requests', 'list'],
+  requestList: (params: BadgeRequestParams) => ['badge-requests', 'list', params],
+  requestDetails: (id: string) => ['badge-requests', 'detail', id],
+  all: ['badges']
+} as const;
 
 // Get Badges Hook
 export const useBadges = (params: BadgeParams = {}) => {
   return useQuery({
     queryKey: BADGE_QUERY_KEYS.list(params),
     queryFn: () => getBadges(params),
-
+    staleTime: 30000, // 30 seconds
+    gcTime: 300000, // 5 minutes
   });
 };
 
 // Get Badge Requests Hook
-export const useBadgeRequests = (params: BadgeParams = {}) => {
+export const useBadgeRequests = (params: BadgeRequestParams = {}) => {
   return useQuery({
     queryKey: BADGE_QUERY_KEYS.requestList(params),
     queryFn: () => getBadgeRequests(params),
-
   });
 };
 
@@ -113,7 +114,8 @@ export const useDeleteBadge = () => {
       queryClient.invalidateQueries({ queryKey: BADGE_QUERY_KEYS.lists() });
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 'Failed to delete badge';
+      // Get error message from the correct response structure
+      const errorMessage = error?.response?.data?.error?.message || error?.response?.data?.message || 'Failed to delete badge';
       toast.error(errorMessage);
     },
   });

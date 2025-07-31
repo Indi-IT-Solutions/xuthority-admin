@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -59,13 +59,13 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
   const getStatusColor = (status: BadgeRequest['status']) => {
     switch (status) {
       case 'requested':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-50 text-yellow-600 border-yellow-200';
       case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-50 text-green-600 border-green-200';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-50 text-red-600 border-red-200';
       case 'canceled':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-50 text-gray-600 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -103,82 +103,87 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden bg-white">
-        <DialogHeader className="p-6 pb-4">
+      <DialogContent className="max-w-xl p-0 overflow-hidden bg-white">
+        <DialogHeader className="p-6 pb-4 relative">
           <DialogTitle className="text-xl font-semibold text-center">
             Badges Request
           </DialogTitle>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
         </DialogHeader>
 
         <div className="px-6 pb-6 space-y-6">
           {/* Badge Icon/Avatar */}
           <div className="flex justify-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
               <div 
-                className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden"
+                className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold overflow-hidden p-2"
                 style={{ backgroundColor: badgeRequest.badge?.colorCode || '#3B82F6' }}
               >
                 {badgeRequest.badge?.icon && badgeRequest.badge?.icon.startsWith('http') ? (
                   <img 
                     src={badgeRequest.badge.icon} 
                     alt={badgeRequest.badge?.title || 'Badge'}
-                    className="w-full h-full object-cover rounded-full"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
-                  <span>{badgeRequest.badge?.icon || '🏆'}</span>
+                  <span className="text-4xl">{badgeRequest.badge?.icon || '🏆'}</span>
                 )}
               </div>
-            </div>
           </div>
 
           {/* User Details and Status Row */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center justify-between space-x-6">
             {/* Requested User */}
-            <div className="space-y-2">
-              <p className="text-sm text-gray-500 font-medium">Requested User</p>
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={badgeRequest.user?.avatar} />
-                  <AvatarFallback className="bg-gray-200 text-gray-600 text-sm">
-                    {getUserInitials(badgeRequest.user)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {getUserName(badgeRequest.user)}
-                  </p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <Avatar className="w-12 h-12 flex-shrink-0">
+                <AvatarImage 
+                  src={badgeRequest.user?.avatar || ''} 
+                  alt={badgeRequest.user?.firstName || 'User'}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
+                  {getUserInitials(badgeRequest.user)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500 font-medium">Requested User</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  {getUserName(badgeRequest.user)}
+                </span>
               </div>
             </div>
 
             {/* Requested Date and Status */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm text-gray-500 font-medium">Requested Date</p>
-                <div className="flex items-center space-x-2 text-gray-900">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4 text-gray-500" />
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-500 font-medium">Requested Date</span>
+                  <span className="text-lg font-semibold text-gray-900">
                     {formatDate(badgeRequest.createdAt)}
                   </span>
                 </div>
               </div>
               
-              <div className="flex justify-end">
-                <Badge 
-                  variant="secondary"
-                  className={`${getStatusColor(badgeRequest.status)} font-medium`}
-                >
-                  {getStatusLabel(badgeRequest.status)}
-                </Badge>
-              </div>
+              <Badge 
+                variant="secondary"
+                className={`${getStatusColor(badgeRequest.status)} font-medium px-3 py-1 text-sm rounded-full`}
+              >
+                {getStatusLabel(badgeRequest.status)}
+              </Badge>
             </div>
           </div>
 
           {/* Badge Name */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-900">Badge Name</label>
-            <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-              <p className="text-gray-900 font-medium">
+            <label className="text-sm font-medium text-gray-700">Badge Name</label>
+            <div className="p-4 border border-gray-200 rounded-lg bg-white">
+              <p className="text-gray-900 font-medium text-base">
                 {badgeRequest.badge?.title || 'Unknown Badge'}
               </p>
             </div>
@@ -186,9 +191,9 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-900">Description</label>
-            <div className="p-3 border border-gray-200 rounded-lg bg-gray-50 min-h-[100px]">
-              <p className="text-gray-700 text-sm leading-relaxed">
+            <label className="text-sm font-medium text-gray-700">Description</label>
+            <div className="p-4 border border-gray-200 rounded-lg bg-white min-h-[120px]">
+              <p className="text-gray-600 text-sm leading-relaxed">
                 {badgeRequest.badge?.description || 'No description available'}
               </p>
             </div>
@@ -199,7 +204,7 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-900">Reason</label>
               <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                <p className="text-gray-700 text-sm  break-all">
+                <p className="text-gray-700 text-sm break-all">
                   {badgeRequest.reason}
                 </p>
               </div>
@@ -221,17 +226,17 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
 
         {/* Action Buttons - Only show if status is requested */}
         {canTakeAction && (
-          <DialogFooter className="p-6 pt-0 flex-row gap-3">
+          <DialogFooter className="p-6 pt-0 flex gap-4">
             <Button
               variant="destructive"
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-full py-3"
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-full py-6 text-base font-medium"
               onClick={() => onReject?.(badgeRequest._id)}
               disabled={isRejectPending || isApprovePending}
             >
               {isRejectPending ? 'Rejecting...' : 'Reject'}
             </Button>
             <Button
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full py-3"
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full py-6 text-base font-medium"
               onClick={() => onApprove?.(badgeRequest._id)}
               disabled={isApprovePending || isRejectPending}
             >

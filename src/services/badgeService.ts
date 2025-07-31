@@ -10,6 +10,7 @@ export interface Badge {
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
+  colorCode: string;
 }
 
 export interface BadgeRequest {
@@ -92,6 +93,7 @@ export interface TransformedBadge {
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
+  colorCode: string;
 }
 
 export interface BadgeParams {
@@ -103,119 +105,14 @@ export interface BadgeParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-// Sample data for fallback/demonstration
-const sampleBadges: Badge[] = [
-  {
-    _id: '1',
-    id: 1,
-    title: 'High Performer',
-    description: 'Given for 10+ helpful reviews',
-    icon: '🏆',
-    earnedBy: 124,
-    status: 'active',
-    createdAt: '2024-01-15T08:00:00Z',
-    updatedAt: '2024-01-15T08:00:00Z'
-  },
-  {
-    _id: '2',
-    id: 2,
-    title: 'Customer Satisfaction Badge',
-    description: 'For profile verification',
-    icon: '⭐',
-    earnedBy: 421,
-    status: 'active',
-    createdAt: '2024-01-14T08:00:00Z',
-    updatedAt: '2024-01-14T08:00:00Z'
-  },
-  {
-    _id: '3',
-    id: 3,
-    title: 'Enterprise Leader',
-    description: 'Highest review Growth in a quarter',
-    icon: '💼',
-    earnedBy: 452,
-    status: 'inactive',
-    createdAt: '2024-01-13T08:00:00Z',
-    updatedAt: '2024-01-13T08:00:00Z'
-  },
-  {
-    _id: '4',
-    id: 4,
-    title: 'Best Vendor Relationships',
-    description: '10 Consecutive 5-star ratings',
-    icon: '🤝',
-    earnedBy: 965,
-    status: 'active',
-    createdAt: '2024-01-12T08:00:00Z',
-    updatedAt: '2024-01-12T08:00:00Z'
-  },
-  {
-    _id: '5',
-    id: 5,
-    title: 'Fast-Growing Products',
-    description: '5 Review in a week',
-    icon: '🚀',
-    earnedBy: 487,
-    status: 'inactive',
-    createdAt: '2024-01-11T08:00:00Z',
-    updatedAt: '2024-01-11T08:00:00Z'
-  },
-  {
-    _id: '6',
-    id: 6,
-    title: 'Best Usability of Products',
-    description: 'Avg rating above 4.5 for 6 months',
-    icon: '💡',
-    earnedBy: 365,
-    status: 'active',
-    createdAt: '2024-01-10T08:00:00Z',
-    updatedAt: '2024-01-10T08:00:00Z'
-  },
-  {
-    _id: '7',
-    id: 7,
-    title: 'Outstanding Customer Service',
-    description: '3+ in-depth reviews in 30 days',
-    icon: '🎯',
-    earnedBy: 254,
-    status: 'active',
-    createdAt: '2024-01-09T08:00:00Z',
-    updatedAt: '2024-01-09T08:00:00Z'
-  },
-  {
-    _id: '8',
-    id: 8,
-    title: 'Users Love Us',
-    description: 'Rapid weekly growth in user engagement',
-    icon: '❤️',
-    earnedBy: 87,
-    status: 'active',
-    createdAt: '2024-01-08T08:00:00Z',
-    updatedAt: '2024-01-08T08:00:00Z'
-  },
-  {
-    _id: '9',
-    id: 9,
-    title: 'Momentum Leader',
-    description: '5 upvoted review in a month',
-    icon: '📈',
-    earnedBy: 242,
-    status: 'inactive',
-    createdAt: '2024-01-07T08:00:00Z',
-    updatedAt: '2024-01-07T08:00:00Z'
-  },
-  {
-    _id: '10',
-    id: 10,
-    title: 'Spotlight of the Week',
-    description: '2+ flag reviews found in a month',
-    icon: '🌟',
-    earnedBy: 545,
-    status: 'active',
-    createdAt: '2024-01-06T08:00:00Z',
-    updatedAt: '2024-01-06T08:00:00Z'
-  }
-];
+export interface BadgeRequestParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: 'requested' | 'approved' | 'rejected' | 'canceled' | 'all';
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
 
 // Transform raw badge data from API
 const transformBadgeData = (rawBadge: Badge, index: number): TransformedBadge => {
@@ -228,7 +125,8 @@ const transformBadgeData = (rawBadge: Badge, index: number): TransformedBadge =>
     earnedBy: rawBadge.earnedBy || 0,
     status: rawBadge.status,
     createdAt: rawBadge.createdAt,
-    updatedAt: rawBadge.updatedAt
+    updatedAt: rawBadge.updatedAt,
+    colorCode: rawBadge.colorCode
   };
 };
 
@@ -272,73 +170,18 @@ export const getBadges = async (params: BadgeParams = {}): Promise<BadgesRespons
       baseURL: error?.config?.baseURL
     });
     
-    // Only fallback to sample data in development when API is truly unavailable
-    // In production, we should show an error instead
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const isNetworkError = error?.code === 'ERR_NETWORK' || error?.code === 'ECONNREFUSED';
-    const isApiNotFound = error?.response?.status === 404;
-    
-    if (isDevelopment && (isNetworkError || isApiNotFound)) {
-      console.warn('⚠️ Badge API not available in development, using sample data');
-      console.warn('💡 Make sure the backend server is running on the correct port');
-      console.warn('🔧 Check VITE_API_BASE_URL environment variable');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-      
-      // Filter sample data based on params
-      let filteredBadges = [...sampleBadges];
-      
-      // Apply search filter
-      if (params.search) {
-        const searchLower = params.search.toLowerCase();
-        filteredBadges = filteredBadges.filter(badge => 
-          badge.title.toLowerCase().includes(searchLower) ||
-          badge.description.toLowerCase().includes(searchLower)
-        );
-      }
-      
-      // Apply status filter
-      if (params.status && params.status !== 'all') {
-        filteredBadges = filteredBadges.filter(badge => badge.status === params.status);
-      }
-      
-      // Apply pagination
-      const page = params.page || 1;
-      const limit = params.limit || 10;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedBadges = filteredBadges.slice(startIndex, endIndex);
-      
-      // Transform the data
-      const transformedBadges = paginatedBadges.map((badge, index) => 
-        transformBadgeData(badge, startIndex + index)
-      );
-      
-      return {
-        success: true,
-        data: {
-          badges: transformedBadges,
-          pagination: {
-            page,
-            limit,
-            total: filteredBadges.length,
-            totalPages: Math.ceil(filteredBadges.length / limit)
-          }
-        }
-      };
-    }
-    
-    // In production or if it's not a network error, throw the error
     throw new Error(`Failed to fetch badges: ${error?.message || 'Unknown error'}`);
   }
 };
 
-export const getBadgeRequests = async (params: BadgeParams = {}): Promise<BadgeRequestsResponse> => {
+export const getBadgeRequests = async (params: BadgeRequestParams = {}): Promise<BadgeRequestsResponse> => {
   try {
     const queryParams = new URLSearchParams();
     
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.search) queryParams.append('search', params.search);
+    if (params.status && params.status !== 'all') queryParams.append('status', params.status);
     if (params.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
@@ -347,7 +190,7 @@ export const getBadgeRequests = async (params: BadgeParams = {}): Promise<BadgeR
   } catch (error: any) {
     console.error('Error fetching badge requests:', error);
     
-    // Fallback to empty data
+    // Return empty data on error
     return {
       success: true,
       data: {
@@ -369,20 +212,7 @@ export const updateBadgeStatus = async (badgeId: string, status: 'active' | 'ina
     return response.data;
   } catch (error: any) {
     console.error('Error updating badge status:', error);
-    
-    // Simulate successful update for demo
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Update the sample data
-    const badgeIndex = sampleBadges.findIndex(badge => badge._id === badgeId);
-    if (badgeIndex !== -1) {
-      sampleBadges[badgeIndex].status = status;
-    }
-    
-    return {
-      success: true,
-      message: `Badge ${status === 'active' ? 'activated' : 'deactivated'} successfully`
-    };
+    throw error;
   }
 };
 
@@ -412,20 +242,7 @@ export const deleteBadge = async (badgeId: string): Promise<any> => {
     return response.data;
   } catch (error: any) {
     console.error('Error deleting badge:', error);
-    
-    // Simulate successful delete for demo
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Remove from sample data
-    const badgeIndex = sampleBadges.findIndex(badge => badge._id === badgeId);
-    if (badgeIndex !== -1) {
-      sampleBadges.splice(badgeIndex, 1);
-    }
-    
-    return {
-      success: true,
-      message: 'Badge deleted successfully'
-    };
+    throw error;
   }
 };
 
@@ -471,17 +288,6 @@ export const getBadgeById = async (badgeId: string): Promise<TransformedBadge> =
     throw new Error('Badge not found');
   } catch (error: any) {
     console.error('Error fetching badge by ID:', error);
-    
-    // Fallback to sample data if API is not available
-    if (error?.response?.status === 404 || error?.code === 'ERR_NETWORK') {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const badge = sampleBadges.find(b => b._id === badgeId);
-      if (badge) {
-        return transformBadgeData(badge, 0);
-      }
-    }
-    
     throw error;
   }
 }; 

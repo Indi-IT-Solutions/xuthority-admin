@@ -1,26 +1,36 @@
 import React from 'react';
-import { useForm, FormProvider, useFormContext } from 'react-hook-form';
+import { useForm, FormProvider, useFormContext, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { FormField } from '@/components/landing-pages-shared/forms/FormField';
 import { FormSelectEnhanced } from '@/components/ui/FormSelectEnhanced';
+import { useLandingPageSection, useUpdateLandingPageSection } from '../../hooks/useLandingPageSection';
+import { useSoftwareAndSolutionOptions } from '@/hooks/useSoftwareAndSolutionOptions';
+import { useProductsBySoftwareOrSolution } from '@/hooks/useProductsBySoftwareOrSolution';
+import toast from 'react-hot-toast';
 
 // Schema for popular section
 export const popularSchema = z.object({
   heading: z.string().min(1, "Heading is required"),
   solutions: z.array(z.object({
     id: z.string(),
-    name: z.string().min(1, "Software/Solution selection is required"),
-    types: z.array(z.string()).min(1, "At least one product is required")
+    software: z.string().optional(),
+    solution: z.string().optional(),
+    products: z.array(z.string()).min(1, "At least one product is required").max(4, "Maximum 4 products allowed"),
+    tempSelection: z.string().optional(),
+  }).refine(data => data.software || data.solution, {
+    message: "Either software or solution must be selected"
   })).min(1, "At least one item is required")
 });
 
 interface SolutionData {
   id: string;
-  name: string;
-  types: string[];
+  software?: string;
+  solution?: string;
+  products: string[];
+  tempSelection?: string;
 }
 
 interface SolutionItemProps {
@@ -29,10 +39,7 @@ interface SolutionItemProps {
   onRemove: () => void;
   canRemove: boolean;
   selectedItems: string[];
-  softwareSolutionOptions: { value: string; label: string }[];
-  productOptions: { value: string; label: string }[];
-  optionsLoading: boolean;
-  productsLoading: boolean;
+  initialProductData?: { id: string; name: string; logo?: string }[];
 }
 
 const SolutionItem: React.FC<SolutionItemProps> = ({
@@ -41,34 +48,116 @@ const SolutionItem: React.FC<SolutionItemProps> = ({
   onRemove,
   canRemove,
   selectedItems,
-  softwareSolutionOptions,
-  productOptions,
-  optionsLoading,
-  productsLoading,
+  initialProductData
 }) => {
-  const { setValue, watch, formState: { errors } } = useFormContext();
+  const { setValue, watch, formState: { errors }, control } = useFormContext();
 
-  const selectedValue = watch(`solutions.${index}.name`);
-  const currentId = selectedValue || '';
-  const actualId = currentId.includes('_') ? currentId.split('_')[1] : currentId;
+  // Get combined software and solution options
+  const { options: softwareSolutionOptions, isLoading: optionsLoading } = useSoftwareAndSolutionOptions();
+
+  // Watch the current solution data
+  const watchedSolution = watch(`solutions.${index}`);
+  const currentSelection = watchedSolution?.software 
+    ? `software_${watchedSolution.software}` 
+    : watchedSolution?.solution 
+    ? `solution_${watchedSolution.solution}`
+    : '';
+    
+  // Set initial tempSelection value
+  React.useEffect(() => {
+    if (currentSelection && !watchedSolution?.tempSelection) {
+      setValue(`solutions.${index}.tempSelection`, currentSelection);
+    }
+  }, [currentSelection, watchedSolution?.tempSelection, setValue, index]);
+
+  // Track previous selection to detect changes
+  const prevSelectionRef = React.useRef(currentSelection);
+
+  // Watch the temp selection for changes
+  const tempSelection = watch(`solutions.${index}.tempSelection`);
+  
+  // Handle selection changes
+  React.useEffect(() => {
+    if (tempSelection) {
+      if (tempSelection.startsWith('software_')) {
+        const softwareId = tempSelection.replace('software_', '');
+        setValue(`solutions.${index}.software`, softwareId);
+        setValue(`solutions.${index}.solution`, undefined);
+      } else if (tempSelection.startsWith('solution_')) {
+        const solutionId = tempSelection.replace('solution_', '');
+        setValue(`solutions.${index}.solution`, solutionId);
+        setValue(`solutions.${index}.software`, undefined);
+      }
+    }
+  }, [tempSelection, setValue, index]);
+  
+  // Clear products when selection changes
+  React.useEffect(() => {
+    if (prevSelectionRef.current && prevSelectionRef.current !== currentSelection && currentSelection) {
+      setValue(`solutions.${index}.products`, []);
+    }
+    prevSelectionRef.current = currentSelection;
+  }, [currentSelection, setValue, index]);
 
   // Filter out already selected items
   const availableOptions = React.useMemo(() => {
     return softwareSolutionOptions.filter(option =>
-      !selectedItems.includes(option.value) || option.value === currentId
+      !selectedItems.includes(option.value) || option.value === currentSelection
     );
-  }, [softwareSolutionOptions, selectedItems, currentId]);
+  }, [softwareSolutionOptions, selectedItems, currentSelection]);
+
+  // Get products for the selected software/solution
+  const selectedId = watchedSolution?.software || watchedSolution?.solution || '';
+  const { options: productOptions, isLoading: productsLoading } = useProductsBySoftwareOrSolution(
+    selectedId
+  );
+
+  // Merge initial product data with API options
+  const mergedProductOptions = React.useMemo(() => {
+    const optionsMap = new Map<string, { value: string; label: string; slug?: string }>();
+    
+    // First add all product options from API
+    productOptions.forEach((opt: { value: string; label: string; slug?: string }) => {
+      optionsMap.set(opt.value, opt);
+    });
+    
+    // Only add initial product data if API returned some data or if we're still loading
+    // This prevents showing stale cached data when API returns empty results
+    if (productsLoading) {
+      // Show cached data while loading
+      if (initialProductData && initialProductData.length > 0) {
+        initialProductData.forEach(product => {
+          if (!optionsMap.has(product.id)) {
+            optionsMap.set(product.id, {
+              value: product.id,
+              label: product.name,
+              slug: ''
+            });
+          }
+        });
+      }
+    } else if (productOptions.length > 0) {
+      // Only show cached data if API returned some data
+      if (initialProductData && initialProductData.length > 0) {
+        initialProductData.forEach(product => {
+          if (!optionsMap.has(product.id)) {
+            optionsMap.set(product.id, {
+              value: product.id,
+              label: product.name,
+              slug: ''
+            });
+          }
+        });
+      }
+    }
+    // If API returned empty data and we're not loading, don't show any cached data
+    
+    return Array.from(optionsMap.values());
+  }, [productOptions, initialProductData, productsLoading]);
+
+  // We don't need handleSelectionChange anymore since FormSelectEnhanced uses Controller
 
   const error = errors?.solutions?.[index];
-
-  // Handle selection change and reset products
-  const previousValueRef = React.useRef(selectedValue);
-  React.useEffect(() => {
-    if (selectedValue !== previousValueRef.current) {
-      setValue(`solutions.${index}.types`, []);
-      previousValueRef.current = selectedValue;
-    }
-  }, [selectedValue, index, setValue]);
 
   return (
     <div className="border border-gray-200 rounded-lg p-6 space-y-4">
@@ -87,105 +176,75 @@ const SolutionItem: React.FC<SolutionItemProps> = ({
         )}
       </div>
 
-      <FormSelectEnhanced
-        name={`solutions.${index}.name`}
-        label="Software or Solution"
-        placeholder="Select software or solution"
-        options={availableOptions}
-        searchable
-        disabled={optionsLoading}
-      />
-      {error?.name && (
-        <p className="text-sm text-red-500 -mt-3 mb-4">{error.name.message}</p>
-      )}
+      <div className="space-y-2">
+        <FormSelectEnhanced
+          name={`solutions.${index}.tempSelection`}
+          label="Software or Solution *"
+          placeholder="Select software or solution..."
+          options={availableOptions}
+          searchable
+          disabled={optionsLoading}
+        />
+        {error && typeof error === 'object' && 'message' in error && (
+          <p className="text-sm text-red-500">{error.message}</p>
+        )}
+      </div>
 
-      <FormSelectEnhanced
-        name={`solutions.${index}.types`}
-        label="Products"
-        placeholder={
-          !actualId
-            ? "Please select software/solution first"
-            : productsLoading
-              ? "Loading products..."
-              : `Select products (max. 9 products) - ${productOptions.length} available`
-        }
-        options={productOptions}
-        multiple
-        maxSelections={9}
-        disabled={!actualId || productsLoading}
-        searchable
-        preserveSelectedLabels={true}
-      />
-      {productsLoading && actualId && (
-        <p className="text-sm text-blue-500 -mt-3 mb-4">
-          Loading products for selected item...
-        </p>
-      )}
-      {error?.types && (
-        <p className="text-sm text-red-500 -mt-3 mb-4">
-          {typeof error.types === 'object' && 'message' in error.types
-            ? (typeof error.types.message === 'string' ? error.types.message : 'Please select products')
-            : 'Please select products'}
-        </p>
+      {selectedId && (
+        <div className="space-y-2">
+          <FormSelectEnhanced
+            name={`solutions.${index}.products`}
+            label="Products *"
+            placeholder="Select products (max 4)..."
+            options={mergedProductOptions}
+            multiple
+            maxSelections={4}
+            disabled={productsLoading}
+            searchable
+          />
+          {error?.products && (
+            <p className="text-sm text-red-500">{error.products?.message}</p>
+          )}
+        </div>
       )}
     </div>
   );
 };
 
 interface PopularFormContentProps {
-  onImageChange: (index: number, file: File | null) => void;
-  softwareSolutionOptions: { value: string; label: string }[];
-  productOptionsMap: Record<string, { value: string; label: string }[]>;
-  optionsLoading: boolean;
-  productsLoadingMap: Record<string, boolean>;
+  productDataCache: Record<string, { id: string; name: string; logo?: string }[]>;
 }
 
-const PopularFormContent: React.FC<PopularFormContentProps> = ({
-  onImageChange: onImageChangeFromParent,
-  softwareSolutionOptions,
-  productOptionsMap,
-  optionsLoading,
-  productsLoadingMap,
-}) => {
-  const { register, setValue, watch, formState: { errors } } = useFormContext();
-  const watchedSolutions = watch('solutions');
+const PopularFormContent: React.FC<PopularFormContentProps> = ({ productDataCache }) => {
+  const { control, register, watch, formState: { errors } } = useFormContext();
+  
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'solutions',
+  });
 
-  // Ensure solutions is always an array with proper structure
-  const solutions = React.useMemo(() => {
-    if (!watchedSolutions || !Array.isArray(watchedSolutions) || watchedSolutions.length === 0) {
-      return [{ id: '1', name: '', types: [] }];
-    }
-    return watchedSolutions.map(sol => ({
-      id: typeof sol.id === 'string' ? sol.id : String(sol.id || Date.now()),
-      name: typeof sol.name === 'string' ? sol.name : String(sol.name || ''),
-      types: Array.isArray(sol.types) ? sol.types : []
-    }));
-  }, [watchedSolutions]);
-
-  // Get all selected items
-  const selectedItems = React.useMemo(() => {
-    return solutions
-      .map(sol => sol.name)
-      .filter(name => name && name.includes('_'));
-  }, [solutions]);
+  // Watch all selections to prevent duplicates
+  const solutions = watch('solutions') || [];
+  const selectedItems = solutions.map((sol: any) => {
+    if (sol.software) return `software_${sol.software}`;
+    if (sol.solution) return `solution_${sol.solution}`;
+    return '';
+  }).filter(Boolean);
 
   const addSolution = () => {
-    const newSolution = {
+    append({
       id: Date.now().toString(),
-      name: '',
-      types: [],
-    };
-    setValue('solutions', [...solutions, newSolution]);
+      software: '',
+      solution: '',
+      products: [],
+      tempSelection: '',
+    });
   };
 
   const removeSolution = (index: number) => {
-    const updatedSolutions = solutions.filter((_: any, i: number) => i !== index);
-    setValue('solutions', updatedSolutions);
-    onImageChangeFromParent(index, null);
-  };
-
-  const handleImageChange = (index: number, file: File | null) => {
-    onImageChangeFromParent(index, file);
+    if (fields.length > 1) {
+      remove(index);
+    }
   };
 
   return (
@@ -199,24 +258,20 @@ const PopularFormContent: React.FC<PopularFormContentProps> = ({
       />
 
       <div className="space-y-6">
-        {solutions.map((solution: SolutionData, index: number) => {
-          const currentId = solution.name || '';
-          const actualId = currentId.includes('_') ? currentId.split('_')[1] : currentId;
-          const productOptions = productOptionsMap[actualId] || [];
-          const productsLoading = productsLoadingMap[actualId] || false;
-
+        {fields.map((field, index) => {
+          const solutionField = field as SolutionData;
+          const itemId = solutionField.software || solutionField.solution || '';
+          const initialProductData = productDataCache[itemId] || [];
+          
           return (
             <SolutionItem
-              key={solution.id}
-              solution={solution}
+              key={field.id}
+              solution={solutionField}
               index={index}
               onRemove={() => removeSolution(index)}
-              canRemove={solutions.length > 1}
+              canRemove={fields.length > 1}
               selectedItems={selectedItems}
-              softwareSolutionOptions={softwareSolutionOptions}
-              productOptions={productOptions}
-              optionsLoading={optionsLoading}
-              productsLoading={productsLoading}
+              initialProductData={initialProductData}
             />
           );
         })}
@@ -233,9 +288,7 @@ const PopularFormContent: React.FC<PopularFormContentProps> = ({
       </div>
 
       {errors?.solutions && typeof errors.solutions === 'object' && 'message' in errors.solutions && (
-        <p className="text-sm text-red-500 mt-1">
-          {typeof errors.solutions.message === 'string' ? errors.solutions.message : 'Please fix the form errors'}
-        </p>
+        <p className="text-sm text-red-500 mt-1">{String(errors.solutions.message)}</p>
       )}
     </>
   );
@@ -245,70 +298,139 @@ interface PopularSectionProps {
   pageType: 'user' | 'vendor' | 'about';
 }
 
-const MOCK_SOFTWARE_SOLUTION_OPTIONS = [
-  { value: 'software_1', label: 'Software One' },
-  { value: 'software_2', label: 'Software Two' },
-  { value: 'solution_3', label: 'Solution Three' },
-];
-
-const MOCK_PRODUCT_OPTIONS = {
-  '1': [
-    { value: 'prod_1a', label: 'Product 1A' },
-    { value: 'prod_1b', label: 'Product 1B' },
-  ],
-  '2': [
-    { value: 'prod_2a', label: 'Product 2A' },
-    { value: 'prod_2b', label: 'Product 2B' },
-  ],
-  '3': [
-    { value: 'prod_3a', label: 'Product 3A' },
-    { value: 'prod_3b', label: 'Product 3B' },
-  ],
-};
-
 export const PopularSection: React.FC<PopularSectionProps> = ({ pageType }) => {
-  // Mock loading state and data
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [softwareSolutionOptions] = React.useState(MOCK_SOFTWARE_SOLUTION_OPTIONS);
-  const [productOptionsMap] = React.useState(MOCK_PRODUCT_OPTIONS);
-  const [optionsLoading] = React.useState(false);
-  const [productsLoadingMap] = React.useState<{ [key: string]: boolean }>({});
+  const { data: sectionData, isLoading } = useLandingPageSection(pageType, 'popular');
+  const updateSection = useUpdateLandingPageSection();
+  
+  // Store product data from backend to preserve names
+  const [productDataCache, setProductDataCache] = React.useState<Record<string, { id: string; name: string; logo?: string }[]>>({});
 
   const methods = useForm({
     resolver: zodResolver(popularSchema),
     defaultValues: {
       heading: '',
-      solutions: [{ id: '1', name: '', types: [] }]
+      solutions: [{ id: '1', software: '', solution: '', products: [], tempSelection: '' }]
     },
   });
 
   const {
     handleSubmit,
-    formState: { isSubmitting, errors },
+    reset,
+    formState: { isSubmitting },
   } = methods;
 
-  // No API: just log the data
-  const onSubmit = (data: any) => {
-    // Transform frontend data to backend format
-    const transformedData = {
-      heading: data.heading,
-      solutions: data.solutions.map((sol: any) => {
-        const frontendValue = sol.name;
-        const backendId = frontendValue.includes('_') ? frontendValue.split('_')[1] : frontendValue;
-        return {
-          id: sol.id,
-          name: backendId,
-          types: Array.isArray(sol.types) ? sol.types : []
-        };
-      }).filter((sol: any) => sol.name)
-    };
-    // eslint-disable-next-line no-console
-    console.log('Form submitted:', transformedData);
-    // No toast, no API
-  };
+  // Reset form when section data is loaded
+  React.useEffect(() => {
+    if (sectionData && Object.keys(sectionData).length > 0) {
+      console.log('Loaded popular section data:', sectionData);
+      
+      // Build product data cache from backend response
+      const newProductCache: Record<string, { id: string; name: string; logo?: string }[]> = {};
+      
+      // Transform backend data to frontend format
+      const transformedData = {
+        heading: sectionData.heading || '',
+        solutions: sectionData.solutions?.map((sol: any, index: number) => {
+          // Determine if it's software or solution
+          const softwareId = typeof sol.software === 'object' && sol.software?._id 
+            ? sol.software._id 
+            : sol.software || '';
+          
+          const solutionId = typeof sol.solution === 'object' && sol.solution?._id 
+            ? sol.solution._id 
+            : sol.solution || '';
+          
+          const itemId = softwareId || solutionId;
+          
+          // Handle products array
+          let productsArray: any[] = [];
+          if (sol.products && Array.isArray(sol.products)) {
+            productsArray = sol.products;
+          }
+          
+          // Store product data for this item
+          if (productsArray.length > 0 && itemId) {
+            const productsData = productsArray.map((product: any) => {
+              if (typeof product === 'string') {
+                return { id: product, name: product }; // Fallback if just ID
+              }
+              return {
+                id: product._id || product.id || '',
+                name: product.name || '',
+                logo: product.logo || product.logoUrl || ''
+              };
+            });
+            newProductCache[itemId] = productsData;
+          }
+          
+          // Extract product IDs from the full product objects
+          const productIds = productsArray.map((product: any) => {
+            if (typeof product === 'string') return product;
+            return product._id || product.id || '';
+          }).filter(Boolean);
 
-  const handleImageChange = (index: number, file: File | null) => {
-    // No file upload
+          console.log(`Solution ${index} transformation:`, {
+            original: sol,
+            transformed: {
+              id: sol.id || `solution-${index}`,
+              software: softwareId,
+              solution: solutionId,
+              products: productIds,
+            }
+          });
+
+          // Set tempSelection based on whether it's software or solution
+          const tempSelection = softwareId 
+            ? `software_${softwareId}` 
+            : solutionId 
+            ? `solution_${solutionId}` 
+            : '';
+
+          return {
+            id: sol.id || `solution-${index}`,
+            software: softwareId || undefined,
+            solution: solutionId || undefined,
+            products: productIds,
+            tempSelection: tempSelection,
+          };
+        }) || [{ id: '1', software: '', solution: '', products: [], tempSelection: '' }],
+      };
+
+      console.log('Transformed data for form reset:', transformedData);
+      console.log('Product data cache:', newProductCache);
+      
+      setProductDataCache(newProductCache);
+      reset(transformedData);
+    }
+  }, [sectionData, reset]);
+
+  const onSubmit = async (data: any) => {
+    try {
+      console.log('Form data before submission:', data);
+      
+      // Transform frontend data to backend format
+      const transformedData = {
+        heading: data.heading,
+        solutions: data.solutions.map((sol: any) => ({
+          id: sol.id,
+          software: sol.software || undefined,
+          solution: sol.solution || undefined,
+          products: Array.isArray(sol.products) ? sol.products : [],
+        })).filter((sol: any) => sol.software || sol.solution),
+      };
+
+      console.log('Submitting popular data:', transformedData);
+
+      await updateSection.mutateAsync({
+        pageType,
+        sectionName: 'popular',
+        data: transformedData,
+      });
+
+    } catch (error) {
+      console.error('Failed to update section:', error);
+      toast.error('Failed to update popular section');
+    }
   };
 
   if (isLoading) {
@@ -330,21 +452,15 @@ export const PopularSection: React.FC<PopularSectionProps> = ({ pageType }) => {
 
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
-          <PopularFormContent
-            onImageChange={handleImageChange}
-            softwareSolutionOptions={softwareSolutionOptions}
-            productOptionsMap={productOptionsMap}
-            optionsLoading={optionsLoading}
-            productsLoadingMap={productsLoadingMap}
-          />
+          <PopularFormContent productDataCache={productDataCache} />
 
           <div className="flex justify-center pt-6 sm:pt-8">
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || updateSection.isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 sm:px-12 py-4 sm:py-6 rounded-full font-medium text-lg sm:text-xl w-full transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save & Update"}
+              {isSubmitting || updateSection.isPending ? "Saving..." : "Save & Update"}
             </Button>
           </div>
         </form>

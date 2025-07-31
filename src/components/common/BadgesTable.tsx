@@ -160,7 +160,7 @@ const BadgesTable = ({
   onBulkDelete 
 }: BadgesTableProps) => {
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
-
+console.log('badges', badges)
   // Check if all badges are selected
   const isAllSelected = badges.length > 0 && selectedBadges.length === badges.length;
   
@@ -276,12 +276,12 @@ const BadgesTable = ({
 
                 {/* Badge Icon */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full  flex items-center justify-center flex-shrink-0 overflow-hidden p-2" style={{background:badge.colorCode}}>
                     {badge.icon && badge.icon.startsWith('http') ? (
                       <img 
                         src={badge.icon} 
                         alt={badge.title}
-                        className="w-full h-full object-cover rounded-full"
+                        className="w-full h-full object-contain"
                       />
                     ) : (
                       <span className="text-lg md:text-xl">{badge.icon || "🏆"}</span>
@@ -313,7 +313,7 @@ const BadgesTable = ({
                   <Switch
                     checked={badge.status === 'active'}
                     onCheckedChange={() => handleStatusToggle(badge)}
-                    className="scale-90 md:scale-100"
+                    className="scale-90 md:scale-100 cursor-pointer"
                   />
                 </td>
 

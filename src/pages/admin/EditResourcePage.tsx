@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import EnhancedLoader from '@/components/common/EnhancedLoader';
+import { ResourceEditSkeleton } from '@/components/common';
 import { queryClient } from '@/lib/queryClient';
 
 // Resource Type options (matching backend resource categories)
@@ -25,8 +25,6 @@ const RESOURCE_TYPE_OPTIONS = [
   { value: 'xuthority-edge', label: 'XUTHORITY Edge' },
   { value: 'guides-and-tips', label: 'Guides and Tips' },
   { value: 'success-hub', label: 'Success Hub' },
-  { value: 'case-studies', label: 'Case Studies' },
-  { value: 'white-papers', label: 'White Papers' }
 ];
 
 // Content Type options (matching backend validation)
@@ -102,14 +100,16 @@ const EditResourcePage: React.FC = () => {
   const [isFileUploading, setIsFileUploading] = useState(false);
 
   // Fetch existing resource data
-  const { data: resourceData, isLoading: isLoadingResource, error: resourceError } = useQuery({
+  const { data: resourceData, isLoading: isLoadingResource, error: resourceError, refetch } = useQuery({
     queryKey: ['resource', id],
     queryFn: async () => {
       if (!id) throw new Error('Resource ID is required');
       const response = await BlogService.getBlogById(id);
       return response.data;
     },
-    enabled: !!id
+    enabled: !!id,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   // Fetch resource categories
@@ -166,8 +166,11 @@ const EditResourcePage: React.FC = () => {
     onSuccess: () => {
       toast.dismiss();
       toast.success('Resource updated successfully');
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['admin-blogs'] });
       queryClient.invalidateQueries({ queryKey: ['admin-blogs-with-fallback'] });
+      queryClient.invalidateQueries({ queryKey: ['resource', id] });
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
       navigate('/resource-center');
     },
     onError: (error: any) => {
@@ -216,13 +219,19 @@ const EditResourcePage: React.FC = () => {
       resourceTypeSlug = category?.slug || '';
     }
 
-    return {
+    const resetData = {
       title: resourceData.title || '',
       resourceType: resourceTypeSlug,
       contentType: resourceData.tag || '',
       description: resourceData.description || '',
       videoLink: resourceData.watchUrl || ''
     };
+
+    // Debug: Log the data being loaded
+    console.log('Resource Data:', resourceData);
+    console.log('Form Reset Data:', resetData);
+
+    return resetData;
   }, [resourceData, resourceCategories]);
 
   // Memoize the reset function to prevent it from changing on every render
@@ -251,6 +260,13 @@ const EditResourcePage: React.FC = () => {
       }
     }
   }, [resourceData, formResetData, resetForm, currentImageUrl, getValues]);
+
+  // Refetch data when component mounts to ensure latest data
+  useEffect(() => {
+    if (id) {
+      refetch();
+    }
+  }, [id, refetch]);
 
 
   // File upload handlers (same as AddResourcePage)
@@ -323,11 +339,7 @@ const EditResourcePage: React.FC = () => {
 
   // Loading state
   if (isLoadingResource) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <EnhancedLoader loadingText="Loading resource data..." />
-      </div>
-    );
+    return <ResourceEditSkeleton />;
   }
 
   // Error state
@@ -365,7 +377,7 @@ const EditResourcePage: React.FC = () => {
       <div className="">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 text-gray-500">
-            <span>Resource Center</span>
+            <span onClick={()=>navigate('/resource-center')} className='cursor-pointer'>Resource Center</span>
             <span>/</span>
             <span className="text-gray-900 font-semibold">Edit Resource</span>
           </div>

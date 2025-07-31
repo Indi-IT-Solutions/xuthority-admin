@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { ReviewsTable, Pagination, ReviewFilter, EnhancedLoader } from "@/components/common";
+import { ReviewsTable, Pagination, ReviewFilter, TableSkeleton } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -344,11 +344,7 @@ const ReviewsPage = () => {
       </div>
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-12">
-          <EnhancedLoader loadingText="Loading reviews..." minDisplayTime={800} />
-        </div>
-      )}
+      {isLoading && <TableSkeleton rows={10} />}
 
       {/* Error State */}
       {error && (

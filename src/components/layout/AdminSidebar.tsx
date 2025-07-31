@@ -24,22 +24,22 @@ const navigationItems = [
   {
     label: 'Dashboard',
     href: '/',
-    icon: Home,
+    icon: '/dashboard/speedometer.svg',
   },
   {
     label: 'Vendors',
     href: '/vendors',
-    icon: Package,
+    icon: '/dashboard/category-2.svg',
   },
   {
     label: 'Users Management',
     href: '/users',
-    icon: Users,
+    icon: '/dashboard/people.svg',
   },
   {
     label: 'Reviews',
     href: '/reviews',
-    icon: Star,
+    icon: '/dashboard/star.svg',
   },
   // {
   //   label: 'Subscription Plans',
@@ -54,22 +54,27 @@ const navigationItems = [
   {
     label: 'Badges',
     href: '/badges',
-    icon: Award,
+    icon: '/dashboard/medal.svg',
   },
   {
     label: 'Pages',
     href: '/pages',
-    icon: FileText,
+    icon: '/dashboard/task-square.svg',
+  },
+  {
+    label: 'Meta Tags',
+    href: '/metatags',
+    icon: '/dashboard/tag-2.svg',
   },
   {
     label: 'Resource Center',
     href: '/resource-center',
-    icon: BookOpen,
+    icon: '/dashboard/command-square.svg',
   },
   {
     label: 'Profile Settings',
     href: '/profile-settings',
-    icon: Settings,
+    icon: '/dashboard/setting-2.svg',
   },
 ];
 
@@ -153,7 +158,7 @@ const AdminSidebar = () => {
                   )}
                 > 
                   <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-2'>
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-gray-700' : 'text-gray-700'}`} />
+                    <img src={item.icon} alt={item.label} className={`w-5 h-5 ${isActive ? 'text-gray-700' : 'text-gray-700'}`} />
                   </div>
                   <span className="text-sm ml-3 font-medium">{item.label}</span>
                 </Link>

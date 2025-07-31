@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ProductService } from '@/services/productService';
 import { useMemo } from 'react';
 
@@ -13,9 +13,8 @@ export const useProductsBySoftware = (softwareId: string | null, enabled: boolea
       });
     },
     enabled: enabled && !!softwareId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    placeholderData: keepPreviousData,
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const options = useMemo(() => {

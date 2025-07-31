@@ -179,33 +179,27 @@ const ActionMenu = ({
 const StatusBadge = ({ status }: { status: BadgeRequest['status'] }) => {
   const statusConfig = {
     requested: {
-      icon: Clock,
       label: 'Pending',
-      className: 'bg-yellow-100 text-yellow-800'
+      className: 'bg-amber-50 text-amber-600 border border-amber-200'
     },
     approved: {
-      icon: CheckCircle,
       label: 'Approved',
-      className: 'bg-green-100 text-green-800'
+      className: 'bg-green-50 text-green-600 border border-green-200'
     },
     rejected: {
-      icon: XCircle,
       label: 'Rejected',
-      className: 'bg-red-100 text-red-800'
+      className: 'bg-red-50 text-red-600 border border-red-200'
     },
     canceled: {
-      icon: XCircle,
       label: 'Canceled',
-      className: 'bg-gray-100 text-gray-800'
+      className: 'bg-gray-50 text-gray-600 border border-gray-200'
     }
   };
 
   const config = statusConfig[status];
-  const IconComponent = config.icon;
 
   return (
-    <span className={`px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium flex items-center gap-1 w-fit ${config.className}`}>
-      <IconComponent className="w-3 h-3" />
+    <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.className}`}>
       {config.label}
     </span>
   );
@@ -237,7 +231,7 @@ const BadgeRequestsTable = ({
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric',
+        day: '2-digit',
       });
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -328,12 +322,12 @@ const BadgeRequestsTable = ({
 
 
       {/* Table */}
-      <div className="overflow-auto gap-3 rounded-2xl bg-white shadow-sm border border-gray-100 min-h-[65vh]">
+      <div className="overflow-auto rounded-lg bg-white shadow-sm border border-gray-200">
         <table className="w-full min-w-[1000px]">
           {/* Table Header */}
-          <thead className="bg-gray-100 rounded-b-2xl">
+          <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[120px]">
+              <th className="text-left py-3 px-6 text-sm font-medium text-gray-600 min-w-[100px]">
                 <div className="flex items-center space-x-2 md:space-x-3">
                   <input 
                     type="checkbox" 
@@ -378,12 +372,19 @@ const BadgeRequestsTable = ({
                 {/* Badge Details */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <div className="flex items-center space-x-2 md:space-x-3">
-                    <div 
-                      className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white text-sm md:text-base font-medium flex-shrink-0"
-                      style={{ backgroundColor: getBadgeColor(request.badge) }}
-                    >
-                      {getBadgeIcon(request.badge)}
-                    </div>
+                {/* Badge Icon */}
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden p-2" style={{background: request.badge.colorCode}}>
+                    {request.badge.icon && request.badge.icon.startsWith('http') ? (
+                      <img 
+                        src={request.badge.icon} 
+                          alt={request.badge.title}
+                          className="w-full h-full object-contain "
+                      />
+                    ) : (
+                        <span className="text-lg md:text-xl">{request.badge.icon || "🏆"}</span>
+                    )}
+                  </div>
+
                     <div className="min-w-0">
                       <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
                         {getBadgeTitle(request.badge)}

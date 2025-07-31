@@ -3,7 +3,7 @@ import { ArrowLeft, ExternalLink, MessageSquare, Star, HelpCircle, Package, Link
 import { TwitterIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EnhancedLoader } from "@/components/common";
+import { EnhancedLoader, VendorDetailSkeleton } from "@/components/common";
 import { useVendorDetails, useVendorProfileStats, useVendorProducts, useBlockVendor, useUnblockVendor, useApproveVendor, useRejectVendor } from "@/hooks/useVendors";
 import { useState } from "react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -51,8 +51,9 @@ const VendorDetailPage = () => {
   const approveVendorMutation = useApproveVendor();
   const rejectVendorMutation = useRejectVendor();
 
+  // Show skeleton for main vendor details loading
   if (isLoading) {
-    return <EnhancedLoader loadingText="Loading vendor details..." minDisplayTime={800} />;
+    return <VendorDetailSkeleton />;
   }
 
   if (error || !vendorResponse?.success) {
@@ -402,6 +403,59 @@ const VendorDetailPage = () => {
            </div>
         </div>
   {/* Review Summary and Badges Section - Only show for approved/active vendors */}
+  {!isPending && isStatsLoading && (
+    <div className="flex flex-col lg:flex-row mt-6 lg:mt-8 gap-6 lg:gap-8">
+      {/* Review Summary skeleton */}
+      <div className="flex flex-col gap-4 lg:w-[350px] flex-shrink-0">
+        <div className="h-7 bg-gray-200 rounded w-32 mb-4 lg:mb-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="bg-gray-100 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
+              <div className="mb-3 sm:mb-4">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-gray-200 rounded mx-auto" />
+              </div>
+              <div className="h-5 bg-gray-200 rounded w-12 mx-auto mb-1 sm:mb-2" />
+              <div className="h-4 bg-gray-200 rounded w-20 mx-auto" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Badges & Achievements skeleton */}
+      <div className="flex-1 flex flex-col">
+        <div className="h-8 bg-gray-200 rounded w-48 mb-6" />
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex-1 flex flex-col min-h-[300px]">
+          <div className="grid grid-cols-3 bg-gray-50 border-b border-gray-200">
+            <div className="px-4 py-3">
+              <div className="h-4 bg-gray-200 rounded w-20" />
+            </div>
+            <div className="px-4 py-3">
+              <div className="h-4 bg-gray-200 rounded w-24" />
+            </div>
+            <div className="px-4 py-3">
+              <div className="h-4 bg-gray-200 rounded w-24" />
+            </div>
+          </div>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="border-b border-gray-200 last:border-b-0 p-3 sm:p-0">
+              <div className="sm:grid sm:grid-cols-3">
+                <div className="px-3 sm:px-4 py-4 flex items-center">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                </div>
+                <div className="px-3 sm:px-4 py-4 flex items-center">
+                  <div className="h-4 bg-gray-200 rounded w-24" />
+                </div>
+                <div className="px-3 sm:px-4 py-4 flex items-center">
+                  <div className="h-4 bg-gray-200 rounded w-20" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
   {!isPending && !isStatsLoading && vendorStatsResponse?.success && (
     <div className="flex flex-col lg:flex-row mt-6 lg:mt-8 gap-6 lg:gap-8">
       {/* Review Summary */}
@@ -471,12 +525,12 @@ const VendorDetailPage = () => {
                 {/* Mobile Layout */}
                 <div className="flex items-center justify-between sm:hidden">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden p-2" style={{background:badge.colorCode}}>
                       {badge.icon && badge.icon.startsWith('http') ? (
                         <img 
                           src={badge.icon} 
                           alt={badge.name}
-                          className="w-full h-full object-cover rounded-full"
+                          className="w-full h-full object-contain"
                         />
                       ) : (
                         <span className="text-white text-sm font-bold">
@@ -497,12 +551,12 @@ const VendorDetailPage = () => {
                 
                 {/* Desktop Layout */}
                 <div className="hidden sm:flex px-3 sm:px-4 py-4 items-center">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden p-2" style={{background:badge.colorCode}}>
                     {badge.icon && badge.icon.startsWith('http') ? (
                       <img 
                         src={badge.icon} 
                         alt={badge.name}
-                        className="w-full h-full object-cover rounded-full"
+                        className="w-full h-full object-contain "
                       />
                     ) : (
                       <span className="text-white text-sm font-bold">
@@ -562,15 +616,36 @@ const VendorDetailPage = () => {
           </>
         ) : isProductsLoading ? (
           <div className="bg-white rounded-lg lg:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
-            <div className="text-center">
-              <EnhancedLoader loadingText="Loading products..." minDisplayTime={800} />
+            <div className="space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-32 mb-4" />
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
+                    <div className="h-12 w-12 bg-gray-200 rounded-lg" />
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
+                      <div className="h-3 bg-gray-200 rounded w-48" />
+                    </div>
+                    <div className="h-8 bg-gray-200 rounded w-20" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
           <div className="bg-white rounded-lg lg:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
-            <div className="text-center">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Product List</h3>
-              <p className="text-gray-500 text-sm sm:text-base">No products found for this vendor</p>
+            <div className="flex flex-col items-center justify-center py-16 min-h-[65vh]">
+              <div className="text-gray-400 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8v4a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2h8a2 2 0 012 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                <p className="text-sm text-gray-500">
+                  No products available for this vendor at the moment
+                </p>
+              </div>
             </div>
           </div>
         )}

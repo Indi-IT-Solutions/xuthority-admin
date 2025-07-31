@@ -17,6 +17,7 @@ interface ResourceCardProps {
   description: string;
   imageUrl: string;
   status: 'On Demand' | 'Upcoming';
+  contentType: string;
   author: ResourceCardAuthor;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -30,26 +31,35 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
   description,
   imageUrl,
   status,
+  contentType,
   author,
   onEdit,
   onDelete,
   onClick,
   className
 }) => {
-  const getStatusBadge = () => {
-    const statusVariants = {
+  const getContentTypeBadge = () => {
+    const contentTypeVariants = {
       'On Demand': 'text-red-600 bg-red-50',
-      'Upcoming': 'text-blue-600 bg-blue-50'
+      'Upcoming': 'text-blue-600 bg-blue-50',
+      'EBook': 'text-green-600 bg-green-50',
+      'Marketing': 'text-purple-600 bg-purple-50',
+      'Sales': 'text-orange-600 bg-orange-50'
     };
+
+    // Only show badge if it's one of the valid content types
+    if (!contentTypeVariants[contentType]) {
+      return null;
+    }
 
     return (
       <Badge 
         className={cn(
           'px-2 py-1 text-xs font-medium rounded-md border-0',
-          statusVariants[status]
+          contentTypeVariants[contentType]
         )}
       >
-        {status}
+        {contentType}
       </Badge>
     );
   };
@@ -71,7 +81,10 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
       )}
     >
       {/* Image Container */}
-      <div className="relative aspect-video overflow-hidden bg-gray-100">
+      <div 
+        className="relative aspect-video overflow-hidden bg-gray-100 cursor-pointer"
+        onClick={onClick}
+      >
         <img
           src={imageUrl}
           alt={title}
@@ -90,9 +103,9 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
         className="p-4 cursor-pointer"
         onClick={onClick}
       >
-        {/* Status Badge */}
+        {/* Content Type Badge */}
         <div className="mb-3 flex justify-between items-center">
-          {getStatusBadge()}
+          {getContentTypeBadge()}
 
                   {/* Action Icons */}
         <div className=" flex gap-2  group-hover:opacity-100 transition-opacity duration-200">

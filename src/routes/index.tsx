@@ -25,12 +25,15 @@ const ProfilePage = lazy(() => import("@/pages/admin/ProfilePage"));
 const ResourceCenterPage = lazy(() => import("@/pages/admin/ResourceCenterPage"));
 const AddResourcePage = lazy(() => import("@/pages/admin/AddResourcePage"));
 const EditResourcePage = lazy(() => import("@/pages/admin/EditResourcePage"));
+const ResourceDetailPage = lazy(() => import("@/pages/admin/ResourceDetailPage"));
 const EditBadgePage = lazy(() => import("@/pages/admin/EditBadgePage"));
 const AddBadgePage = lazy(() => import("@/pages/admin/AddBadgePage"));
 const PagesPage = lazy(() => import("@/pages/admin/PagesPage"));
 const PageDetailsPage = lazy(() => import("@/pages/admin/PageDetailsPage"));
 const PageViewPage = lazy(() => import("@/pages/admin/PageViewPage"));
 const LandingPagesPage = lazy(() => import("@/pages/admin/LandingPagesPage"));
+const MetaTagsPage = lazy(() => import("@/pages/admin/MetaTagsPage"));
+const MetaTagEditPage = lazy(() => import("@/pages/admin/MetaTagEditPage"));
 
 const Loader = () => <SuspenseLoader text="Loading page..." minTime={800} />;
 // Suspense wrapper component
@@ -201,6 +204,30 @@ const AppRoutes = createBrowserRouter([
             </SuspenseWrapper>
           ),
         },
+        {
+          path: "metatags",
+          element: (
+            <SuspenseWrapper>
+              <MetaTagsPage />
+            </SuspenseWrapper>
+          ),
+        },
+        {
+          path: "metatags/add",
+          element: (
+            <SuspenseWrapper>
+              <MetaTagEditPage />
+            </SuspenseWrapper>
+          ),
+        },
+        {
+          path: "metatags/:metaTagId/edit",
+          element: (
+            <SuspenseWrapper>
+              <MetaTagEditPage />
+            </SuspenseWrapper>
+          ),
+        },
       {
         path: "settings",
         element: (
@@ -230,6 +257,14 @@ const AppRoutes = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <AddResourcePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "resource-center/:id",
+        element: (
+          <SuspenseWrapper>
+            <ResourceDetailPage />
           </SuspenseWrapper>
         ),
       },
@@ -267,7 +302,7 @@ const AppRoutes = createBrowserRouter([
     ),
   },
 ], {
-  basename: "/admin"
+  basename: "/"
 });
 
 export default AppRoutes;

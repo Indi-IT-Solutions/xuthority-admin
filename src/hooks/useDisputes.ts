@@ -26,7 +26,7 @@ export const useDisputes = (params: DisputeQueryParams = {}) => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 
@@ -46,7 +46,7 @@ export const useDisputeByReviewId = (reviewId: string, enabled = true) => {
     enabled: !!reviewId && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 

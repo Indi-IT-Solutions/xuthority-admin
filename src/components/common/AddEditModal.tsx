@@ -109,7 +109,9 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
         link: initialData.link || '',
       });
       setPreviewUrl(initialData.image || '');
+      setSelectedFile(null);
     } else {
+      // Always reset to empty values for add mode
       reset({
         name: '',
         description: '',
@@ -119,7 +121,21 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
       setPreviewUrl('');
       setSelectedFile(null);
     }
-  }, [mode, initialData, reset]);
+  }, [mode, initialData, reset, isOpen]);
+
+  // Reset form when modal opens in add mode
+  useEffect(() => {
+    if (isOpen && mode === 'add') {
+      reset({
+        name: '',
+        description: '',
+        category: undefined,
+        link: '',
+      });
+      setSelectedFile(null);
+      setPreviewUrl('');
+    }
+  }, [isOpen, mode, reset]);
 
   // Watch form values for debugging
   const formValues = watch();
@@ -203,6 +219,15 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
   // Handle modal close for Dialog onOpenChange
   const handleDialogClose = (open: boolean) => {
     if (!open && !isLoading) {
+      // Reset form to default values when modal closes
+      reset({
+        name: '',
+        description: '',
+        category: undefined,
+        link: '',
+      });
+      setSelectedFile(null);
+      setPreviewUrl('');
       onClose();
     }
   };
@@ -210,6 +235,15 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
   // Handle cancel button click
   const handleCancel = () => {
     if (!isLoading) {
+      // Reset form to default values when canceling
+      reset({
+        name: '',
+        description: '',
+        category: undefined,
+        link: '',
+      });
+      setSelectedFile(null);
+      setPreviewUrl('');
       onClose();
     }
   };
@@ -269,20 +303,7 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
                       alt="Integration logo"
                       className="w-full h-32 mx-auto object-contain rounded-lg"
                     />
-                    {previewUrl && (
-                      <button
-                        type="button"
-                        className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedFile(null);
-                          setPreviewUrl('');
-                          if (previewUrl) URL.revokeObjectURL(previewUrl);
-                        }}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
+                    
                   </div>
                 ) : (
                   <>

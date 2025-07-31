@@ -10,6 +10,7 @@ import { useLandingPageSection, useUpdateLandingPageSection } from '../../hooks/
 import { useSoftwareOptions } from '@/hooks/useSoftwareOptions';
 import { useProductsBySoftwareOrSolution } from '@/hooks/useProductsBySoftwareOrSolution';
 import toast from 'react-hot-toast';
+import { useProductsBySoftware } from '@/hooks/useProductsBySoftware';
 
 // Schema for categories section
 export const categoriesSchema = z.object({
@@ -17,14 +18,14 @@ export const categoriesSchema = z.object({
   categories: z.array(z.object({
     id: z.string(),
     name: z.string().min(1, "Software selection is required"),
-    products: z.array(z.string()).min(1, "At least one product is required"),
+    products: z.array(z.string()).min(1, "At least one product is required").max(9, "Maximum 9 products allowed"),
   })).min(1, "At least one category is required"),
 });
 
 interface CategoryData {
   id: string;
   name: string; // This stores the software ID
-  products: string[]; // Array of product IDs
+  products: string[]; // Array of product IDs (max 9)
 }
 
 interface CategoryItemProps {
@@ -33,16 +34,18 @@ interface CategoryItemProps {
   onRemove: () => void;
   canRemove: boolean;
   selectedSoftwareIds: string[]; // Track all selected software IDs
+  initialProductData?: { id: string; name: string; logo?: string }[]; // Initial product data from backend
 }
 
 const CategoryItem: React.FC<CategoryItemProps> = ({ 
-  category, 
+  category,
   index, 
   onRemove, 
   canRemove, 
-  selectedSoftwareIds 
+  selectedSoftwareIds,
+  initialProductData 
 }) => {
-  const { register, watch, setValue, formState: { errors } } = useFormContext();
+  const { watch, formState: { errors }, setValue } = useFormContext();
   
   // Watch the current software selection
   const selectedSoftware = watch(`categories.${index}.name`);
@@ -50,28 +53,73 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
   // Get software options for dropdown
   const { options: softwareOptions, isLoading: softwareLoading } = useSoftwareOptions(1, 100);
   
+  // Filter out already selected software (except current selection)
+  const filteredSoftwareOptions = React.useMemo(() => {
+    return softwareOptions.filter((option: { value: string; label: string }) => {
+      // Always show the current selection
+      if (option.value === selectedSoftware) return true;
+      // Hide if already selected in another category
+      return !selectedSoftwareIds.includes(option.value);
+    });
+  }, [softwareOptions, selectedSoftwareIds, selectedSoftware]);
+  
+  // Track previous software selection to detect changes
+  const prevSoftwareRef = React.useRef(selectedSoftware);
+  
+  // Clear product field when software changes
+  React.useEffect(() => {
+    if (prevSoftwareRef.current && prevSoftwareRef.current !== selectedSoftware) {
+      setValue(`categories.${index}.products`, []);
+    }
+    prevSoftwareRef.current = selectedSoftware;
+  }, [selectedSoftware, setValue, index]);
+  
   // Get products for the selected software - only when software is selected
-  const { options: productOptions, isLoading: productsLoading } = useProductsBySoftwareOrSolution(
-    selectedSoftware,
-    !!selectedSoftware && selectedSoftware.trim() !== ''
-  );
-
-  // Handle software selection change
-  const handleSoftwareChange = (softwareId: string) => {
-    console.log(`Software changed for category ${index}:`, softwareId);
+  const { options: productOptions, isLoading: productsLoading } = useProductsBySoftware(selectedSoftware);
+  
+  // Merge initial product data with API options to ensure selected products show names
+  const mergedProductOptions = React.useMemo(() => {
+    const optionsMap = new Map<string, { value: string; label: string; slug?: string }>();
     
-    // Clear products when software changes
-    setValue(`categories.${index}.products`, []);
+    // First add all product options from API
+    productOptions.forEach((opt: { value: string; label: string; slug?: string }) => {
+      optionsMap.set(opt.value, opt);
+    });
     
-    // Update the software selection
-    setValue(`categories.${index}.name`, softwareId);
-  };
+    // Only add initial product data if API returned some data or if we're still loading
+    // This prevents showing stale cached data when API returns empty results
+    if (productsLoading) {
+      // Show cached data while loading
+      if (initialProductData && initialProductData.length > 0) {
+        initialProductData.forEach(product => {
+          if (!optionsMap.has(product.id)) {
+            optionsMap.set(product.id, {
+              value: product.id,
+              label: product.name,
+              slug: '' // We don't have slug from initial data
+            });
+          }
+        });
+      }
+    } else if (productOptions.length > 0) {
+      // Only show cached data if API returned some data
+      if (initialProductData && initialProductData.length > 0) {
+        initialProductData.forEach(product => {
+          if (!optionsMap.has(product.id)) {
+            optionsMap.set(product.id, {
+              value: product.id,
+              label: product.name,
+              slug: '' // We don't have slug from initial data
+            });
+          }
+        });
+      }
+    }
+    // If API returned empty data and we're not loading, don't show any cached data
+    
+    return Array.from(optionsMap.values());
+  }, [productOptions, initialProductData, productsLoading]);
 
-  // Handle product selection change
-  const handleProductsChange = (productIds: string[]) => {
-    console.log(`Products changed for category ${index}:`, productIds);
-    setValue(`categories.${index}.products`, productIds);
-  };
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -81,6 +129,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
           <Button
             type="button"
             variant="ghost"
+
             size="sm"
             onClick={onRemove}
             className="text-red-500 hover:text-red-600 p-1 sm:p-2"
@@ -96,9 +145,9 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
           name={`categories.${index}.name`}
           label="Software *"
           placeholder="Select software..."
-          options={softwareOptions}
+          options={filteredSoftwareOptions}
           searchable
-          disabled={softwareLoading || selectedSoftwareIds.filter(id => id !== selectedSoftware).includes(selectedSoftware)}
+          disabled={softwareLoading}
         />
         {errors?.categories?.[index]?.name && (
           <p className="text-sm text-red-500">{errors.categories[index]?.name?.message}</p>
@@ -111,8 +160,8 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
           <FormSelectEnhanced
             name={`categories.${index}.products`}
             label="Products *"
-            placeholder="Select products..."
-            options={productOptions}
+            placeholder="Select products (max 9)..."
+            options={mergedProductOptions}
             searchable
             multiple
             maxSelections={9}
@@ -127,8 +176,12 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
   );
 };
 
-const CategoriesFormContent: React.FC = () => {
-  const { control, watch, setValue, register, formState: { errors } } = useFormContext();
+interface CategoriesFormContentProps {
+  productDataCache: Record<string, { id: string; name: string; logo?: string }[]>;
+}
+
+const CategoriesFormContent: React.FC<CategoriesFormContentProps> = ({ productDataCache }) => {
+  const { control, watch, register, formState: { errors } } = useFormContext();
   
   const { fields, append, remove } = useFieldArray({
     control,
@@ -164,16 +217,23 @@ const CategoriesFormContent: React.FC = () => {
       />
 
       <div className="space-y-4 sm:space-y-6">
-        {fields.map((field, index) => (
-          <CategoryItem
-            key={field.id}
-            category={field as CategoryData}
-            index={index}
-            onRemove={() => removeCategory(index)}
-            canRemove={fields.length > 1}
-            selectedSoftwareIds={selectedSoftwareIds}
-          />
-        ))}
+        {fields.map((field, index) => {
+          const categoryField = field as CategoryData;
+          const softwareId = categoryField.name;
+          const initialProductData = productDataCache[softwareId] || [];
+          
+          return (
+            <CategoryItem
+              key={field.id}
+              category={categoryField}
+              index={index}
+              onRemove={() => removeCategory(index)}
+              canRemove={fields.length > 1}
+              selectedSoftwareIds={selectedSoftwareIds}
+              initialProductData={initialProductData}
+            />
+          );
+        })}
 
         <Button
           type="button"
@@ -200,6 +260,9 @@ interface CategoriesSectionProps {
 export const CategoriesSection: React.FC<CategoriesSectionProps> = ({ pageType }) => {
   const { data: sectionData, isLoading } = useLandingPageSection(pageType, 'categories');
   const updateSection = useUpdateLandingPageSection();
+  
+  // Store product data from backend to preserve names
+  const [productDataCache, setProductDataCache] = React.useState<Record<string, { id: string; name: string; logo?: string }[]>>({});
 
   const methods = useForm({
     resolver: zodResolver(categoriesSchema),
@@ -220,34 +283,74 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({ pageType }
     if (sectionData && Object.keys(sectionData).length > 0) {
       console.log('Loaded categories section data:', sectionData);
       
+      // Build product data cache from backend response
+      const newProductCache: Record<string, { id: string; name: string; logo?: string }[]> = {};
+      
       // Transform backend data to frontend format
       const transformedData = {
         heading: sectionData.heading || '',
         categories: sectionData.categories?.map((cat: any, index: number) => {
+          // Handle populated name field (software)
+          const softwareId = typeof cat.name === 'object' && cat.name?._id 
+            ? cat.name._id 
+            : cat.name || '';
+          
+          // Handle products - check if it's an array or single value
+          let productsArray: any[] = [];
+          if (cat.products) {
+            if (Array.isArray(cat.products)) {
+              productsArray = cat.products;
+            } else if (typeof cat.products === 'string') {
+              // Single product ID as string
+              productsArray = [cat.products];
+            } else if (typeof cat.products === 'object' && cat.products._id) {
+              // Single populated product object
+              productsArray = [cat.products];
+            }
+          }
+          
+          // Store product data for this category
+          if (productsArray.length > 0 && softwareId) {
+            const productsData = productsArray.map((product: any) => {
+              if (typeof product === 'string') {
+                return { id: product, name: product }; // Fallback if just ID
+              }
+              return {
+                id: product._id || product.id || '',
+                name: product.name || '',
+                logo: product.logo || product.logoUrl || ''
+              };
+            });
+            newProductCache[softwareId] = productsData;
+          }
+          
           // Extract product IDs from the full product objects
-          const productIds = cat.products?.map((product: any) => {
+          const productIds = productsArray.map((product: any) => {
             if (typeof product === 'string') return product;
             return product._id || product.id || '';
-          }).filter(Boolean) || [];
+          }).filter(Boolean);
 
           console.log(`Category ${index} transformation:`, {
             original: cat,
             transformed: {
               id: cat.id || `category-${index}`,
-              name: cat.name || '',
+              name: softwareId,
               products: productIds,
             }
           });
 
           return {
             id: cat.id || `category-${index}`,
-            name: cat.name || '', // This is the software ID
+            name: softwareId, // This is the software ID
             products: productIds,
           };
         }) || [{ id: '1', name: '', products: [] }],
       };
 
       console.log('Transformed data for form reset:', transformedData);
+      console.log('Product data cache:', newProductCache);
+      
+      setProductDataCache(newProductCache);
       reset(transformedData);
     }
   }, [sectionData, reset]);
@@ -262,7 +365,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({ pageType }
         categories: data.categories.map((cat: any) => ({
           id: cat.id,
           name: cat.name, // Keep as software ID
-          products: Array.isArray(cat.products) ? cat.products : [], // Keep as product IDs
+          products: Array.isArray(cat.products) ? cat.products : [], // Keep as product IDs array
         })),
       };
 
@@ -299,7 +402,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({ pageType }
 
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
-          <CategoriesFormContent />
+          <CategoriesFormContent productDataCache={productDataCache} />
 
           <div className="flex justify-center pt-6 sm:pt-8">
             <Button

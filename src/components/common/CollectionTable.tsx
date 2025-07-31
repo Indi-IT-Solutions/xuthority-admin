@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MoreHorizontal, Eye, Edit2, Trash2 } from 'lucide-react';
 import { CollectionItem, CollectionConfig } from '@/services/collectionService';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface ActionMenuProps {
   item: CollectionItem;
@@ -185,7 +186,7 @@ const CollectionTable = ({
   };
 
   // Format field value based on type
-  const formatFieldValue = (value: any, type: string) => {
+  const formatFieldValue = (value: any, type: string, item?: CollectionItem) => {
     switch (type) {
       case 'date':
         return formatDate(value);
@@ -198,6 +199,20 @@ const CollectionTable = ({
           }`}>
             {value}
           </span>
+        );
+      case 'image':
+        return (
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={value} alt={item?.name || 'Integration'} />
+              <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
+                {item?.name ? item.name.charAt(0).toUpperCase() : 'N/A'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium text-gray-900">
+              {item?.name || 'Unknown'}
+            </span>
+          </div>
         );
       default:
         return value || '-';
@@ -310,9 +325,13 @@ const CollectionTable = ({
 
                 {/* Dynamic Fields */}
                 {config.fields.map((field) => (
-                  <td key={field.key} className="py-3 px-3 md:py-4 md:px-6">
-                    <div className="flex items-center">
-                      {formatFieldValue(item[field.key], field.type)}
+                  <td key={field.key} className={`py-3 px-3 md:py-4 md:px-6 ${
+                    field.type === 'image' ? 'text-left' : ''
+                  }`}>
+                    <div className={`flex items-center ${
+                      field.type === 'image' ? 'justify-start' : ''
+                    }`}>
+                      {formatFieldValue(item[field.key], field.type, item)}
                     </div>
                   </td>
                 ))}

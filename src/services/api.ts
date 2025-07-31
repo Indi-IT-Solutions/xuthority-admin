@@ -163,14 +163,17 @@ api.interceptors.response.use(
       }
     }
     
-    // Handle other errors
-    const errorMessage = error.response?.data?.error?.message || 
-                        error.response?.data?.message || 
-                        error.message || 
-                        'An unexpected error occurred';
+    // Handle other errors - don't show global toasts for delete operations
+    // Individual hooks will handle their own error messages
+    const isDeleteOperation = originalRequest.method?.toLowerCase() === 'delete';
     
-    // Show error toast for non-401 errors
-    if (error.response?.status !== 401 && error.response?.status !== 404) {
+    // Only show global error toasts for non-delete operations and specific status codes
+    if (!isDeleteOperation && error.response?.status !== 401 && error.response?.status !== 404) {
+      const errorMessage = error.response?.data?.error?.message || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'An unexpected error occurred';
+      
       toast.dismiss()
       toast.error(errorMessage);
     }

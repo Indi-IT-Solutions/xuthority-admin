@@ -3,7 +3,7 @@ import { ArrowLeft, Star, Trash2, ExternalLink, Calendar, User2, Briefcase, Buil
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { EnhancedLoader } from "@/components/common";
+import { EnhancedLoader, ReviewCardSkeleton } from "@/components/common";
 import { useReview, useDeleteReview, useApproveReview, useRejectReview } from "@/hooks/useReviews";
 import { useDisputeByReviewId, useResolveDispute } from "@/hooks/useDisputes";
 import { AdminAuthService } from "@/services/adminAuthService";
@@ -51,7 +51,7 @@ const ReviewDetailPage = () => {
   const resolveDisputeMutation = useResolveDispute(id);
 
   if (isLoading) {
-    return <EnhancedLoader loadingText="Loading review details..." minDisplayTime={800} />;
+    return <ReviewCardSkeleton />;
   }
 
   if (error || !review) {
@@ -459,7 +459,7 @@ const ReviewDetailPage = () => {
             <div className="flex items-start gap-3 mb-2">
               <Avatar className="w-10 h-10 flex-shrink-0">
                 <AvatarImage 
-                  src={dispute.vendor.avatar || ""} 
+                  src={""} 
                   alt={`${dispute.vendor.firstName} ${dispute.vendor.lastName}`}
                   className="object-cover"
                 />

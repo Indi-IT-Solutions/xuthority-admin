@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Package, Star, TrendingUp } from 'lucide-react';
-import { StatsCard, TimeFilter, ReviewsTable } from '@/components/common';
+import { StatsCard, TimeFilter, ReviewsTable, DashboardContentSkeleton } from '@/components/common';
 import { UserGrowthChart, ReviewsChart } from '@/components/charts';
 import { useAnalytics } from '@/hooks/useAdminAuth';
-import EnhancedLoader from '@/components/common/EnhancedLoader';
 
 const DashboardPage = () => {
   const [activeFilter, setActiveFilter] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Weekly');
@@ -139,11 +138,7 @@ const DashboardPage = () => {
 
   // Show loading state
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <EnhancedLoader />
-      </div>
-    );
+    return <DashboardContentSkeleton />;
   }
 
   // Show error state

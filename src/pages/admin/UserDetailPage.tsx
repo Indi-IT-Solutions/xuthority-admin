@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, ExternalLink, MessageSquare, Star, HelpCircle, User as UserIcon, TwitterIcon, LinkedinIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EnhancedLoader } from "@/components/common";
+import { EnhancedLoader, UserDetailSkeleton } from "@/components/common";
 import { useUserDetailsBySlug, useUserProfileStatsBySlug, useUserReviewsBySlug, useBlockUser, useUnblockUser } from "@/hooks/useUsers";
 import { useState, useEffect } from "react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -54,7 +54,7 @@ const UserDetailPage = () => {
   const { isTabChanged } = useReviewTabRefetch(activeReviewTab, slug, refetchReviews);
 
   if (isLoading) {
-    return <EnhancedLoader loadingText="Loading user details..." minDisplayTime={800} />;
+    return <UserDetailSkeleton />;
   }
 
   if (error || !userResponse?.success) {

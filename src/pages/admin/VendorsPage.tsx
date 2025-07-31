@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter } from "lucide-react";
-import { VendorsTable, Pagination, VendorFilter } from "@/components/common";
+import { VendorsTable, Pagination, VendorFilter, TableSkeleton } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { VendorFilters } from "@/components/common/VendorFilter";
@@ -358,11 +358,7 @@ const VendorsPage = () => {
       </div>
 
               {/* Loading State */}
-        {isLoading && (
-          <div className="flex justify-center items-center py-12">
-                         <div className="text-gray-500">Loading vendors...</div>
-          </div>
-        )}
+        {isLoading && <TableSkeleton rows={10} />}
 
         {/* Error State */}
         {error && (

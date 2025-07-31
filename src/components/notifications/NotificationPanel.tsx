@@ -2,18 +2,21 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SheetClose } from '@/components/ui/sheet';
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/hooks/useNotifications';
+import { useNotificationNavigation } from '@/utils/notificationNavigation';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 
 interface NotificationPanelProps {
   onMarkAllAsRead?: () => void;
+  onClose?: () => void;
 }
 
-const NotificationPanel = ({ onMarkAllAsRead }: NotificationPanelProps) => {
+const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps) => {
   const [page] = useState(1);
   const { data, isLoading, isError } = useNotifications(page, 20);
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
+  const { handleNotificationClick } = useNotificationNavigation();
 
   const formatTimestamp = (date: string) => {
     try {
@@ -23,10 +26,14 @@ const NotificationPanel = ({ onMarkAllAsRead }: NotificationPanelProps) => {
     }
   };
 
-  const handleNotificationClick = async (notificationId: string, isRead: boolean) => {
-    if (!isRead) {
-      await markAsRead.mutateAsync(notificationId);
+  const handleNotificationItemClick = async (notification: any) => {
+    // Mark as read if not already read
+    if (!notification.isRead) {
+      await markAsRead.mutateAsync(notification._id);
     }
+    
+    // Navigate to the appropriate page and close sidebar
+    handleNotificationClick(notification, onClose);
   };
 
   const handleMarkAllAsRead = async () => {
@@ -89,7 +96,7 @@ const NotificationPanel = ({ onMarkAllAsRead }: NotificationPanelProps) => {
               <div
                 key={notification._id}
                 className="p-4 sm:p-5 hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => handleNotificationClick(notification._id, notification.isRead)}
+                onClick={() => handleNotificationItemClick(notification)}
               >
                 <div className="flex items-start justify-between gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">

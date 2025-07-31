@@ -14,7 +14,7 @@ export const useResourceCategories = () => {
       return response.data || [];
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
-    retry: 3,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 
   return {

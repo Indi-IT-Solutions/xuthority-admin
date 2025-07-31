@@ -24,7 +24,7 @@ export const useUsers = (params: UserQueryParams = {}) => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 
@@ -206,7 +206,7 @@ export const useUser = (userId: string, enabled = true) => {
     enabled: !!userId && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 
@@ -233,7 +233,7 @@ export const useUserProfileStats = (userId: string, enabled = true) => {
     enabled: !!userId && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 
@@ -259,7 +259,7 @@ export const useUserReviews = (userId: string, options?: {
     enabled: !!userId && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 
@@ -279,7 +279,7 @@ export const useUserDetailsBySlug = (slug: string) => {
     enabled: !!slug,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 
@@ -299,7 +299,7 @@ export const useUserProfileStatsBySlug = (slug: string) => {
     enabled: !!slug,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 
@@ -325,7 +325,7 @@ export const useUserReviewsBySlug = (slug: string, options?: {
     enabled: !!slug && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 

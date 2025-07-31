@@ -43,6 +43,7 @@ export const useCreateCollectionItem = (collectionSlug: string) => {
     mutationFn: (data: Partial<CollectionItem>) => 
       CollectionService.createCollectionItem(collectionSlug, data),
     onSuccess: () => {
+      toast.dismiss()
       toast.success(`${config.name} created successfully`);
       
       // Invalidate and refetch collection queries
@@ -52,6 +53,7 @@ export const useCreateCollectionItem = (collectionSlug: string) => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           `Failed to create ${config.name.toLowerCase()}`;
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -66,6 +68,7 @@ export const useUpdateCollectionItem = (collectionSlug: string) => {
     mutationFn: ({ itemId, data }: { itemId: string; data: Partial<CollectionItem> }) =>
       CollectionService.updateCollectionItem(collectionSlug, itemId, data),
     onSuccess: (data, variables) => {
+      toast.dismiss()
       toast.success(`${config.name} updated successfully`);
       
       // Invalidate and refetch related queries
@@ -78,6 +81,7 @@ export const useUpdateCollectionItem = (collectionSlug: string) => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           `Failed to update ${config.name.toLowerCase()}`;
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -92,6 +96,7 @@ export const useDeleteCollectionItem = (collectionSlug: string) => {
     mutationFn: (itemId: string) => 
       CollectionService.deleteCollectionItem(collectionSlug, itemId),
     onSuccess: () => {
+      toast.dismiss()
       toast.success(`${config.name} deleted successfully`);
       
       // Invalidate and refetch collection queries
@@ -101,6 +106,7 @@ export const useDeleteCollectionItem = (collectionSlug: string) => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           `Failed to delete ${config.name.toLowerCase()}`;
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -116,6 +122,7 @@ export const useBulkDeleteCollectionItems = (collectionSlug: string) => {
       CollectionService.bulkDeleteCollectionItems(collectionSlug, itemIds),
     onSuccess: (data) => {
       const deletedCount = data.data?.deletedCount || 0;
+      toast.dismiss()
       toast.success(`${deletedCount} ${config.name.toLowerCase()}${deletedCount !== 1 ? 's' : ''} deleted successfully`);
       
       // Invalidate and refetch collection queries
@@ -125,6 +132,7 @@ export const useBulkDeleteCollectionItems = (collectionSlug: string) => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           `Failed to delete ${config.name.toLowerCase()}s`;
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });

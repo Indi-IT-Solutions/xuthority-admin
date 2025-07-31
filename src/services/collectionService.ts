@@ -23,7 +23,14 @@ export interface CollectionFilters {
 
 // Paginated collection response
 export interface PaginatedCollection {
-  [key: string]: CollectionItem[]; // Dynamic key based on collection type
+  [key: string]: CollectionItem[] | {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
   pagination: {
     page: number;
     limit: number;
@@ -42,7 +49,7 @@ export interface CollectionConfig {
   fields: {
     label: string;
     key: string;
-    type: 'text' | 'status' | 'date';
+    type: 'text' | 'status' | 'date' | 'image';
   }[];
 }
 
@@ -104,7 +111,7 @@ export const COLLECTION_CONFIGS: Record<string, CollectionConfig> = {
     endpoint: 'integrations',
     pluralName: 'integrations',
     fields: [
-      { label: 'Name', key: 'name', type: 'text' },
+      { label: 'Integration Name', key: 'image', type: 'image' },
       // { label: 'Type', key: 'type', type: 'text' },
       // { label: 'Status', key: 'status', type: 'status' },
       { label: 'Created At', key: 'createdAt', type: 'date' },

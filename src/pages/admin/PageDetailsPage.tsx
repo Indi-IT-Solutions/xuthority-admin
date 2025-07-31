@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Search, Plus, ChevronRight } from "lucide-react";
 import CollectionTable from "@/components/common/CollectionTable";
-import { Pagination, AddEditModal } from "@/components/common";
+import { Pagination, AddEditModal, CollectionTableSkeleton } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -307,7 +307,7 @@ const PageDetailsPage = () => {
       <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
         <button 
           onClick={() => navigate('/pages')}
-          className="hover:text-blue-600 transition-colors"
+          className="hover:text-blue-600 transition-colors cursor-pointer"
         >
           Pages
         </button>
@@ -333,11 +333,7 @@ const PageDetailsPage = () => {
       </div>
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500">Loading {collectionConfig.name.toLowerCase()}s...</div>
-        </div>
-      )}
+      {isLoading && <CollectionTableSkeleton />}
 
       {/* Error State */}
       {error && (

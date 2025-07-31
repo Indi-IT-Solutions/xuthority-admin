@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus } from "lucide-react";
 import PagesTable from "@/components/common/PagesTable";
-import { Pagination } from "@/components/common";
+import { Pagination, TableSkeleton } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -229,11 +229,7 @@ const PagesPage = () => {
 
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500">Loading pages...</div>
-        </div>
-      )}
+      {isLoading && <TableSkeleton rows={10} />}
 
       {/* Error State */}
       {error && (

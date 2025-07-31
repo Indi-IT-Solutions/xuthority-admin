@@ -324,173 +324,190 @@ const ReviewsTable = ({
       )}
     
       <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-100 min-h-[65vh] relative">
-        <table className="w-full min-w-[1400px]">
-          {/* Table Header */}
-          <thead className="bg-gray-100 rounded-b-2xl">
-            <tr>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[120px]">
-                <div className="flex items-center space-x-2 md:space-x-3">
-                  <input 
-                    type="checkbox" 
-                    checked={isAllSelected}
-                    ref={(input) => {
-                      if (input) input.indeterminate = isIndeterminate;
-                    }}
-                    onChange={handleSelectAll}
-                    className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                  />
-                  <span>S. No.</span>
-                </div>
-              </th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Reviewer Details</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Vendor Details</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Product</th>
+        {reviews.length === 0 ? (
+          // Empty State
+          <div className="flex flex-col items-center justify-center py-16 min-h-[65vh]">
+            <div className="text-gray-400 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews found</h3>
+              <p className="text-sm text-gray-500">
+                No reviews available at the moment
+              </p>
+            </div>
+          </div>
+        ) : (
+          <table className="w-full min-w-[1400px]">
+            {/* Table Header */}
+            <thead className="bg-gray-100 rounded-b-2xl">
+              <tr>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[120px]">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <input 
+                      type="checkbox" 
+                      checked={isAllSelected}
+                      ref={(input) => {
+                        if (input) input.indeterminate = isIndeterminate;
+                      }}
+                      onChange={handleSelectAll}
+                      className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    />
+                    <span>S. No.</span>
+                  </div>
+                </th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Reviewer Details</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Vendor Details</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Product</th>
 
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[300px]">Review</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Comments</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Rating</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Date</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Status</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th>
-            </tr>
-          </thead>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[300px]">Review</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Comments</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Rating</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Date</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Status</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th>
+              </tr>
+            </thead>
 
-          {/* Table Body */}
-          <tbody>
-            {reviews.map((review, index) => (
-                <tr key={review.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  {/* S. No. with checkbox */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <div className="flex items-center space-x-2 md:space-x-3">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedReviews.includes(review._id)}
-                        onChange={() => handleSelectReview(review._id)}
-                        className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                      />
-                      <span className="text-xs md:text-sm font-medium text-gray-900">
-                        #{index + 1}
-                      </span>
-                    </div>
-                  </td>
-  
-                  {/* Reviewer Details */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/public-profile/${review.reviewer.slug}`, '_blank')}>
-                      <Avatar className="w-10 h-10 flex-shrink-0">
-                        <AvatarImage 
-                          src={review.reviewer?.avatar || ''} 
-                          alt={review.reviewer?.firstName || 'Reviewer'}
-                          className="object-cover"
+            {/* Table Body */}
+            <tbody>
+              {reviews.map((review, index) => (
+                  <tr key={review.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    {/* S. No. with checkbox */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <div className="flex items-center space-x-2 md:space-x-3">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedReviews.includes(review._id)}
+                          onChange={() => handleSelectReview(review._id)}
+                          className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                         />
-                        <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
-                          {getUserInitials(review.reviewer)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-900 truncate">
-                            {getUserDisplayName(review.reviewer) || 'Unknown Reviewer'}
-                          </span>
+                        <span className="text-xs md:text-sm font-medium text-gray-900">
+                          #{index + 1}
+                        </span>
+                      </div>
+                    </td>
+        
+                    {/* Reviewer Details */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/public-profile/${review.reviewer.slug}`, '_blank')}>
+                        <Avatar className="w-10 h-10 flex-shrink-0">
+                          <AvatarImage 
+                            src={review.reviewer?.avatar || ''} 
+                            alt={review.reviewer?.firstName || 'Reviewer'}
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
+                            {getUserInitials(review.reviewer)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {getUserDisplayName(review.reviewer) || 'Unknown Reviewer'}
+                            </span>
+                            
+                          </div>
+                         
+                        </div>
+                      </div>
+                    </td>
+        
+        
+                    {/* Vendor Details */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/public-profile/${review.product?.userId?.slug}`, '_blank')}>
+                        <Avatar className="w-10 h-10 flex-shrink-0">
+                          <AvatarImage 
+                            src={review.product?.userId?.avatar || ''} 
+                            alt={review.product?.userId?.firstName || 'Owner'}
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="bg-purple-100 text-purple-600 text-sm font-semibold">
+                            {getUserInitials(review.product?.userId)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {getUserDisplayName(review.product?.userId)  || 'Unknown Owner'}
+                            </span>
+                         
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {review.product?.userId?.email || 'No email'}
+                          </div>
+                      
+                        </div>
+                      </div>
+                    </td>
+
+                                    {/* Product Details */}
+                                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/product-detail/${review.product?.slug}`, '_blank')}>
+                      
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {review.product?.name || 'Unknown Product'}
+                            </span>
+                          </div>
                           
                         </div>
-                       
                       </div>
-                    </div>
-                  </td>
-  
-  
-                  {/* Vendor Details */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/public-profile/${review.product?.userId?.slug}`, '_blank')}>
-                      <Avatar className="w-10 h-10 flex-shrink-0">
-                        <AvatarImage 
-                          src={review.product?.userId?.avatar || ''} 
-                          alt={review.product?.userId?.firstName || 'Owner'}
-                          className="object-cover"
-                        />
-                        <AvatarFallback className="bg-purple-100 text-purple-600 text-sm font-semibold">
-                          {getUserInitials(review.product?.userId)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-900 truncate">
-                            {getUserDisplayName(review.product?.userId)  || 'Unknown Owner'}
-                          </span>
-                       
-                        </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {review.product?.userId?.email || 'No email'}
-                        </div>
-                    
+                    </td>
+        
+        
+                    {/* Review */}
+                    <td className="py-3 px-3 md:py-4 md:px-6 max-w-xs">
+                      <p className="text-xs md:text-sm text-gray-600 line-clamp-3">
+                        {review.review || 'No review content'}
+                      </p>
+                    </td>
+        
+                    {/* Comments */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <span className="text-xs md:text-sm text-gray-900 font-medium">{review.comments || 0}</span>
+                    </td>
+        
+                    {/* Rating */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs md:text-sm font-medium">{review.rating || 0}/5</span>
                       </div>
-                    </div>
-                  </td>
-
-                                  {/* Product Details */}
-                                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.open(`/product-detail/${review.product?.slug}`, '_blank')}>
-                    
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-900 truncate">
-                            {review.product?.name || 'Unknown Product'}
-                          </span>
-                        </div>
-                        
-                      </div>
-                    </div>
-                  </td>
-  
-  
-                  {/* Review */}
-                  <td className="py-3 px-3 md:py-4 md:px-6 max-w-xs">
-                    <p className="text-xs md:text-sm text-gray-600 line-clamp-3">
-                      {review.review || 'No review content'}
-                    </p>
-                  </td>
-  
-                  {/* Comments */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <span className="text-xs md:text-sm text-gray-900 font-medium">{review.comments || 0}</span>
-                  </td>
-  
-                  {/* Rating */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs md:text-sm font-medium">{review.rating || 0}/5</span>
-                    </div>
-                  </td>
-  
-                  {/* Date */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">{review.date || 'Unknown'}</span>
-                  </td>
-  
-                  {/* Status */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <span className={getStatusBadge(review.status)}>
-                      {review.status}
-                    </span>
-                  </td>
-  
-                  {/* Actions */}
-                  <td className="py-3 px-3 md:py-4 md:px-6">
-                    <ActionMenu 
-                      review={review}
-                      onViewDetails={onViewDetails}
-                      onDeleteReview={onDeleteReview}
-                      onApproveReview={onApproveReview}
-                      onRejectReview={onRejectReview}
-                      onResolveDispute={onResolveDispute}
-                    />
-                                  </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    </td>
+        
+                    {/* Date */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">{review.date || 'Unknown'}</span>
+                    </td>
+        
+                    {/* Status */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <span className={getStatusBadge(review.status)}>
+                        {review.status}
+                      </span>
+                    </td>
+        
+                    {/* Actions */}
+                    <td className="py-3 px-3 md:py-4 md:px-6">
+                      <ActionMenu 
+                        review={review}
+                        onViewDetails={onViewDetails}
+                        onDeleteReview={onDeleteReview}
+                        onApproveReview={onApproveReview}
+                        onRejectReview={onRejectReview}
+                        onResolveDispute={onResolveDispute}
+                      />
+                                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

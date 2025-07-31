@@ -70,6 +70,7 @@ export const useCreatePage = () => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           'Failed to create page';
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -96,6 +97,7 @@ export const useUpdatePage = () => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           'Failed to update page';
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -119,6 +121,7 @@ export const useDeletePage = () => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           'Failed to delete page';
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -142,6 +145,7 @@ export const useTogglePageStatus = () => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           'Failed to toggle page status';
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -164,6 +168,7 @@ export const useBulkDeletePages = () => {
       const errorMessage = error?.response?.data?.error?.message || 
                           error?.response?.data?.message || 
                           'Failed to delete pages';
+                          toast.dismiss()
       toast.error(errorMessage);
     },
   });

@@ -20,7 +20,8 @@ const AddBadgePage = () => {
     title: "",
     description: "",
     status: "active" as "active" | "inactive",
-    icon: ""
+    icon: "",
+    colorCode: "#3B82F6"
   });
   
   // File upload states
@@ -166,7 +167,7 @@ const AddBadgePage = () => {
         {/* Badge Image Section */}
         <div className="space-y-4">
           <div className="flex items-center space-x-6">
-            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-3xl overflow-hidden">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl overflow-hidden p-2" style={{background:formData.colorCode || '#E2E2E2'}}>
               {previewUrl ? (
                 <img
                   src={previewUrl}
@@ -289,6 +290,33 @@ const AddBadgePage = () => {
             disabled={isFormDisabled}
             required
           />
+        </div>
+
+        {/* Badge Color */}
+        <div className="space-y-2">
+          <Label htmlFor="colorCode" className="text-sm font-medium text-gray-900">
+            Badge Color <span className="text-red-500">*</span>
+          </Label>
+          <div className="flex items-center space-x-3">
+            <Input
+              id="colorCode"
+              type="color"
+              value={formData.colorCode}
+              onChange={(e) => handleInputChange("colorCode", e.target.value)}
+              className="w-20 h-10 p-1 cursor-pointer"
+              disabled={isFormDisabled}
+              required
+            />
+            <Input
+              type="text"
+              value={formData.colorCode}
+              onChange={(e) => handleInputChange("colorCode", e.target.value)}
+              className="w-32"
+              placeholder="#3B82F6"
+              disabled={isFormDisabled}
+              required
+            />
+          </div>
         </div>
 
         {/* Active/Inactive Status */}

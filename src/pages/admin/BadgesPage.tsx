@@ -4,7 +4,7 @@ import { Search, Plus } from "lucide-react";
 import BadgesTable from "@/components/common/BadgesTable";
 import BadgeRequestsTable from "@/components/common/BadgeRequestsTable";
 import BadgeRequestDetailsDialog from "@/components/BadgeRequestDetailsDialog";
-import { Pagination } from "@/components/common";
+import { Pagination, TableSkeleton } from "@/components/common";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -18,6 +18,7 @@ import {
   useApproveBadgeRequest,
   useRejectBadgeRequest
 } from "@/hooks/useBadges";
+import { BadgeParams, BadgeRequestParams } from "@/services/badgeService";
 
 const BadgesPage = () => {
   const navigate = useNavigate();
@@ -57,10 +58,11 @@ const BadgesPage = () => {
   }), [currentPage, itemsPerPage, debouncedSearchQuery]);
 
   // Prepare API parameters for badge requests
-  const requestParams = useMemo(() => ({
+  const requestParams = useMemo((): BadgeRequestParams => ({
     page: currentPage,
     limit: itemsPerPage,
     search: debouncedSearchQuery,
+    status: 'requested', // Only get pending badge requests
     sortBy: 'createdAt' as const,
     sortOrder: 'desc' as const,
   }), [currentPage, itemsPerPage, debouncedSearchQuery]);
@@ -96,7 +98,7 @@ const BadgesPage = () => {
     total: 0,
     totalPages: 1
   };
-
+console.log('currentData?.data', currentData?.data)
   // Reset to first page when tab or search changes
   const handleTabChange = (tab: "list" | "request") => {
     setActiveTab(tab);
@@ -327,11 +329,7 @@ const BadgesPage = () => {
       </div>
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500">Loading {activeTab === 'list' ? 'badges' : 'badge requests'}...</div>
-        </div>
-      )}
+      {isLoading && <TableSkeleton rows={10} />}
 
       {/* Error State */}
       {error && (

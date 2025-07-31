@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ProductService } from '@/services/productService';
 import { useMemo } from 'react';
 
@@ -7,7 +7,7 @@ export const useProductsBySoftwareOrSolution = (
   enabled: boolean = true
 ) => {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['products', 'bySoftwareOrSolution', id, 'sorted'],
+    queryKey: ['products', 'bySoftwareOrSolution', id],
     queryFn: () => {
       if (!id) return Promise.resolve({ data: [] });
       // Fetch products that have this ID in either softwareIds or solutionIds
@@ -16,7 +16,6 @@ export const useProductsBySoftwareOrSolution = (
     enabled: enabled && !!id,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    placeholderData: keepPreviousData,
   });
 
   const options = useMemo(() => {

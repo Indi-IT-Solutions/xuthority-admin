@@ -24,7 +24,7 @@ export const useVendors = (params: VendorQueryParams = {}) => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
-    retry: 2,
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 };
 

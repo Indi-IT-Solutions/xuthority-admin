@@ -7,7 +7,7 @@ import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import { useResourceDelete } from '@/hooks/useResourceDelete';
 import { useResourceCategories } from '@/hooks/useResourceCategories';
 import { useAdminBlogsWithFallback } from '@/hooks/useAdminBlogsWithFallback';
-import EnhancedLoader from '@/components/common/EnhancedLoader';
+
 import { cn } from '@/lib/utils';
 
 interface ResourceCardAuthor {
@@ -22,6 +22,7 @@ interface ResourceItem {
   description: string;
   imageUrl: string;
   status: 'On Demand' | 'Upcoming';
+  contentType: string;
   author: ResourceCardAuthor;
 }
 
@@ -38,7 +39,8 @@ const ResourceCenterPage: React.FC = () => {
   
   // Map tab names to resource category IDs
   const getCategoryId = (tab: TabType): string | undefined => {
-    if (!categories || categories.length === 0) return undefined;
+    const safeCategories = Array.isArray(categories) ? categories : [];
+    if (!safeCategories || safeCategories.length === 0) return undefined;
     
     const categoryMap = {
       'Webinars': 'webinars',
@@ -50,7 +52,7 @@ const ResourceCenterPage: React.FC = () => {
     const targetSlug = categoryMap[tab];
     if (!targetSlug) return undefined;
     
-    const category = categories.find(cat => cat.slug === targetSlug);
+    const category = safeCategories.find(cat => cat.slug === targetSlug);
     return category?._id;
   };
   
@@ -90,12 +92,17 @@ const ResourceCenterPage: React.FC = () => {
 
   // Transform blog to ResourceItem format
   const transformBlogToResourceItem = (blog: any): ResourceItem => {
+    // Only include valid content types
+    const validContentTypes = ['On Demand', 'Upcoming', 'EBook', 'Marketing', 'Sales'];
+    const contentType = validContentTypes.includes(blog.tag) ? blog.tag : '';
+    
     return {
       id: blog._id,
       title: blog.title,
       description: blog.description,
       imageUrl: blog.mediaUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=80',
       status: blog.status === 'active' ? 'On Demand' : 'Upcoming',
+      contentType,
       author: {
         name: blog.authorName || blog.createdBy?.name || 'Unknown Author',
         title: blog.designation || 'Content Creator',
@@ -127,7 +134,7 @@ const ResourceCenterPage: React.FC = () => {
   };
 
   const handleResourceClick = (id: string) => {
-    console.log('Open resource:', id);
+    navigate(`/resource-center/${id}`);
   };
 
   const handleEdit = (id: string) => {
@@ -141,6 +148,9 @@ const ResourceCenterPage: React.FC = () => {
 
   // Group resources by actual category for proper categorization
   const getTabResources = () => {
+    // Ensure categories is an array
+    const safeCategories = Array.isArray(categories) ? categories : [];
+    
     switch (activeTab) {
       case 'Webinars':
         return { webinars: resourceItems, xuthorityEdge: [], guides: [], successHub: [] };
@@ -157,9 +167,9 @@ const ResourceCenterPage: React.FC = () => {
            let categorySlug = '';
            if (blog.resourceCategoryId && typeof blog.resourceCategoryId === 'object' && blog.resourceCategoryId.slug) {
              categorySlug = blog.resourceCategoryId.slug;
-           } else if (categories) {
+           } else if (safeCategories.length > 0) {
              // Fallback: find category by ID if it's just a string
-             const category = categories.find(cat => cat._id === blog.resourceCategoryId);
+             const category = safeCategories.find(cat => cat._id === blog.resourceCategoryId);
              categorySlug = category?.slug || '';
            }
            
@@ -255,8 +265,26 @@ const ResourceCenterPage: React.FC = () => {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <EnhancedLoader />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
+                <div className="flex items-start gap-4">
+                  <div className="h-16 w-16 bg-gray-200 rounded-lg" />
+                  <div className="flex-1">
+                    <div className="h-5 bg-gray-200 rounded w-40 mb-2" />
+                    <div className="h-4 bg-gray-200 rounded w-32 mb-3" />
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-full" />
+                      <div className="h-3 bg-gray-200 rounded w-4/5" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="h-8 bg-gray-200 rounded w-20" />
+                    <div className="h-8 bg-gray-200 rounded w-20" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

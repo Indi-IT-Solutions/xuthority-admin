@@ -90,7 +90,7 @@ export const useAdminBlogsWithFallback = (params: AdminBlogParams = {}): UseAdmi
         throw error;
       }
     },
-    retry: 1, // Only retry once since we have fallback logic
+    retry: false, // Disable retries to prevent duplicate toast notifications
   });
 
   return {

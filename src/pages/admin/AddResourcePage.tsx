@@ -23,8 +23,6 @@ const RESOURCE_TYPE_OPTIONS = [
   { value: 'xuthority-edge', label: 'XUTHORITY Edge' },
   { value: 'guides-and-tips', label: 'Guides and Tips' },
   { value: 'success-hub', label: 'Success Hub' },
-  { value: 'case-studies', label: 'Case Studies' },
-  { value: 'white-papers', label: 'White Papers' }
 ];
 
 // Content Type options (matching backend validation)
@@ -184,14 +182,31 @@ const AddResourcePage: React.FC = () => {
         return;
       }
 
+      // Defensive: get the array of categories, whether from backend or fallback
+      const categoriesArray = Array.isArray(resourceCategories?.data)
+        ? resourceCategories.data
+        : Array.isArray(resourceCategories)
+          ? resourceCategories
+          : RESOURCE_TYPE_OPTIONS;
+
       // Find the resource category ID based on the selected resource type
-      const resourceCategory = resourceCategories?.find(
-        cat => cat.slug === data.resourceType
+      // For backend categories, match by slug; for fallback, match by value
+      const resourceCategory = categoriesArray.find(
+        (cat: any) =>
+          (cat.slug && cat.slug === data.resourceType) ||
+          (cat.value && cat.value === data.resourceType)
       );
-      console.log('resourceCategory', data.resourceType)
+      console.log('resourceCategory', data.resourceType);
 
       if (!resourceCategory) {
-        console.error('Available categories:', resourceCategories?.data?.map(cat => ({name: cat.name, slug: cat.slug})));
+        // Try to print available categories for debugging
+        if (Array.isArray(resourceCategories?.data)) {
+          console.error('Available categories:', resourceCategories.data.map((cat: any) => ({ name: cat.name, slug: cat.slug })));
+        } else if (Array.isArray(resourceCategories)) {
+          console.error('Available categories:', resourceCategories.map((cat: any) => ({ name: cat.name, slug: cat.slug })));
+        } else {
+          console.error('Available categories:', RESOURCE_TYPE_OPTIONS.map((cat) => ({ name: cat.label, slug: cat.value })));
+        }
         console.error('Selected resource type:', data.resourceType);
         toast.error(`Resource category not found. Please select a valid resource type.`);
         return;
@@ -227,7 +242,7 @@ const AddResourcePage: React.FC = () => {
         mediaUrl: mediaUrl,
         watchUrl: data.videoLink?.trim() || undefined,
         tag: data.contentType,
-        resourceCategoryId: resourceCategory._id,
+        resourceCategoryId: resourceCategory._id || resourceCategory.value || resourceCategory.slug,
         status: 'active' as const
       };
 
@@ -254,7 +269,8 @@ const AddResourcePage: React.FC = () => {
       <div className="">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 text-gray-500">
-            <span>Resource Center</span>
+         
+          <span onClick={()=>navigate('/resource-center')} className='cursor-pointer'  >Resource Center</span>
             <span>/</span>
             <span className="text-gray-900 font-semibold">Add Resource</span>
           </div>
@@ -374,34 +390,42 @@ const AddResourcePage: React.FC = () => {
                   <Controller
                     name="resourceType"
                     control={control}
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={async (value) => {
-                          field.onChange(value);
-                          await trigger('resourceType');
-                        }}
-                        value={field.value}
-                        disabled={isFormDisabled}
-                      >
-                        <SelectTrigger className={cn(
-                          "h-14 rounded-full border-gray-300",
-                          errors.resourceType && "border-red-500"
-                        )}>
-                          <SelectValue placeholder="Select resource type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {/* Use backend categories if available, fallback to hardcoded */}
-                          {(resourceCategories?.data || RESOURCE_TYPE_OPTIONS).map((option) => (
-                            <SelectItem 
-                              key={option.slug || option.value} 
-                              value={option.slug || option.value}
-                            >
-                              {option.name || option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                    render={({ field }) => {
+                      // Defensive: get the array of categories, whether from backend or fallback
+                      const categoriesArray = Array.isArray(resourceCategories?.data)
+                        ? resourceCategories.data
+                        : Array.isArray(resourceCategories)
+                          ? resourceCategories
+                          : RESOURCE_TYPE_OPTIONS;
+                      return (
+                        <Select
+                          onValueChange={async (value) => {
+                            field.onChange(value);
+                            await trigger('resourceType');
+                          }}
+                          value={field.value}
+                          disabled={isFormDisabled}
+                        >
+                          <SelectTrigger className={cn(
+                            "h-14 rounded-full border-gray-300",
+                            errors.resourceType && "border-red-500"
+                          )}>
+                            <SelectValue placeholder="Select resource type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {/* Use backend categories if available, fallback to hardcoded */}
+                            {categoriesArray.map((option: any) => (
+                              <SelectItem 
+                                key={option.slug || option.value} 
+                                value={option.slug || option.value}
+                              >
+                                {option.name || option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    }}
                   />
                   {errors.resourceType && (
                     <p className="mt-2 text-sm text-red-600">{errors.resourceType.message}</p>

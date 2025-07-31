@@ -22,7 +22,6 @@ export const useBlogs = (params: {
   return useQuery({
     queryKey: [...BLOG_QUERY_KEYS.blogs, params],
     queryFn: () => BlogService.getBlogs(params),
-    keepPreviousData: true,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -61,6 +60,9 @@ export const useCreateBlog = () => {
     onSuccess: (response) => {
       // Invalidate blogs queries to refetch data
       queryClient.invalidateQueries({ queryKey: BLOG_QUERY_KEYS.blogs });
+      // Invalidate admin blogs queries
+      queryClient.invalidateQueries({ queryKey: ['admin-blogs'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-blogs-with-fallback'] });
       
       // Show success toast
       toast.success('Resource created successfully!');
@@ -89,6 +91,9 @@ export const useUpdateBlog = () => {
       queryClient.invalidateQueries({ queryKey: BLOG_QUERY_KEYS.blogs });
       // Invalidate specific blog query
       queryClient.invalidateQueries({ queryKey: BLOG_QUERY_KEYS.blog(id) });
+      // Invalidate admin blogs queries
+      queryClient.invalidateQueries({ queryKey: ['admin-blogs'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-blogs-with-fallback'] });
       
       // Show success toast
       toast.success('Resource updated successfully!');
@@ -114,6 +119,9 @@ export const useDeleteBlog = () => {
     onSuccess: () => {
       // Invalidate blogs queries to refetch data
       queryClient.invalidateQueries({ queryKey: BLOG_QUERY_KEYS.blogs });
+      // Invalidate admin blogs queries
+      queryClient.invalidateQueries({ queryKey: ['admin-blogs'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-blogs-with-fallback'] });
       
       // Show success toast
       toast.success('Resource deleted successfully!');
