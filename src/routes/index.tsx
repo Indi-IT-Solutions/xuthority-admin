@@ -302,7 +302,7 @@ const AppRoutes = createBrowserRouter([
     ),
   },
 ], {
-  basename: "/"
+  basename: "/admin"
 });
 
 export default AppRoutes;

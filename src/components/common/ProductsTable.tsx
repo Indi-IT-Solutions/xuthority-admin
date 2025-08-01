@@ -247,7 +247,7 @@ const ProductsTable = ({
             <tr>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[80px]">
                 <div className="flex items-center space-x-2 md:space-x-3">
-                  <input 
+                  {/* <input 
                     type="checkbox" 
                     checked={isAllSelected}
                     ref={(input) => {
@@ -255,7 +255,7 @@ const ProductsTable = ({
                     }}
                     onChange={handleSelectAll}
                     className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                  />
+                  /> */}
                   <span>S. No.</span>
                 </div>
               </th>
@@ -276,12 +276,12 @@ const ProductsTable = ({
                 {/* S. No. with checkbox */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <div className="flex items-center space-x-2 md:space-x-3">
-                    <input 
+                    {/* <input 
                       type="checkbox" 
                       checked={selectedProducts.includes(product._id)}
                       onChange={() => handleSelectProduct(product._id)}
                       className="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                    />
+                    /> */}
                     <span className="text-xs md:text-sm font-medium text-gray-900">
                     #{index + 1}
                     </span>

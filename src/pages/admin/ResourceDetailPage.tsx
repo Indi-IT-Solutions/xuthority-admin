@@ -191,7 +191,7 @@ export const ResourceDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen">
       {/* Breadcrumb Header */}
-      <div className="w-full lg:max-w-screen-xl mx-auto px-4 sm:px-6 py-4">
+      <div className="w-full  mx-auto ">
         <div className="flex items-center justify-between">
           {/* Breadcrumb */}
           <div className="flex items-center space-x-2 text-sm">
@@ -229,9 +229,10 @@ export const ResourceDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Hero Section */}
-      <div 
-        className="relative bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-hidden h-48 sm:h-[500px]" 
+   <div className='bg-white rounded-2xl px-4  py-4 mt-4'>
+       {/* Hero Section */}
+       <div 
+        className="relative bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-hidden h-48 sm:h-[500px] rounded-2xl" 
         style={{ 
           backgroundImage: resource.mediaUrl ? `url(${resource.mediaUrl})` : 'none', 
           backgroundSize: 'cover', 
@@ -240,7 +241,7 @@ export const ResourceDetailPage: React.FC = () => {
       />
       
       {/* Main Content Section */}
-      <div className="w-full lg:max-w-screen-xl mx-auto px-4 sm:px-6 py-8">
+      <div className="w-full mx-auto mt-4">
         <div className="space-y-6">
           {/* Status Badge */}
           <div className="inline-flex">
@@ -275,6 +276,7 @@ export const ResourceDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+   </div>
 
             {/* Confirmation Modal */}
       <ConfirmationModal
