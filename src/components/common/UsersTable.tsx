@@ -63,24 +63,24 @@ const ActionMenu = ({
             color: 'text-blue-600',
             onClick: () => onViewDetails?.(user._id)
           },
-          {
-            label: 'Verify User',
-            icon: Check,
-            color: 'text-green-600',
-            onClick: () => onVerifyUser?.(user._id)
-          },
+          // {
+          //   label: 'Verify User',
+          //   icon: Check,
+          //   color: 'text-green-600',
+          //   onClick: () => onVerifyUser?.(user._id)
+          // },
           {
             label: 'Block User',
             icon: Ban,
             color: 'text-red-600',
             onClick: () => onBlockUser?.(user._id)
           },
-          {
-            label: 'Delete User',
-            icon: Trash2,
-            color: 'text-red-600',
-            onClick: () => onDeleteUser?.(user._id)
-          }
+          // {
+          //   label: 'Delete User',
+          //   icon: Trash2,
+          //   color: 'text-red-600',
+          //   onClick: () => onDeleteUser?.(user._id)
+          // }
         ];
       case 'Blocked':
         return [
@@ -96,12 +96,12 @@ const ActionMenu = ({
             color: 'text-green-600',
             onClick: () => onUnblockUser?.(user._id)
           },
-          {
-            label: 'Delete User',
-            icon: Trash2,
-            color: 'text-red-600',
-            onClick: () => onDeleteUser?.(user._id)
-          }
+          // {
+          //   label: 'Delete User',
+          //   icon: Trash2,
+          //   color: 'text-red-600',
+          //   onClick: () => onDeleteUser?.(user._id)
+          // }
         ];
       default:
         return [];

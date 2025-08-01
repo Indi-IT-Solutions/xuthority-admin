@@ -5,6 +5,47 @@ import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/hooks/useNo
 import { useNotificationNavigation } from '@/utils/notificationNavigation';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Skeleton loading components for notifications
+const NotificationSkeleton = () => (
+  <div className="p-4 sm:p-5 hover:bg-gray-50 transition-colors">
+    <div className="flex items-start justify-between gap-3 sm:gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
+          <Skeleton className="h-5 w-3/4" />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="w-2 h-2 rounded-full" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-4/5" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const NotificationsListSkeleton = () => (
+  <div className="divide-y divide-gray-100">
+    {Array.from({ length: 8 }).map((_, index) => (
+      <NotificationSkeleton key={index} />
+    ))}
+  </div>
+);
+
+const HeaderSkeleton = () => (
+  <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
+    <div className="flex items-center gap-3">
+      <Skeleton className="w-8 h-8 rounded-full" />
+      <Skeleton className="h-6 w-32" />
+    </div>
+    <Skeleton className="h-8 w-28" />
+  </div>
+);
 
 interface NotificationPanelProps {
   onMarkAllAsRead?: () => void;
@@ -45,8 +86,11 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center bg-white">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      <div className="h-full flex flex-col bg-white">
+        <HeaderSkeleton />
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          <NotificationsListSkeleton />
+        </div>
       </div>
     );
   }
@@ -80,7 +124,14 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
           disabled={markAllAsRead.isPending || notifications.length === 0}
           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
         >
-          {markAllAsRead.isPending ? 'Marking...' : 'Mark all as read'}
+          {markAllAsRead.isPending ? (
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <span>Marking...</span>
+            </div>
+          ) : (
+            'Mark all as read'
+          )}
         </Button>
       </div>
 
@@ -88,14 +139,22 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
       <div className="flex-1 overflow-y-auto overscroll-contain">
         {notifications.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
-            <p>No notifications yet</p>
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+              <p>No notifications yet</p>
+              <p className="text-sm text-gray-400">You'll see notifications here when they arrive</p>
+            </div>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {notifications.map((notification) => (
               <div
                 key={notification._id}
-                className="p-4 sm:p-5 hover:bg-gray-50 transition-colors cursor-pointer"
+                className={`p-4 sm:p-5 hover:bg-gray-50 transition-colors cursor-pointer ${
+                  markAsRead.isPending && markAsRead.variables === notification._id ? 'opacity-50' : ''
+                }`}
                 onClick={() => handleNotificationItemClick(notification)}
               >
                 <div className="flex items-start justify-between gap-3 sm:gap-4">
@@ -110,6 +169,9 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
                         </span>
                         {!notification.isRead && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                        )}
+                        {markAsRead.isPending && markAsRead.variables === notification._id && (
+                          <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
                         )}
                       </div>
                     </div>

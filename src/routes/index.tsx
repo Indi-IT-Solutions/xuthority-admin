@@ -4,6 +4,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import { SuspenseLoader } from "@/components/common";
+import NotFoundPage from "@/components/common/NotFoundPage";
 
 // Lazy load components for better performance
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
@@ -287,19 +288,10 @@ const AppRoutes = createBrowserRouter([
    
     ],
   },
-  // Fallback route
+  // Fallback route with custom 404 page
   {
     path: "*",
-    element: (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Page Not Found</h1>
-          <a href="/admin/dashboard" className="text-blue-600 hover:underline">
-            Go to Admin Panel
-          </a>
-        </div>
-      </div>
-    ),
+    element: <NotFoundPage />
   },
 ], {
   basename: "/admin"

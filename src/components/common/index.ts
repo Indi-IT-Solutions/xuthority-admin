@@ -47,4 +47,7 @@ export { default as BadgeRequestDetailsDialog } from '../BadgeRequestDetailsDial
 
 // Error and Empty States
 export { default as NotFoundPage } from './NotFoundPage';
-export { default as EmptyState } from './EmptyState'; 
+export { default as EmptyState } from './EmptyState';
+export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as ErrorState } from './ErrorState';
+export { default as GlobalErrorHandler } from './GlobalErrorHandler'; 
