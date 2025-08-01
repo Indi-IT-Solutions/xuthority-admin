@@ -328,6 +328,7 @@ const EditBadgePage = () => {
             className="w-full min-h-[120px] resize-none"
             placeholder="Enter badge description"
             disabled={isFormDisabled}
+            maxLength={500}
             required
           />
         </div>
