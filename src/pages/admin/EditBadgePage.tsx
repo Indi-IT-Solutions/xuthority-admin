@@ -211,13 +211,13 @@ const EditBadgePage = () => {
                 <img
                   src={previewUrl}
                   alt="Badge preview"
-                  className="w-full h-full object-contain rounded-full"
+                  className="w-full h-full object-contain "
                 />
               ) : formData.icon && formData.icon.startsWith('http') ? (
                 <img
                   src={formData.icon}
                   alt="Current badge"
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-contain "
                 />
               ) : (
                 <span>{formData.icon || "🏆"}</span>
@@ -283,6 +283,7 @@ const EditBadgePage = () => {
                 <div>
                   <p className="text-gray-600 font-medium text-sm">Upload New Badge Image</p>
                   <p className="text-gray-500 text-xs">Drag and drop or click to select</p>
+                  <p className="text-gray-500 text-xs">Supports: JPEG, PNG, GIF, WebP, SVG</p>
                   <p className='text-red-500 text-xs'>Max file size 5MB</p>
                 </div>
               </div>
@@ -290,7 +291,7 @@ const EditBadgePage = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.svg"
               onChange={handleFileInputChange}
               disabled={isFormDisabled}
               className="hidden"

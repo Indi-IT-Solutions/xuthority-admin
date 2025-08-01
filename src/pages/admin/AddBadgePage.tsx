@@ -172,13 +172,13 @@ const AddBadgePage = () => {
                 <img
                   src={previewUrl}
                   alt="Badge preview"
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-contain "
                 />
               ) : formData.icon && formData.icon.startsWith('http') ? (
                 <img
                   src={formData.icon}
                   alt="Badge icon"
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <span>{formData.icon || "🏆"}</span>
@@ -244,6 +244,7 @@ const AddBadgePage = () => {
                 <div>
                   <p className="text-gray-600 font-medium text-sm">Upload Badge Image</p>
                   <p className="text-gray-500 text-xs">Drag and drop or click to select</p>
+                  <p className="text-gray-500 text-xs">Supports: JPEG, PNG, GIF, WebP, SVG</p>
                   <p className='text-red-500 text-xs'>Max file size 5MB (Optional)</p>
                 </div>
               </div>
@@ -251,7 +252,7 @@ const AddBadgePage = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.svg"
               onChange={handleFileInputChange}
               disabled={isFormDisabled}
               className="hidden"

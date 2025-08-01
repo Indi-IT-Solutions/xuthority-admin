@@ -444,14 +444,14 @@ const EditResourcePage: React.FC = () => {
                       </div>
                     </div>
                   )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileInputChange}
-                    disabled={isFormDisabled}
-                    className="hidden"
-                  />
+                                  <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.svg"
+                  onChange={handleFileInputChange}
+                  disabled={isFormDisabled}
+                  className="hidden"
+                />
                 </div>
                 {shouldShowError('mediaFile') && (
                   <p className="mt-2 text-sm text-red-600">{errors.mediaFile?.message}</p>

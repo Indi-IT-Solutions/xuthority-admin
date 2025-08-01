@@ -186,7 +186,7 @@ export class FileUploadService {
   // Validate image file
   static validateImageFile(file: File): { isValid: boolean; error?: string } {
     // Check file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
       return { isValid: false, error: 'File must be an image' };
     }
 
@@ -206,18 +206,19 @@ export class FileUploadService {
       'image/webp',
       'image/bmp',    // Added BMP support
       'image/tiff',   // Added TIFF support
-      'image/tif'     // Alternative TIFF extension
+      'image/tif',    // Alternative TIFF extension
+      'image/svg+xml' // Added SVG support
     ];
     
     // Also check by file extension as fallback
     const fileName = file.name.toLowerCase();
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.tif'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.tif', '.svg'];
     const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
     
     if (!allowedTypes.includes(file.type) && !hasValidExtension) {
       return { 
         isValid: false, 
-        error: 'File must be JPEG, PNG, GIF, WebP, BMP, or TIFF format' 
+        error: 'File must be JPEG, PNG, GIF, WebP, BMP, TIFF, or SVG format' 
       };
     }
 

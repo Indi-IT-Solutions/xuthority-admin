@@ -316,7 +316,7 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.svg"
                   onChange={handleFileInputChange}
                   disabled={isLoading || isUploading}
                   className="hidden"

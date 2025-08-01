@@ -143,7 +143,7 @@ const TestimonialItem: React.FC<TestimonialItemProps> = ({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.svg"
               onChange={handleFileChange}
               className="hidden"
             />
