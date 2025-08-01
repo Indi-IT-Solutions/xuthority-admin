@@ -416,7 +416,7 @@ const VendorsTable = ({
 
                 {/* Industry */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
-                  <span className="text-xs md:text-sm text-gray-900">{vendor.industry}</span>
+                  <span className="text-xs md:text-sm text-gray-900">{vendor.industry || 'Not specified'}</span>
                 </td>
 
                 {/* Company Size */}
