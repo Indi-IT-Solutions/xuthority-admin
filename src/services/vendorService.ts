@@ -30,7 +30,7 @@ export interface RawVendorData {
   companyAvatar?: string;
   companyDescription?: string;
   companyWebsiteUrl?: string;
-  industry?: string;
+  industry?: string | { _id: string; name: string; slug: string };
   companySize?: string;
   yearFounded?: string;
   hqLocation?: string;
@@ -160,7 +160,7 @@ const transformVendorData = (rawVendor: RawVendorData, index: number): Transform
       email: rawVendor.email,
       avatar: rawVendor.avatar || ''
     },
-    industry: rawVendor.industry || 'Not specified',
+    industry: typeof rawVendor.industry === 'object' ? rawVendor.industry.name : rawVendor.industry || 'Not specified',
     companySize: rawVendor.companySize || 'Not specified',
     joinedOn: joinedDate,
     status
