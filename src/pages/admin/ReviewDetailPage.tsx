@@ -394,7 +394,7 @@ const ReviewDetailPage = () => {
                 <div className="flex items-center gap-1 min-w-0">
                   <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
                   <span className="text-gray-500 font-semibold flex-shrink-0">Industry:</span>
-                  <span className="text-gray-500 truncate">{review.reviewer.industry}</span>
+                  <span className="text-gray-500 truncate">{typeof review.reviewer.industry === 'object' ? review.reviewer.industry?.name : review.reviewer.industry}</span>
                 </div>
               )}
               {review.reviewer?.companySize && (

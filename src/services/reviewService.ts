@@ -34,7 +34,7 @@ export interface RawReviewData {
     isVerified?: boolean;
     companyName?: string;
     companySize?: string;
-    industry?: string;
+    industry?: string | { _id: string; name: string; slug: string };
     title?: string;
     id: string;
   };
@@ -55,6 +55,7 @@ export interface RawReviewData {
       slug?: string;
       email?: string;
       companyName?: string;
+      industry?: string | { _id: string; name: string; slug: string };
       id: string;
     };
     id: string;
