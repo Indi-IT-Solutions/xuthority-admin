@@ -11,7 +11,7 @@ interface ReviewTrendsData {
   approved: number;
   pending: number;
   rejected: number;
-  flagged: number;
+  dispute: number;
 }
 
 interface ReviewsChartProps {
@@ -29,7 +29,7 @@ const ReviewsChart = ({ activeFilter, data }: ReviewsChartProps) => {
       name: formatPeriodLabel(item.period, activeFilter),
       Published: item.approved, // Map approved to Published for UI consistency
       Pending: item.pending,
-      Disputed: item.flagged, // Map flagged to Disputed for UI consistency
+      Disputed: item.dispute, // Map dispute to Disputed for UI consistency
       Rejected: item.rejected
     }));
   };

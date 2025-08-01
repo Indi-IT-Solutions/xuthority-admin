@@ -4,8 +4,10 @@ import { Users, Package, Star, TrendingUp } from 'lucide-react';
 import { StatsCard, TimeFilter, ReviewsTable, DashboardContentSkeleton } from '@/components/common';
 import { UserGrowthChart, ReviewsChart } from '@/components/charts';
 import { useAnalytics } from '@/hooks/useAdminAuth';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Weekly');
   const [selectedReviews, setSelectedReviews] = useState<number[]>([]);
 
@@ -52,13 +54,45 @@ const DashboardPage = () => {
     
     return analyticsData.recentReviews.map((review, index) => ({
       id: index + 1, // Use index as ID since ReviewsTable expects number
+      _id: review._id, // MongoDB ID for API calls
       reviewer: {
-        name: review.reviewer.name,
-        avatar: review.reviewer.avatar
+        id: review.reviewer._id || review.reviewer.id || '',
+        firstName: review.reviewer.firstName || '',
+        lastName: review.reviewer.lastName || '',
+        email: review.reviewer.email || '',
+        avatar: review.reviewer.avatar || '',
+        slug: review.reviewer.slug,
+        companyName: review.reviewer.companyName,
+        isVerified: review.reviewer.isVerified
       },
-      product: review.product.name,
-      review: review.content.length > 50 ? `${review.content.substring(0, 50)}...` : review.content,
-      rating: review.overallRating,
+      product: {
+        id: review.product._id || review.product.id || '',
+        name: review.product.name || 'Unknown Product',
+        slug: review.product.slug || '',
+        logo: review.product.logoUrl || review.product.logo,
+        totalReviews: review.product.totalReviews,
+        avgRating: review.product.avgRating,
+        userId: review.product.userId ? {
+          id: review.product.userId._id || review.product.userId.id || '',
+          firstName: review.product.userId.firstName || '',
+          lastName: review.product.userId.lastName || '',
+          email: review.product.userId.email || '',
+          avatar: review.product.userId.avatar || '',
+          slug: review.product.userId.slug,
+          companyName: review.product.userId.companyName
+        } : {
+          id: '',
+          firstName: 'Unknown',
+          lastName: 'Vendor',
+          email: '',
+          avatar: '',
+          slug: '',
+          companyName: ''
+        }
+      },
+      review: review.content || '',
+      rating: review.overallRating || 0,
+      comments: review.totalReplies || 0,
       date: new Date(review.submittedAt).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -66,7 +100,7 @@ const DashboardPage = () => {
       }),
       status: (review.status === 'approved' ? 'Published' : 
               review.status === 'pending' ? 'Pending' : 
-              review.status === 'dispute' ? 'Dispute' : 'Rejected') as 'Published' | 'Pending' | 'Dispute'
+              review.status === 'dispute' ? 'Disputed' : 'Rejected') as 'Published' | 'Pending' | 'Disputed'
     }));
   }, [analyticsData?.recentReviews]);
 
@@ -75,38 +109,39 @@ const DashboardPage = () => {
     console.log('Navigate to all reviews');
   };
 
-  const handleViewDetails = (reviewId: number) => {
+  const handleViewDetails = (reviewId: string) => {
     console.log('View details for review:', reviewId);
+    navigate(`/reviews/${reviewId}`);
     // Navigate to review details page or open modal
   };
 
-  const handleDeleteReview = (reviewId: number) => {
+  const handleDeleteReview = (reviewId: string) => {
     console.log('Delete review:', reviewId);
     // Show confirmation dialog and delete review
   };
 
-  const handleApproveReview = (reviewId: number) => {
+  const handleApproveReview = (reviewId: string) => {
     console.log('Approve review:', reviewId);
     // Update review status to Published
   };
 
-  const handleRejectReview = (reviewId: number) => {
+  const handleRejectReview = (reviewId: string) => {
     console.log('Reject review:', reviewId);
     // Update review status to Rejected
   };
 
-  const handleResolveDispute = (reviewId: number) => {
+  const handleResolveDispute = (reviewId: string) => {
     console.log('Resolve dispute for review:', reviewId);
     // Update review status to Published/Resolved
   };
 
-  const handleSelectedReviewsChange = (selectedIds: number[]) => {
-    setSelectedReviews(selectedIds);
+  const handleSelectedReviewsChange = (selectedIds: string[]) => {
+    setSelectedReviews(selectedIds.map(id => parseInt(id) || 0));
     console.log('Selected reviews:', selectedIds);
     // You can perform bulk actions on selected reviews here
   };
 
-  const handleBulkDelete = (selectedIds: number[]) => {
+  const handleBulkDelete = (selectedIds: string[]) => {
     console.log('Bulk delete reviews:', selectedIds);
     
     // Show confirmation dialog
@@ -204,7 +239,6 @@ const DashboardPage = () => {
       {/* Recent Reviews Table */}
       <ReviewsTable 
         reviews={recentReviews} 
-        onSeeAll={handleSeeAllReviews}
         onViewDetails={handleViewDetails}
         onDeleteReview={handleDeleteReview}
         onApproveReview={handleApproveReview}
