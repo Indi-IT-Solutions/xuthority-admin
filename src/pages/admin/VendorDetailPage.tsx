@@ -10,6 +10,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { ProductsTable, Pagination } from "@/components/common";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { getAssetPath } from "@/config/assets";
 
 const VendorDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -291,9 +292,9 @@ const VendorDetailPage = () => {
                      href={vendor.socialLinks.linkedin.startsWith('http') ? vendor.socialLinks.linkedin : `https://linkedin.com/in/${vendor.socialLinks.linkedin}`}
                      target="_blank"
                      rel="noopener noreferrer"
-                     className="w-12 h-12  bg-blue-600 rounded-lg flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
+                     className="w-12 h-12   rounded-lg flex items-center justify-center  transition-colors"
                    >
-                    <LinkedinIcon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
+                    <img src={getAssetPath('icons/linkedin.svg')} alt='linkedin' className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-white" />
                    </a>
                  )}
                  {vendor.socialLinks?.twitter && (
@@ -301,9 +302,9 @@ const VendorDetailPage = () => {
                      href={vendor.socialLinks.twitter.startsWith('http') ? vendor.socialLinks.twitter : `https://x.com/${vendor.socialLinks.twitter}`}
                      target="_blank"
                      rel="noopener noreferrer"
-                     className="w-12 h-12  bg-black rounded-lg flex items-center justify-center text-white hover:bg-gray-800 transition-colors"
+                     className="w-12 h-12 rounded-lg flex items-center justify-center  transition-colors"
                    >
-                     <TwitterIcon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
+                     <img src={getAssetPath('icons/twitter.svg')} alt='twitter' className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-white" />
                    </a>
                  )}
                  {(!vendor.socialLinks?.linkedin && !vendor.socialLinks?.twitter) && (
@@ -412,7 +413,7 @@ const VendorDetailPage = () => {
           {Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className="bg-gray-100 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
               <div className="mb-3 sm:mb-4">
-                <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-gray-200 rounded mx-auto" />
+                <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 bg-gray-200 rounded mx-auto" />
               </div>
               <div className="h-5 bg-gray-200 rounded w-12 mx-auto mb-1 sm:mb-2" />
               <div className="h-4 bg-gray-200 rounded w-20 mx-auto" />
@@ -466,7 +467,7 @@ const VendorDetailPage = () => {
             {/* Total Reviews */}
             <div className="bg-yellow-50 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
               <div className="mb-3 sm:mb-4">
-                <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-black mx-auto" strokeWidth={2} />
+              <img src={getAssetPath('icons/review.svg')} alt="review" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-black mx-auto" />
               </div>
               <div className="text-base sm:text-lg lg:text-xl font-bold text-black mb-1 sm:mb-2">
                 {vendorStatsResponse.data.totalReviews || 0}
@@ -477,7 +478,7 @@ const VendorDetailPage = () => {
             {/* Average Rating */}
             <div className="bg-blue-50 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
               <div className="mb-3 sm:mb-4">
-                <Star className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-black mx-auto" strokeWidth={2} />
+              <img src={getAssetPath('icons/star.svg')} alt="Dispute" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-black mx-auto" />
               </div>
               <div className="text-base sm:text-lg lg:text-xl font-bold text-black mb-1 sm:mb-2">
                 {vendorStatsResponse.data.averageRating || '0.0'}
@@ -488,7 +489,7 @@ const VendorDetailPage = () => {
             {/* Disputes */}
             <div className="bg-pink-50 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
               <div className="mb-3 sm:mb-4">
-                <HelpCircle className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-black mx-auto" strokeWidth={2} />
+            <img src={getAssetPath('icons/dispute.svg')} alt="Dispute" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-black mx-auto" />
               </div>
               <div className="text-base sm:text-lg lg:text-xl font-bold text-black mb-1 sm:mb-2">
                 {String(vendorStatsResponse.data.disputes || 0).padStart(2, '0')}
@@ -499,7 +500,7 @@ const VendorDetailPage = () => {
             {/* Total Products */}
             <div className="bg-green-50 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
               <div className="mb-3 sm:mb-4">
-                <Package className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-black mx-auto" strokeWidth={2} />
+              <img src={getAssetPath('icons/product.svg')} alt="product" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-black mx-auto" />
               </div>
               <div className="text-base sm:text-lg lg:text-xl font-bold text-black mb-1 sm:mb-2">
                 {vendorStatsResponse.data.totalProducts || 0}

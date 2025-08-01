@@ -5,6 +5,49 @@ import { Button } from "@/components/ui/button";
 import { usePageBySlug, useUpdatePage } from "@/hooks/usePages";
 import { EditPageContentDialog } from "@/components/EditPageContentDialog";
 import { toast } from "react-hot-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Skeleton loading component for page view
+const PageViewSkeleton = () => (
+  <div className="mx-auto">
+    {/* Header Skeleton */}
+    <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </div>
+      <Skeleton className="h-10 w-10 rounded-lg" />
+    </div>
+
+    {/* Content Skeleton */}
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
+      <div className="space-y-6">
+        {/* Title skeleton */}
+        <Skeleton className="h-8 w-3/4" />
+        
+        {/* Paragraph skeletons */}
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+        ))}
+        
+        {/* Additional content skeletons */}
+        <div className="space-y-4 mt-8">
+          <Skeleton className="h-6 w-1/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-5/6" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const PageViewPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -90,24 +133,22 @@ const PageViewPage = () => {
 
   // Loading state
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-gray-500">Loading page content...</div>
-      </div>
-    );
+    return <PageViewSkeleton />;
   }
 
   // Error state
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <div className="text-red-500 text-center mb-4">
-          <p className="text-lg font-medium">Failed to load page</p>
-          <p className="text-sm mt-1">{(error as any)?.message}</p>
+      <div className="mx-auto">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="text-red-500 text-center mb-4">
+            <p className="text-lg font-medium">Failed to load page</p>
+            <p className="text-sm mt-1">{(error as any)?.message}</p>
+          </div>
+          <Button onClick={handleBack} variant="outline">
+            Go Back
+          </Button>
         </div>
-        <Button onClick={handleBack} variant="outline">
-          Go Back
-        </Button>
       </div>
     );
   }
@@ -115,13 +156,15 @@ const PageViewPage = () => {
   // No page found
   if (!pageData?.data) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <div className="text-gray-500 text-center mb-4">
-          <p className="text-lg font-medium">Page not found</p>
+      <div className="mx-auto">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="text-gray-500 text-center mb-4">
+            <p className="text-lg font-medium">Page not found</p>
+          </div>
+          <Button onClick={handleBack} variant="outline">
+            Go Back
+          </Button>
         </div>
-        <Button onClick={handleBack} variant="outline">
-          Go Back
-        </Button>
       </div>
     );
   }
@@ -129,7 +172,7 @@ const PageViewPage = () => {
   const page = pageData.data;
   console.log('Updating page with data:',pageData);
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className=" mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-4">
@@ -142,15 +185,28 @@ const PageViewPage = () => {
         </div>
         <button
           onClick={handleEdit}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-blue-600 cursor-pointer"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-blue-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Edit page"
+          disabled={updatePage.isPending}
         >
-          <Edit className="w-5 h-5" />
+          {updatePage.isPending ? (
+            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Edit className="w-5 h-5" />
+          )}
         </button>
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 relative">
+        {updatePage.isPending && (
+          <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-2xl">
+            <div className="flex items-center space-x-2 text-blue-600">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium">Updating page...</span>
+            </div>
+          </div>
+        )}
         <div className="prose prose-gray max-w-none">
           {/* Render content based on page type */}
           {page.content ? (
