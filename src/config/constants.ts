@@ -27,4 +27,7 @@ export const STATUS = {
   INACTIVE: 'inactive',
   PENDING: 'pending',
   SUSPENDED: 'suspended',
-} as const; 
+} as const;
+
+// Re-export asset configuration for convenience
+export { ASSETS, getAssetPath, getDashboardIcon, getLogoPath } from './assets'; 

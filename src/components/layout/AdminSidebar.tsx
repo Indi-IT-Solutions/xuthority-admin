@@ -19,27 +19,28 @@ import { useEffect, useState } from 'react';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import { queryClient } from '@/lib/queryClient';
 import { useLogout } from '@/hooks/useAdminAuth';
+import { ASSETS } from '@/config/constants';
 
 const navigationItems = [
   {
     label: 'Dashboard',
     href: '/',
-    icon: '/dashboard/speedometer.svg',
+    icon: ASSETS.DASHBOARD.SPEEDOMETER,
   },
   {
     label: 'Vendors',
     href: '/vendors',
-    icon: '/dashboard/category-2.svg',
+    icon: ASSETS.DASHBOARD.CATEGORY_2,
   },
   {
     label: 'Users Management',
     href: '/users',
-    icon: '/dashboard/people.svg',
+    icon: ASSETS.DASHBOARD.PEOPLE,
   },
   {
     label: 'Reviews',
     href: '/reviews',
-    icon: '/dashboard/star.svg',
+    icon: ASSETS.DASHBOARD.STAR,
   },
   // {
   //   label: 'Subscription Plans',
@@ -54,27 +55,27 @@ const navigationItems = [
   {
     label: 'Badges',
     href: '/badges',
-    icon: '/dashboard/medal.svg',
+    icon: ASSETS.DASHBOARD.MEDAL,
   },
   {
     label: 'Pages',
     href: '/pages',
-    icon: '/dashboard/task-square.svg',
+    icon: ASSETS.DASHBOARD.TASK_SQUARE,
   },
   {
     label: 'Meta Tags',
     href: '/metatags',
-    icon: '/dashboard/tag-2.svg',
+    icon: ASSETS.DASHBOARD.TAG_2,
   },
   {
     label: 'Resource Center',
     href: '/resource-center',
-    icon: '/dashboard/command-square.svg',
+    icon: ASSETS.DASHBOARD.COMMAND_SQUARE,
   },
   {
     label: 'Profile Settings',
     href: '/profile-settings',
-    icon: '/dashboard/setting-2.svg',
+    icon: ASSETS.DASHBOARD.SETTING_2,
   },
 ];
 
@@ -137,7 +138,7 @@ const AdminSidebar = () => {
         {/* Logo */}
         <div className="sm:py-6 py-4 pl-4 flex justify-left items-start ">
           <div className="flex items-center">
-            <img src="/xuthority_logo.svg" alt="Xuthority" className="w-full sm:h-12 h-10 object-contain" />
+            <img src={ASSETS.LOGOS.MAIN} alt="Xuthority" className="w-full sm:h-12 h-10 object-contain" />
           </div>
         </div>
 

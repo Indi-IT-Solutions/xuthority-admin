@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForgotPassword } from "@/hooks/useAdminAuth";
 import { Link } from "react-router-dom";
+import { ASSETS } from "@/config/constants";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -42,7 +43,7 @@ type ForgotPasswordFormInputs = z.infer<typeof forgotPasswordSchema>;
     {/* Gradient Background */}
     <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 via-orange-50 to-red-100">
       {/* Geometric Shapes */}
-   <img src="/svg/home_bg.svg" alt="Xuthority background" className="h-full w-full object-cover" />
+           <img src={ASSETS.SVG.HOME_BG} alt="Xuthority background" className="h-full w-full object-cover" />
     </div>
 
     {/* Content */}
@@ -51,7 +52,7 @@ type ForgotPasswordFormInputs = z.infer<typeof forgotPasswordSchema>;
         {/* Logo */}
         <div className="flex flex-col  gap-2 justify-center items-center">
        <img
-            src="/xuthority_sm_logo.svg"
+                          src={ASSETS.LOGOS.SMALL}
             alt="Xuthority Logo"
             className="h-16 w-16"
           />

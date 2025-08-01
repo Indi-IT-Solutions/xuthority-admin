@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLogin } from "@/hooks/useAdminAuth";
+import { ASSETS } from "@/config/constants";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -56,7 +57,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 via-orange-50 to-red-100">
         {/* Geometric Shapes */}
         <img
-          src="/svg/home_bg.svg"
+          src={ASSETS.SVG.HOME_BG}
           alt="Xuthority background"
           className="h-full w-full object-cover"
         />
@@ -68,7 +69,7 @@ export default function LoginPage() {
           {/* Logo */}
        <div className="flex flex-col  gap-2 justify-center items-center">
        <img
-            src="/xuthority_sm_logo.svg"
+            src={ASSETS.LOGOS.SMALL}
             alt="Xuthority Logo"
             className="h-16 w-16"
           />
