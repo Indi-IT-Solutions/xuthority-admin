@@ -154,7 +154,7 @@ const VendorDetailPage = () => {
   // Product handlers
   const handleViewProductDetails = (slug: string) => {
     console.log("View product details:", slug);
-    navigate(`/product-details/${slug}`);
+    window.open(`https://xuthority.com/product-details/${slug}`);
     // You can navigate to product detail page or open a modal
   };
 

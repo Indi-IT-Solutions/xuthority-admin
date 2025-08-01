@@ -286,7 +286,7 @@ const UserDetailPage = () => {
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Industry</label>
-                <p className="text-sm sm:text-base text-gray-900">{user.industry || 'N/A'}</p>
+                <p className="text-sm sm:text-base text-gray-900">{typeof user.industry === 'object' ? user.industry?.name : user.industry || 'N/A'}</p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Size</label>

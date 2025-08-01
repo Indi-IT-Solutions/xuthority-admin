@@ -32,7 +32,7 @@ export interface RawUserData {
   avatar?: string;
   companyName?: string;
   companyEmail?: string;
-  industry?: string;
+  industry?: string | { _id: string; name: string; slug: string };
   companySize?: string;
   region?: string;
   title?: string;
