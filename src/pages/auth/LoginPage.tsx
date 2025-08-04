@@ -130,7 +130,8 @@ export default function LoginPage() {
                     </p>
                   )}
                 </div>
-                <button
+<div className="flex justify-end">
+<button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
                   className="text-sm text-right text-gray-500 hover:underline cursor-pointer"
@@ -138,6 +139,7 @@ export default function LoginPage() {
                 >
                   Forgot Password?
                 </button>
+</div>
               </div>
 
               <div className="flex flex-col gap-4">

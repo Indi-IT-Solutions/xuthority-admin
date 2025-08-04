@@ -104,6 +104,7 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
   }
 
   const notifications = data?.data || [];
+  const allRead = notifications.length > 0 && notifications.every(n => n.isRead);
 
   return (
     <div className="h-full flex flex-col bg-white ">
@@ -121,7 +122,7 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
           variant="ghost"
           size="sm"
           onClick={handleMarkAllAsRead}
-          disabled={markAllAsRead.isPending || notifications.length === 0}
+          disabled={markAllAsRead.isPending || notifications.length === 0 || allRead}
           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
         >
           {markAllAsRead.isPending ? (

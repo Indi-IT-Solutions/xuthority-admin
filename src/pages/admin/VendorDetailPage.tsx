@@ -11,6 +11,7 @@ import { ProductsTable, Pagination } from "@/components/common";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { getAssetPath } from "@/config/assets";
+import { getUserInitials } from "@/utils/userHelpers";
 
 const VendorDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -81,7 +82,7 @@ const VendorDetailPage = () => {
       isOpen: true,
       type: 'block',
       vendorId: vendor._id,
-      vendorName: vendor.companyName || `${vendor.firstName} ${vendor.lastName}`,
+      vendorName: `${vendor.firstName} ${vendor.lastName}`,
     });
   };
 
@@ -90,7 +91,7 @@ const VendorDetailPage = () => {
       isOpen: true,
       type: 'unblock',
       vendorId: vendor._id,
-      vendorName: vendor.companyName || `${vendor.firstName} ${vendor.lastName}`,
+      vendorName: `${vendor.firstName} ${vendor.lastName}`,
     });
   };
 
@@ -99,7 +100,7 @@ const VendorDetailPage = () => {
       isOpen: true,
       type: 'approve',
       vendorId: vendor._id,
-      vendorName: vendor.companyName || `${vendor.firstName} ${vendor.lastName}`,
+      vendorName: `${vendor.firstName} ${vendor.lastName}`,
     });
   };
 
@@ -108,7 +109,7 @@ const VendorDetailPage = () => {
       isOpen: true,
       type: 'reject',
       vendorId: vendor._id,
-      vendorName: vendor.companyName || `${vendor.firstName} ${vendor.lastName}`,
+      vendorName: `${vendor.firstName} ${vendor.lastName}`,
     });
   };
 
@@ -271,15 +272,15 @@ const VendorDetailPage = () => {
           {/* Left Side - Company Logo & Social */}
        <div className="flex flex-col gap-4 lg:gap-6">
        <div className="w-full sm:w-88 h-40 sm:h-48 lg:h-56 bg-gray-900 flex items-center justify-center relative rounded-xl lg:rounded-2xl overflow-hidden">
-            {vendor.companyAvatar ? (
+            {vendor.avatar ? (
               <img 
-                src={vendor.companyAvatar} 
-                alt={vendor.companyName || 'Company Logo'} 
+                src={vendor.avatar} 
+                alt={'Company Logo'} 
                 className="h-full w-full object-cover"
               />
             ) : (
               <div className="text-white text-6xl font-bold">
-                {vendor.companyName?.charAt(0)?.toUpperCase() || vendor.firstName?.charAt(0)?.toUpperCase() || '?'}
+                {getUserInitials(vendor as any) || '?'}
               </div>
             )}
           </div>
@@ -320,57 +321,107 @@ const VendorDetailPage = () => {
               {/* Row 1: Company Name, Company Email, Industry, Company Website, Company Size */}
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Name</label>
-                <p className="text-sm sm:text-base text-gray-900 font-medium">{vendor.companyName || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg font-medium"
+                  title={vendor.companyName || 'N/A'}
+                >
+                  {vendor.companyName || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Email</label>
-                <p className="text-sm sm:text-base text-gray-900">{vendor.companyEmail || vendor.email}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={vendor.companyEmail || vendor.email}
+                >
+                  {vendor.companyEmail || vendor.email}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Industry</label>
-                <p className="text-sm sm:text-base text-gray-900">{typeof vendor.industry === 'object' ? vendor.industry?.name : vendor.industry || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={typeof vendor.industry === 'object' ? vendor.industry?.name : vendor.industry || 'N/A'}
+                >
+                  {typeof vendor.industry === 'object' ? vendor.industry?.name : vendor.industry || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Website</label>
                 {vendor.companyWebsiteUrl ? (
-                  <a 
+                  <a
                     href={vendor.companyWebsiteUrl.startsWith('http') ? vendor.companyWebsiteUrl : `https://${vendor.companyWebsiteUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm sm:text-base text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    className="text-xs sm:text-sm md:text-base lg:text-base xl:text-lg text-blue-600 hover:text-blue-800 flex items-center gap-1"
                   >
-                    <span className="truncate">{vendor.companyWebsiteUrl}</span>
+                    <span
+                      className="line-clamp-2 break-words"
+                      title={vendor.companyWebsiteUrl}
+                    >
+                      {vendor.companyWebsiteUrl}
+                    </span>
                     <ExternalLink className="w-3 h-3 flex-shrink-0" />
                   </a>
                 ) : (
-                  <p className="text-sm sm:text-base text-gray-900">N/A</p>
+                  <p className="text-xs sm:text-sm md:text-base lg:text-base xl:text-lg text-gray-900">N/A</p>
                 )}
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Size</label>
-                <p className="text-sm sm:text-base text-gray-900">{vendor.companySize || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={vendor.companySize || 'N/A'}
+                >
+                  {vendor.companySize || 'N/A'}
+                </p>
               </div>
 
               {/* Row 2: HQ Location, Founded Year, Owner Name, Owner Email, Owner Region */}
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">HQ Location</label>
-                <p className="text-sm sm:text-base text-gray-900">{vendor.hqLocation || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={vendor.hqLocation || 'N/A'}
+                >
+                  {vendor.hqLocation || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Founded Year</label>
-                <p className="text-sm sm:text-base text-gray-900">{vendor.yearFounded || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={vendor.yearFounded || 'N/A'}
+                >
+                  {vendor.yearFounded || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Owner Name</label>
-                <p className="text-sm sm:text-base text-gray-900">{`${vendor.firstName} ${vendor.lastName}`}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={`${vendor.firstName} ${vendor.lastName}`}
+                >
+                  {`${vendor.firstName} ${vendor.lastName}`}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Owner Email</label>
-                <p className="text-sm sm:text-base text-gray-900 truncate">{vendor.email}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={vendor.email}
+                >
+                  {vendor.email}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Owner Region</label>
-                <p className="text-sm sm:text-base text-gray-900">{vendor.region || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={vendor.region || 'N/A'}
+                >
+                  {vendor.region || 'N/A'}
+                </p>
               </div>
 
               {/* Row 3: Joined On, Followers, Following, Empty, Status */}

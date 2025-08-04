@@ -260,41 +260,86 @@ const UserDetailPage = () => {
               {/* Row 1: Name, Owner Email, Owner Region, Title, Joined On */}
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Name</label>
-                <p className="text-sm sm:text-base text-gray-900 font-medium">{`${user.firstName} ${user.lastName}`}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg font-medium"
+                  title={`${user.firstName} ${user.lastName}`}
+                >
+                  {`${user.firstName} ${user.lastName}`}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Owner Email</label>
-                <p className="text-sm sm:text-base text-gray-900">{user.email}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={user.email}
+                >
+                  {user.email}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Owner Region</label>
-                <p className="text-sm sm:text-base text-gray-900">{user.region || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={user.region || 'N/A'}
+                >
+                  {user.region || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Title</label>
-                <p className="text-sm sm:text-base text-gray-900">{user.title || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={user.title || 'N/A'}
+                >
+                  {user.title || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Joined On</label>
-                <p className="text-sm sm:text-base text-gray-900">{formatDate(user.createdAt)}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={formatDate(user.createdAt)}
+                >
+                  {formatDate(user.createdAt)}
+                </p>
               </div>
 
               {/* Row 2: Company Name, Industry, Company Size, Last Activity, Status */}
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Name</label>
-                <p className="text-sm sm:text-base text-gray-900">{user.companyName || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={user.companyName || 'N/A'}
+                >
+                  {user.companyName || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Industry</label>
-                <p className="text-sm sm:text-base text-gray-900">{typeof user.industry === 'object' ? user.industry?.name : user.industry || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={typeof user.industry === 'object' ? user.industry?.name : user.industry || 'N/A'}
+                >
+                  {typeof user.industry === 'object' ? user.industry?.name : user.industry || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Size</label>
-                <p className="text-sm sm:text-base text-gray-900">{user.companySize || 'N/A'}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={user.companySize || 'N/A'}
+                >
+                  {user.companySize || 'N/A'}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Last Activity</label>
-                <p className="text-sm sm:text-base text-gray-900">{formatDate(user.updatedAt)}</p>
+                <p
+                  className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
+                  title={formatDate(user.updatedAt)}
+                >
+                  {formatDate(user.updatedAt)}
+                </p>
               </div>
               <div>
                 <label className="text-xs sm:text-sm text-gray-500 block mb-1">Status</label>

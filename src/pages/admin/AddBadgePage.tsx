@@ -270,7 +270,7 @@ const AddBadgePage = () => {
             type="text"
             value={formData.title}
             onChange={(e) => handleInputChange("title", e.target.value)}
-            className="w-full"
+            className="w-full mt-2"
             placeholder="Enter badge name"
             disabled={isFormDisabled}
             required
@@ -286,7 +286,7 @@ const AddBadgePage = () => {
             id="description"
             value={formData.description}
             onChange={(e) => handleInputChange("description", e.target.value)}
-            className="w-full min-h-[120px] resize-none"
+            className="w-full min-h-[120px] resize-none mt-2"
             placeholder="Enter badge description"
             disabled={isFormDisabled}
             maxLength={500}

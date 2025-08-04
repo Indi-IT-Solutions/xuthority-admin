@@ -103,7 +103,7 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl p-0 overflow-hidden bg-white">
+      <DialogContent className="w-full sm:!min-w-xl p-0 overflow-hidden bg-white ">
         <DialogHeader className="p-6 pb-4 relative">
           <DialogTitle className="text-xl font-semibold text-center">
             Badges Request
@@ -137,9 +137,9 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
           </div>
 
           {/* User Details and Status Row */}
-          <div className="flex items-center justify-between space-x-6">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2  ">
             {/* Requested User */}
-            <div className="flex items-center space-x-3">
+            <div className="flex sm:items-center space-x-3 sm:col-span-2  w-full border-r border-gray-200">
               <Avatar className="w-12 h-12 flex-shrink-0">
                 <AvatarImage 
                   src={badgeRequest.user?.avatar || ''} 
@@ -147,36 +147,39 @@ const BadgeRequestDetailsDialog: React.FC<BadgeRequestDetailsDialogProps> = ({
                   className="object-cover"
                 />
                 <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
-                  {getUserInitials(badgeRequest.user)}
+                  {getUserInitials(badgeRequest.user)} 
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm text-gray-500 font-medium">Requested User</span>
-                <span className="text-lg font-semibold text-gray-900">
+                <span className="text-base font-semibold text-gray-900 line-clamp-2">
                   {getUserName(badgeRequest.user)}
                 </span>
               </div>
             </div>
 
             {/* Requested Date and Status */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-gray-500" />
+              <div className="flex sm:justify-center sm:items-center space-x-2 w-full sm:col-span-2 border-r border-gray-200  ">
+              <div className='w-12 h-12 rounded-full bg-gray-100 flex justify-center items-center'>
+              <Calendar className="w-4 h-4 text-gray-500" />
+              </div>
                 <div className="flex flex-col">
                   <span className="text-sm text-gray-500 font-medium">Requested Date</span>
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-base font-semibold text-gray-900">
                     {formatDate(badgeRequest.createdAt)}
                   </span>
                 </div>
               </div>
               
-              <Badge 
+          
+           <div className='w-full flex sm:justify-center sm:items-center  '>
+           <Badge 
                 variant="secondary"
                 className={`${getStatusColor(badgeRequest.status)} font-medium px-3 py-1 text-sm rounded-full`}
               >
                 {getStatusLabel(badgeRequest.status)}
               </Badge>
-            </div>
+           </div>
           </div>
 
           {/* Badge Name */}
