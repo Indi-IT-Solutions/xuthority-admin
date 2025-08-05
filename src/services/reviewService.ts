@@ -92,6 +92,9 @@ export interface RawReviewData {
     };
     createdAt: string;
   };
+  helpfulVotes: {
+    count?: number;
+  };
 }
 
 export interface TransformedReview {
@@ -129,6 +132,9 @@ export interface TransformedReview {
   comments: number;
   date: string;
   status: 'Published' | 'Pending' | 'Disputed';
+  helpfulVotes: {
+    count?: number;
+  };
 }
 
 export interface ReviewsApiResponse {
@@ -202,7 +208,8 @@ export const transformReviewData = (rawReview: RawReviewData, index: number): Tr
     rating: rawReview.overallRating || 0,
     comments: rawReview.comments || 0,
     date: formatDate(rawReview.submittedAt || rawReview.createdAt),
-    status: statusMap[rawReview.status] || 'Pending'
+    status: statusMap[rawReview.status] || 'Pending',
+    helpfulVotes: rawReview.helpfulVotes || { count: 0 }
   };
 };
 
@@ -257,6 +264,19 @@ console.log('params', params)
       // Add rating filter
       if (params.rating !== undefined && params.rating !== null) {
         queryParams.append('overallRating', params.rating.toString());
+      }
+      
+      // Add period filter (weekly, monthly, yearly)
+      if (params.period) {
+        queryParams.append('period', params.period);
+      }
+      
+      // Add custom date range filters
+      if (params.dateFrom) {
+        queryParams.append('dateFrom', params.dateFrom);
+      }
+      if (params.dateTo) {
+        queryParams.append('dateTo', params.dateTo);
       }
       
       // Add sorting params

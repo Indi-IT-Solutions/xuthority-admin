@@ -100,8 +100,10 @@ export interface VendorProduct {
   _id: string;
   name: string;
   logoUrl: string;
-  industry: string;
-  marketSegments: string;
+  industry?: string;
+  industries?: string[] | { _id: string; name: string; }[];
+  marketSegments?: string;
+  marketSegment?: string[] | { _id: string; name: string; }[];
   avgRating: number;
   totalReviews: number;
   createdAt: string;
@@ -274,7 +276,7 @@ export class VendorService {
    */
   static async approveVendor(vendorId: string): Promise<ApiResponse<{ user: RawVendorData }>> {
     try {
-      return await ApiService.patch(`/admin/users/${vendorId}/approve`);
+      return await ApiService.patch(`/admin/users/${vendorId}/approve`, { sendEmail: true });
     } catch (error) {
       console.error('Error approving vendor:', error);
       throw error;

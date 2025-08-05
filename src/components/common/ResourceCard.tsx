@@ -39,16 +39,20 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
   className
 }) => {
   const getContentTypeBadge = () => {
-    const contentTypeVariants = {
+    const contentTypeVariants: Record<string, string> = {
       'On Demand': 'text-red-600 bg-red-50',
       'Upcoming': 'text-blue-600 bg-blue-50',
       'EBook': 'text-green-600 bg-green-50',
       'Marketing': 'text-purple-600 bg-purple-50',
-      'Sales': 'text-orange-600 bg-orange-50'
+      'Sales': 'text-orange-600 bg-orange-50',
+      'Live': 'text-green-600 bg-green-50',
+      'Archived': 'text-gray-600 bg-gray-50',
+      'Featured': 'text-purple-600 bg-purple-50',
+      'New': 'text-yellow-600 bg-yellow-50'
     };
 
     // Only show badge if it's one of the valid content types
-    if (!contentTypeVariants[contentType]) {
+    if (!contentType || !contentTypeVariants[contentType]) {
       return null;
     }
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Star, MoreHorizontal, Eye, Trash2 } from 'lucide-react';
 import { VendorProduct } from '@/services/vendorService';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import StarRating from './StartRating';
+import StarRatingSingle from '../ui/StarRatingSingle';
 
 interface ProductsTableProps {
   products: VendorProduct[];
@@ -34,12 +34,12 @@ const ActionMenu = ({
       color: 'text-blue-600',
       onClick: () => onViewDetails?.(product.slug)
     },
-    {
-      label: 'Delete',
-      icon: Trash2,
-      color: 'text-red-600',
-      onClick: () => onDeleteProduct?.(product._id)
-    }
+    // {
+    //   label: 'Delete',
+    //   icon: Trash2,
+    //   color: 'text-red-600',
+    //   onClick: () => onDeleteProduct?.(product._id)
+    // }
   ];
 
   const updateDropdownPosition = () => {
@@ -160,11 +160,11 @@ const ProductsTable = ({
   onBulkDelete 
 }: ProductsTableProps) => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-
+console.log('products', products)
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center gap-1">
-        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+        <StarRatingSingle rating={rating}/>
         <span className="text-sm font-medium">{rating}/5</span>
       </div>
     );
@@ -307,23 +307,47 @@ const ProductsTable = ({
 
                 {/* Market Segments */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
-                  <span className="text-xs md:text-sm text-gray-700">
-                    {product.marketSegments || '-'}
+                  <span className="text-xs md:text-sm text-gray-700 line-clamp-2">
+                    {(() => {
+                      if (product.marketSegments) {
+                        return product.marketSegments;
+                      }
+                      if (product.marketSegment && Array.isArray(product.marketSegment)) {
+                        // Handle array of objects with name property
+                        if (product.marketSegment.length > 0 && typeof product.marketSegment[0] === 'object' && product.marketSegment[0] && 'name' in product.marketSegment[0]) {
+                          return product.marketSegment.map((segment: any) => segment.name).join(', ');
+                        }
+                        // Handle array of strings
+                        return product.marketSegment.join(', ');
+                      }
+                      return '-';
+                    })()}
                   </span>
                 </td>
 
                 {/* Industry */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
-                  <span className="text-xs md:text-sm text-gray-700">
-                    {product.industry || '-'}
+                  <span className="text-xs md:text-sm text-gray-700 line-clamp-2">
+                    {(() => {
+                      if (product.industry) {
+                        return product.industry;
+                      }
+                      if (product.industries && Array.isArray(product.industries)) {
+                        // Handle array of objects with name property
+                        if (product.industries.length > 0 && typeof product.industries[0] === 'object' && product.industries[0] && 'name' in product.industries[0]) {
+                          return product.industries.map((industry: any) => industry.name).join(', ');
+                        }
+                        // Handle array of strings
+                        return product.industries.join(', ');
+                      }
+                      return '-';
+                    })()}
                   </span>
                 </td>
 
                 {/* Average Rating */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
-                  {product.avgRating > 0 ? renderStars(product.avgRating) : (
-                    <span className="text-xs md:text-sm text-gray-500">No ratings</span>
-                  )}
+                  {renderStars(product.avgRating)}
                 </td>
 
                 {/* Total Reviews */}

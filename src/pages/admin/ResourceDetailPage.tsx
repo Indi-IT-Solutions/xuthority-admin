@@ -88,6 +88,34 @@ export const ResourceDetailPage: React.FC = () => {
     }
   };
 
+  // Get content type badge
+  const getContentTypeBadge = () => {
+    const contentTypeVariants: Record<string, string> = {
+      'On Demand': 'text-red-600 bg-red-50',
+      'Upcoming': 'text-blue-600 bg-blue-50',
+      'EBook': 'text-green-600 bg-green-50',
+      'Marketing': 'text-purple-600 bg-purple-50',
+      'Sales': 'text-orange-600 bg-orange-50',
+      'Live': 'text-green-600 bg-green-50',
+      'Archived': 'text-gray-600 bg-gray-50',
+      'Featured': 'text-purple-600 bg-purple-50',
+      'New': 'text-yellow-600 bg-yellow-50'
+    };
+
+    // Only show badge if it's one of the valid content types
+    if (!resource?.tag || !contentTypeVariants[resource.tag]) {
+      return null;
+    }
+
+    return (
+      <Badge 
+        className={`px-3 py-1.5 text-sm font-medium rounded-md border-0 ${contentTypeVariants[resource.tag]}`}
+      >
+        {resource.tag}
+      </Badge>
+    );
+  };
+
   // Handle missing id parameter
   if (!id) {
     return (
@@ -244,11 +272,7 @@ export const ResourceDetailPage: React.FC = () => {
       <div className="w-full mx-auto mt-4">
         <div className="space-y-6">
           {/* Status Badge */}
-          <div className="inline-flex">
-            <div className="text-red-600 py-1 text-lg font-semibold rounded">
-              On Demand
-            </div>
-          </div>
+          {getContentTypeBadge()}
 
           {/* Content Title */}
           <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 leading-tight">
@@ -257,7 +281,7 @@ export const ResourceDetailPage: React.FC = () => {
 
           {/* Description */}
           <div className="space-y-4 text-gray-700">
-            <p className="text-lg leading-relaxed">
+            <p className="text-lg leading-relaxed whitespace-break-spaces">
               {resource.description}
             </p>
 

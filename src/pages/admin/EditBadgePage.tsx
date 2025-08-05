@@ -1,30 +1,61 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { ArrowLeft, Upload, ImageIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useGetBadge, useUpdateBadge } from "@/hooks/useBadges";
 import { TransformedBadge } from "@/services/badgeService";
 import { FileUploadService } from "@/services/fileUpload";
 import { cn } from "@/lib/utils";
+import { getInitials } from "@/utils/getInitials";
 import toast from "react-hot-toast";
+
+// Zod schema for badge form validation
+const badgeFormSchema = z.object({
+  title: z.string().min(1, "Badge name is required").min(3, "Badge name must be at least 3 characters"),
+  description: z.string().min(1, "Description is required").min(10, "Description must be at least 10 characters"),
+  colorCode: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid color code format"),
+  status: z.enum(["active", "inactive"]),
+  icon: z.string().optional(),
+});
+
+type BadgeFormData = z.infer<typeof badgeFormSchema>;
 
 const EditBadgePage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Form state
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    status: "active" as "active" | "inactive",
-    icon: "",
-    colorCode: "#3B82F6"
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    reset,
+    setError,
+    clearErrors,
+  } = useForm<BadgeFormData>({
+    resolver: zodResolver(badgeFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      status: "active",
+      icon: "",
+      colorCode: "#3B82F6",
+    },
   });
+  
+  // Watch form values
+  const formData = watch();
   
   // File upload states
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -42,7 +73,7 @@ const EditBadgePage = () => {
   // Update form data when badge data is loaded
   useEffect(() => {
     if (badge) {
-      setFormData({
+      reset({
         title: badge.title,
         description: badge.description,
         status: badge.status,
@@ -50,7 +81,7 @@ const EditBadgePage = () => {
         colorCode: badge.colorCode || "#3B82F6"
       });
     }
-  }, [badge]);
+  }, [badge, reset]);
 
   // File upload handlers
   const handleFileSelect = async (file: File) => {
@@ -109,20 +140,107 @@ const EditBadgePage = () => {
     }
   };
 
-  const handleInputChange = (field: keyof typeof formData, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleInputChange = (field: keyof BadgeFormData, value: string | boolean) => {
+    // Special handling for color to ensure minimum brightness
+    if (field === 'colorCode' && typeof value === 'string') {
+      const adjustedColor = ensureMinimumBrightness(value, 0.7);
+      setValue(field, adjustedColor as any);
+      return;
+    }
+    
+    setValue(field, value as any);
+    clearErrors(field);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Function to ensure minimum brightness (70%)
+  const ensureMinimumBrightness = (hexColor: string, minBrightness: number = 0.7): string => {
+    // Convert hex to RGB
+    const hex = hexColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    // Convert RGB to HSL
+    const rNorm = r / 255;
+    const gNorm = g / 255;
+    const bNorm = b / 255;
+    
+    const max = Math.max(rNorm, gNorm, bNorm);
+    const min = Math.min(rNorm, gNorm, bNorm);
+    const l = (max + min) / 2;
+    
+    // If lightness is already above minimum, return original color
+    if (l >= minBrightness) {
+      return hexColor;
+    }
+    
+    // Calculate HSL values
+    let h = 0;
+    let s = 0;
+    
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      
+      switch (max) {
+        case rNorm:
+          h = ((gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0)) / 6;
+          break;
+        case gNorm:
+          h = ((bNorm - rNorm) / d + 2) / 6;
+          break;
+        case bNorm:
+          h = ((rNorm - gNorm) / d + 4) / 6;
+          break;
+      }
+    }
+    
+    // Convert back to RGB with new lightness
+    const hslToRgb = (h: number, s: number, l: number): string => {
+      let r: number, g: number, b: number;
+      
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const hue2rgb = (p: number, q: number, t: number) => {
+          if (t < 0) t += 1;
+          if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+        
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+      
+      const toHex = (x: number) => {
+        const hex = Math.round(x * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+      
+      return '#' + toHex(r) + toHex(g) + toHex(b);
+    };
+    
+    return hslToRgb(h, s, minBrightness);
+  };
+
+  const onSubmit = async (data: BadgeFormData) => {
+    // Validate that badge image is provided
+    if (!selectedFile && !data.icon) {
+      setError("icon", { message: "Badge image is required. Please upload an image." });
+      toast.error("Badge image is required. Please upload an image.");
+      return;
+    }
     
     if (!id) return;
 
     try {
-      let updatedFormData = { ...formData };
+      let updatedFormData = { ...data };
 
       // Upload new image if selected
       if (selectedFile) {
@@ -193,7 +311,7 @@ const EditBadgePage = () => {
         </div>
         
         <Button 
-          onClick={handleSubmit}
+          onClick={handleSubmit(onSubmit)}
           disabled={isFormDisabled}
           loading={isFileUploading || updateBadgeMutation.isPending}
           className="bg-blue-500 hover:bg-blue-600 text-white px-6 rounded-full"
@@ -202,30 +320,26 @@ const EditBadgePage = () => {
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Badge Image Section */}
         <div className="space-y-4">
           <div className="flex items-center space-x-6">
-            <div className="w-20 h-20 rounded-full  flex items-center justify-center text-3xl overflow-hidden p-2" style={{background:formData.colorCode || '#E2E2E2'}}>
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Badge preview"
-                  className="w-full h-full object-contain "
-                />
-              ) : formData.icon && formData.icon.startsWith('http') ? (
-                <img
-                  src={formData.icon}
-                  alt="Current badge"
-                  className="w-full h-full object-contain "
-                />
-              ) : (
-                <span>{formData.icon || "🏆"}</span>
-              )}
-            </div>
+            <Avatar className="w-20 h-20" style={{background:formData.colorCode || '#E2E2E2'}}>
+              <AvatarImage 
+                src={previewUrl || (formData.icon && formData.icon.startsWith('http') ? formData.icon : '')}
+                alt="Badge preview"
+                className="object-contain p-2"
+              />
+              <AvatarFallback 
+                className="text-white text-2xl font-semibold"
+                style={{background:formData.colorCode || '#E2E2E2'}}
+              >
+                {formData.title ? getInitials(formData.title) : formData.icon || '🏆'}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-1">
-                Your Badge image
+                Your Badge image <span className="text-red-500">*</span>
               </h3>
               <button
                 type="button"
@@ -235,6 +349,9 @@ const EditBadgePage = () => {
               >
                 Change image
               </button>
+              {errors.icon && (
+                <p className="mt-1 text-sm text-red-600">{errors.icon.message}</p>
+              )}
             </div>
           </div>
           
@@ -284,7 +401,7 @@ const EditBadgePage = () => {
                   <p className="text-gray-600 font-medium text-sm">Upload New Badge Image</p>
                   <p className="text-gray-500 text-xs">Drag and drop or click to select</p>
                   <p className="text-gray-500 text-xs">Supports: JPEG, PNG, GIF, WebP, SVG</p>
-                  <p className='text-red-500 text-xs'>Max file size 5MB</p>
+                  <p className='text-red-500 text-xs'>Max file size 5MB (Required)</p>
                 </div>
               </div>
             )}
@@ -302,7 +419,7 @@ const EditBadgePage = () => {
         {/* Badge Name */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-medium text-gray-900">
-            Badge Name
+            Badge Name <span className="text-red-500">*</span>
           </Label>
           <Input
             id="title"
@@ -312,14 +429,16 @@ const EditBadgePage = () => {
             className="w-full mt-2"
             placeholder="Enter badge name"
             disabled={isFormDisabled}
-            required
           />
+          {errors.title && (
+            <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+          )}
         </div>
 
         {/* Description */}
         <div className="space-y-2">
           <Label htmlFor="description" className="text-sm font-medium text-gray-900">
-            Description
+            Description <span className="text-red-500">*</span>
           </Label>
           <Textarea
             id="description"
@@ -329,14 +448,16 @@ const EditBadgePage = () => {
             placeholder="Enter badge description"
             disabled={isFormDisabled}
             maxLength={500}
-            required
           />
+          {errors.description && (
+            <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+          )}
         </div>
 
         {/* Badge Color */}
         <div className="space-y-2">
           <Label htmlFor="colorCode" className="text-sm font-medium text-gray-900">
-            Badge Color
+            Badge Color <span className="text-red-500">*</span>
           </Label>
           <div className="flex items-center space-x-3">
             <Input
@@ -346,7 +467,6 @@ const EditBadgePage = () => {
               onChange={(e) => handleInputChange("colorCode", e.target.value)}
               className="w-20 h-10 p-1 cursor-pointer"
               disabled={isFormDisabled}
-              required
             />
             <Input
               type="text"
@@ -355,9 +475,14 @@ const EditBadgePage = () => {
               className="w-32"
               placeholder="#3B82F6"
               disabled={isFormDisabled}
-              required
             />
           </div>
+          {errors.colorCode && (
+            <p className="mt-1 text-sm text-red-600">{errors.colorCode.message}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            Dark colors will be automatically brightened to ensure 70% minimum brightness for better visibility.
+          </p>
         </div>
 
         {/* Active/Inactive Status */}

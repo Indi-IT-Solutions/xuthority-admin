@@ -71,7 +71,7 @@ export const useApproveVendor = () => {
     onSuccess: () => {
       // Invalidate all vendor queries to refetch data
       queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-      toast.success('Vendor approved successfully');
+      toast.success('Vendor approved successfully.');
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to approve vendor';
@@ -97,7 +97,7 @@ export const useRejectVendor = () => {
     onSuccess: () => {
       // Invalidate all vendor queries to refetch data
       queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-      toast.success('Vendor rejected and deleted successfully');
+      toast.success('Vendor rejected successfully.');
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.error?.message || error.message || 'Failed to reject vendor';

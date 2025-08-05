@@ -129,6 +129,8 @@ const ReviewsChart = ({ activeFilter, data }: ReviewsChartProps) => {
               domain={[0, maxValue]}
               tickCount={6}
               width={40}
+              tickFormatter={(value) => value.toLocaleString()}
+              allowDecimals={false} 
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar 

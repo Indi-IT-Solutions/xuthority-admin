@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { getAssetPath } from "@/config/assets";
 import { getUserInitials } from "@/utils/userHelpers";
+import ReadMoreText from "@/components/common/ReadMoreText";
 
 const VendorDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -47,6 +48,11 @@ const VendorDetailPage = () => {
       sortOrder: 'desc'
     }
   );
+
+  // Debug: Log the products data to see the actual structure
+  if (vendorProductsResponse?.data?.products) {
+    console.log('Vendor Products Data:', vendorProductsResponse.data.products);
+  }
 
   const blockVendorMutation = useBlockVendor();
   const unblockVendorMutation = useUnblockVendor();
@@ -155,7 +161,7 @@ const VendorDetailPage = () => {
   // Product handlers
   const handleViewProductDetails = (slug: string) => {
     console.log("View product details:", slug);
-    window.open(`https://xuthority.com/product-details/${slug}`);
+    window.open(`https://xuthority.com/product-detail/${slug}`);
     // You can navigate to product detail page or open a modal
   };
 
@@ -446,9 +452,14 @@ const VendorDetailPage = () => {
 
               <div className="sm:col-span-2 lg:col-span-3 xl:col-span-5">
               <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Description</label>
-              <p className="text-gray-700 leading-relaxed text-xs sm:text-sm lg:text-base">
-                {vendor.companyDescription || vendor.description || 'No company description available.'}
-              </p>
+            <ReadMoreText
+             content={vendor.companyDescription || vendor.description || 'No company description available.'}
+             maxLines={4}
+             className="text-gray-700 leading-relaxed text-xs sm:text-sm lg:text-base whitespace-break-spaces whitespace-pre-line"
+             buttonClassName="text-blue-600 hover:text-blue-800"
+           >
+             </ReadMoreText>
+            
             </div>
           
           </div>
@@ -516,7 +527,7 @@ const VendorDetailPage = () => {
           <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">Review Summary</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Total Reviews */}
-            <div className="bg-yellow-50 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
+            {/* <div className="bg-yellow-50 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
               <div className="mb-3 sm:mb-4">
               <img src={getAssetPath('icons/review.svg')} alt="review" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-black mx-auto" />
               </div>
@@ -524,7 +535,7 @@ const VendorDetailPage = () => {
                 {vendorStatsResponse.data.totalReviews || 0}
               </div>
               <div className="text-sm sm:text-base lg:text-lg text-black font-medium">Total Reviews</div>
-            </div>
+            </div> */}
 
             {/* Average Rating */}
             <div className="bg-blue-50 rounded-xl lg:rounded-2xl p-3 sm:p-4 text-center">
@@ -565,77 +576,87 @@ const VendorDetailPage = () => {
       {/* Badges & Achievements */}
       <div className="flex-1 flex flex-col">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Badges & Achievements</h2>
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex-1 flex flex-col min-h-[300px]">
-          <div className="grid grid-cols-3 bg-gray-50 border-b border-gray-200">
-            <div className="px-4 py-3 text-sm font-medium text-gray-700">Badge Icon</div>
-            <div className="px-4 py-3 text-sm font-medium text-gray-700">Badge Name</div>
-            <div className="px-4 py-3 text-sm font-medium text-gray-700">Earned Date</div>
-          </div>
-          {(vendorStatsResponse.data.badges || []).length > 0 ? (
-            (vendorStatsResponse.data.badges || []).slice(0, 4).map((badge) => (
-              <div key={badge.id} className="sm:grid sm:grid-cols-3 border-b border-gray-200 last:border-b-0 p-3 sm:p-0">
-                {/* Mobile Layout */}
-                <div className="flex items-center justify-between sm:hidden">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden p-2" style={{background:badge.colorCode}}>
-                      {badge.icon && badge.icon.startsWith('http') ? (
-                        <img 
-                          src={badge.icon} 
-                          alt={badge.name}
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <span className="text-white text-sm font-bold">
-                          {badge.icon || badge.name.charAt(0)}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="py-3 px-3 md:py-4 md:px-6 text-left text-xs md:text-sm font-medium text-gray-700 uppercase tracking-wider">
+                    Badge Icon
+                  </th>
+                  <th className="py-3 px-3 md:py-4 md:px-6 text-left text-xs md:text-sm font-medium text-gray-700 uppercase tracking-wider">
+                    Badge Name
+                  </th>
+                  <th className="py-3 px-3 md:py-4 md:px-6 text-left text-xs md:text-sm font-medium text-gray-700 uppercase tracking-wider hidden sm:table-cell">
+                    Requested Date
+                  </th>
+                  <th className="py-3 px-3 md:py-4 md:px-6 text-left text-xs md:text-sm font-medium text-gray-700 uppercase tracking-wider">
+                    Earned Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {vendorStatsResponse?.data?.badges && vendorStatsResponse.data.badges.length > 0 ? (
+                  vendorStatsResponse.data.badges.slice(0, 4).map((badge: any) => (
+                    <tr key={badge.id} className="hover:bg-gray-50 transition-colors">
+                      {/* Badge Icon */}
+                      <td className="py-3 px-3 md:py-4 md:px-6 whitespace-nowrap">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center overflow-hidden p-2" 
+                             style={{backgroundColor: badge.colorCode || '#3B82F6'}}>
+                          {badge.icon && badge.icon.startsWith('http') ? (
+                            <img 
+                              src={badge.icon} 
+                              alt={badge.name}
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <span className="text-white text-xs md:text-sm font-bold">
+                              {badge.icon || badge.name?.charAt(0) || 'B'}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Badge Name */}
+                      <td className="py-3 px-3 md:py-4 md:px-6">
+                        <span className="text-xs md:text-sm text-gray-900 font-medium">
+                          {badge.name}
                         </span>
-                      )}
-                    </div>
-                    <span className="text-gray-900 font-medium">{badge.name}</span>
-                  </div>
-                  <span className="text-gray-600 text-sm">
-                    {new Date(badge.earnedDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: '2-digit',
-                    })}
-                  </span>
-                </div>
-                
-                {/* Desktop Layout */}
-                <div className="hidden sm:flex px-3 sm:px-4 py-4 items-center">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden p-2" style={{background:badge.colorCode}}>
-                    {badge.icon && badge.icon.startsWith('http') ? (
-                      <img 
-                        src={badge.icon} 
-                        alt={badge.name}
-                        className="w-full h-full object-contain "
-                      />
-                    ) : (
-                      <span className="text-white text-sm font-bold">
-                        {badge.icon || badge.name.charAt(0)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="hidden sm:flex px-3 sm:px-4 py-4 items-center">
-                  <span className="text-gray-900">{badge.name}</span>
-                </div>
-                <div className="hidden sm:flex px-3 sm:px-4 py-4 items-center">
-                  <span className="text-gray-600">
-                    {new Date(badge.earnedDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: '2-digit',
-                    })}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="px-4  text-center text-gray-500 flex-1 flex items-center justify-center">
-              No badges earned yet
-            </div>
-          )}
+                      </td>
+                      
+                      {/* Requested Date - Hidden on mobile */}
+                      <td className="py-3 px-3 md:py-4 md:px-6 hidden sm:table-cell">
+                        <span className="text-xs md:text-sm text-gray-600">
+                          {badge.requestedDate ? new Date(badge.requestedDate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: '2-digit',
+                          }) : '-'}
+                        </span>
+                      </td>
+                      
+                      {/* Earned Date */}
+                      <td className="py-3 px-3 md:py-4 md:px-6">
+                        <span className="text-xs md:text-sm text-gray-600">
+                          {badge.earnedDate ? new Date(badge.earnedDate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: '2-digit',
+                          }) : '-'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-8 px-4 text-center">
+                      <p className="text-gray-500 text-sm">No badges earned yet</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

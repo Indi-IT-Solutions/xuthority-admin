@@ -68,9 +68,9 @@ const ReviewsPage = () => {
     };
     params.status = statusMap[activeTab] || activeTab;
 
-    // Add rating filtering as 'overallRating'
+    // Add rating filtering
     if (filters.rating !== null && filters.rating !== undefined) {
-      params.overallRating = filters.rating;
+      params.rating = filters.rating;
     }
 
     // Add date filtering

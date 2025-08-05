@@ -6,10 +6,10 @@ import { EnhancedLoader, UserDetailSkeleton } from "@/components/common";
 import { useUserDetailsBySlug, useUserProfileStatsBySlug, useUserReviewsBySlug, useBlockUser, useUnblockUser } from "@/hooks/useUsers";
 import { useState, useEffect } from "react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import StarRating from "@/components/common/StartRating";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQueryClient } from '@tanstack/react-query';
 import { useReviewTabRefetch } from '@/hooks/useTabRefetch';
+import StarRating from "@/components/ui/StarRating";
 
 const UserDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -31,6 +31,7 @@ const UserDetailPage = () => {
   const [currentReviewsPage, setCurrentReviewsPage] = useState(1);
   const [activeReviewTab, setActiveReviewTab] = useState<'all' | 'approved' | 'pending' | 'disputed'>('all');
   const [reviewsRefetchTrigger, setReviewsRefetchTrigger] = useState(Date.now());
+  const [isTabChanging, setIsTabChanging] = useState(false);
 
   const { data: userResponse, isLoading, error } = useUserDetailsBySlug(slug || '');
   const { data: userStatsResponse, isLoading: isStatsLoading } = useUserProfileStatsBySlug(slug || '');
@@ -52,6 +53,13 @@ const UserDetailPage = () => {
 
   // Use the utility hook to handle tab changes and API refetching
   const { isTabChanged } = useReviewTabRefetch(activeReviewTab, slug, refetchReviews);
+
+  // Reset tab changing state when reviews finish loading
+  useEffect(() => {
+    if (!isReviewsLoading && isTabChanging) {
+      setIsTabChanging(false);
+    }
+  }, [isReviewsLoading, isTabChanging]);
 
   if (isLoading) {
     return <UserDetailSkeleton />;
@@ -110,6 +118,9 @@ const UserDetailPage = () => {
   };
 
   const handleReviewTabChange = (tab: 'all' | 'approved' | 'pending' | 'disputed') => {
+    if (tab === activeReviewTab) return; // Don't do anything if clicking the same tab
+    
+    setIsTabChanging(true);
     setActiveReviewTab(tab);
     setCurrentReviewsPage(1);
     setReviewsRefetchTrigger(Date.now());
@@ -268,7 +279,7 @@ const UserDetailPage = () => {
                 </p>
               </div>
               <div>
-                <label className="text-xs sm:text-sm text-gray-500 block mb-1">Owner Email</label>
+                <label className="text-xs sm:text-sm text-gray-500 block mb-1">Email</label>
                 <p
                   className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
                   title={user.email}
@@ -277,7 +288,7 @@ const UserDetailPage = () => {
                 </p>
               </div>
               <div>
-                <label className="text-xs sm:text-sm text-gray-500 block mb-1">Owner Region</label>
+                <label className="text-xs sm:text-sm text-gray-500 block mb-1">Region</label>
                 <p
                   className="line-clamp-2 break-words text-xs sm:text-sm md:text-base lg:text-base xl:text-lg"
                   title={user.region || 'N/A'}
@@ -425,11 +436,11 @@ const UserDetailPage = () => {
          
 
           {/* Reviews Content */}
-          {(isReviewsLoading || isTabChanged) ? (
+          {(isReviewsLoading || isTabChanging) ? (
             <div className="bg-white rounded-lg lg:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8 min-h-[300px]">
               <div className="text-center">
                 <EnhancedLoader 
-                  loadingText={isTabChanged ? "Loading filtered reviews..." : "Loading reviews..."} 
+                  loadingText={isTabChanging ? "Loading filtered reviews..." : "Loading reviews..."} 
                   minDisplayTime={800} 
                 />
               </div>
@@ -459,12 +470,12 @@ const UserDetailPage = () => {
                         </div>
               </div>
             </div>
-                    <div className="flex-1">
+                    {/* <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-gray-900">{review.product?.name || 'Product'}</h3>
                      
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Review Title */}

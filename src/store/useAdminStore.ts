@@ -157,7 +157,6 @@ const useAdminStore = create<AdminStore>()(
               error: null,
             });
             toast.dismiss()
-            toast.success('Login successful!');
             return true;
           } else {
             set({

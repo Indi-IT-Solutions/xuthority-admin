@@ -315,9 +315,7 @@ const ResourceCenterPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     {activeTab === 'Webinars' ? activeTab : 'Webinars'}
-                    {activeTab === 'All' && webinars.length > 0 && (
-                      <span className="ml-2 text-lg text-gray-500">({webinars.length})</span>
-                    )}
+                
                   </h2>
                   {activeTab === 'All' && (
                     <button className="text-red-600 hover:text-red-700 font-medium text-sm underline cursor-pointer" onClick={()=>handleTabChange('Webinars')}>
@@ -345,9 +343,7 @@ const ResourceCenterPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     {activeTab === 'XUTHORITY Edge' ? activeTab : 'XUTHORITY Edge'}
-                    {activeTab === 'All' && xuthorityEdge.length > 0 && (
-                      <span className="ml-2 text-lg text-gray-500">({xuthorityEdge.length})</span>
-                    )}
+                  
                   </h2>
                   {activeTab === 'All' && (
                     <button className="text-red-600 hover:text-red-700 font-medium text-sm underline cursor-pointer" onClick={()=>handleTabChange('XUTHORITY Edge')}>
@@ -375,9 +371,7 @@ const ResourceCenterPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     {activeTab === 'Guides and Tips' ? activeTab : 'Guides and Tips'}
-                    {activeTab === 'All' && guides.length > 0 && (
-                      <span className="ml-2 text-lg text-gray-500">({guides.length})</span>
-                    )}
+                 
                   </h2>
                   {activeTab === 'All' && (
                     <button className="text-red-600 hover:text-red-700 font-medium text-sm underline cursor-pointer" onClick={()=>handleTabChange('Guides and Tips')}>
@@ -405,9 +399,7 @@ const ResourceCenterPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     {activeTab === 'Success Hub' ? activeTab : 'Success Hub'}
-                    {activeTab === 'All' && successHub && successHub.length > 0 && (
-                      <span className="ml-2 text-lg text-gray-500">({successHub.length})</span>
-                    )}
+               
                   </h2>
                   {activeTab === 'All' && (
                     <button className="text-red-600 hover:text-red-700 font-medium text-sm underline cursor-pointer" onClick={()=>handleTabChange('Success Hub')}>

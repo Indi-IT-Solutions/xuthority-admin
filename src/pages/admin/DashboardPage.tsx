@@ -202,12 +202,7 @@ const DashboardPage = () => {
             Welcome to the Xuthority admin dashboard. Here's an overview of your platform.
           </p>
         </div>
-        <div className="flex justify-start sm:justify-end">
-          <TimeFilter 
-            activeFilter={activeFilter} 
-            onFilterChange={setActiveFilter} 
-          />
-        </div>
+       
       </div>
 
       {/* Stats Grid */}
@@ -225,6 +220,14 @@ const DashboardPage = () => {
       </div>
 
       {/* Charts */}
+      <div>
+      <div className="flex justify-start sm:justify-end">
+          <TimeFilter 
+            activeFilter={activeFilter} 
+            onFilterChange={setActiveFilter} 
+          />
+        </div>
+      </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
         <UserGrowthChart 
           activeFilter={activeFilter} 

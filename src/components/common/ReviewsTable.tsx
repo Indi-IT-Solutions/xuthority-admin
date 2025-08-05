@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Star, MoreHorizontal, Eye, Trash2, Check, X, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getUserDisplayName, getUserInitials } from '@/utils/userHelpers';
+import StarRating from '../ui/StarRating';
+import StarRatingSingle from '../ui/StarRatingSingle';
 
 interface Review {
   id: number;
@@ -38,6 +40,9 @@ interface Review {
   comments: number;
   date: string;
   status: 'Published' | 'Pending' | 'Disputed';
+  helpfulVotes: {
+    count?: number;
+  };
 }
 
 interface ReviewsTableProps {
@@ -344,7 +349,7 @@ const ReviewsTable = ({
             {/* Table Header */}
             <thead className="bg-gray-100 rounded-b-2xl">
               <tr>
-                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[120px]">
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[90px]">
                   <div className="flex items-center space-x-2 md:space-x-3">
                     {/* <input 
                       type="checkbox" 
@@ -363,6 +368,7 @@ const ReviewsTable = ({
                 <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[200px]">Product</th>
 
                 <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 min-w-[300px]">Review</th>
+                <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Helpfull</th>
                 <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Comments</th>
                 <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Rating</th>
                 <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Date</th>
@@ -466,6 +472,11 @@ const ReviewsTable = ({
                         {review.review || 'No review content'}
                       </p>
                     </td>
+                         {/* Helpful */}
+                         <td className="py-3 px-3 md:py-4 md:px-6">
+                      <span className="text-xs md:text-sm text-gray-900 font-medium">{review?.helpfulVotes?.count || 0}</span>
+                    </td>
+        
         
                     {/* Comments */}
                     <td className="py-3 px-3 md:py-4 md:px-6">
@@ -475,7 +486,7 @@ const ReviewsTable = ({
                     {/* Rating */}
                     <td className="py-3 px-3 md:py-4 md:px-6">
                       <div className="flex items-center space-x-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <StarRatingSingle rating={review.rating || 0} />
                         <span className="text-xs md:text-sm font-medium">{review.rating || 0}/5</span>
                       </div>
                     </td>

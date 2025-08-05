@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, Trash2, ExternalLink, Calendar, User2, Briefcase, Building2, Building2Icon, Check, X } from "lucide-react";
+import { ArrowLeft, Star, Trash2, ExternalLink, Calendar, User2, Briefcase, Building2, Building2Icon, Check, X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -10,10 +10,12 @@ import { AdminAuthService } from "@/services/adminAuthService";
 import useAdminStore from "@/store/useAdminStore";
 import { useState } from "react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import MediaPreviewModal from "@/components/ui/MediaPreviewModal";
 import { Card } from "@/components/ui/card";
 import { getInitials } from "@/utils/getInitials";
 import { getUserDisplayName, getUserInitials } from "@/utils/userHelpers";
-import StarRating from "@/components/common/StartRating";
+import StarRating from "@/components/ui/StarRating";
+import { getAssetPath } from "@/config/assets";
 
 interface SubRating {
   label: string;
@@ -41,6 +43,11 @@ const ReviewDetailPage = () => {
   }>({
     isOpen: false,
     type: null,
+  });
+
+  const [previewState, setPreviewState] = useState({
+    isOpen: false,
+    currentIndex: 0,
   });
 
   const { data: review, isLoading, error } = useReview(id || '');
@@ -120,6 +127,28 @@ const ReviewDetailPage = () => {
 
   const closeConfirmAction = () => {
     setConfirmActionState({ isOpen: false, type: null });
+  };
+
+  const openPreview = (index: number = 0) => {
+    setPreviewState({ isOpen: true, currentIndex: index });
+  };
+
+  const closePreview = () => {
+    setPreviewState({ isOpen: false, currentIndex: 0 });
+  };
+
+  const goToNext = () => {
+    setPreviewState(prev => ({
+      ...prev,
+      currentIndex: Math.min(prev.currentIndex + 1, 0)
+    }));
+  };
+
+  const goToPrevious = () => {
+    setPreviewState(prev => ({
+      ...prev,
+      currentIndex: Math.max(prev.currentIndex - 1, 0)
+    }));
   };
 
   // Get status badge styling
@@ -296,11 +325,11 @@ const ReviewDetailPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 md:p-8">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 ">
         {/* Header Section - Reviewer Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-8 gap-4 sm:gap-4">
           {/* Reviewer Info */}
-          <div className="flex items-center space-x-3 sm:space-x-4 lg:border-r lg:border-gray-200 lg:pr-4 pb-4 lg:pb-0 border-b lg:border-b-0 border-gray-200">
+          <div className="flex items-center col-span-2 space-x-3 sm:space-x-4 lg:border-r lg:border-gray-200 lg:pr-4 pb-4 lg:pb-0 border-b lg:border-b-0 border-gray-200">
             <Avatar className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
               <AvatarImage 
                 src={review.reviewer?.avatar || ''} 
@@ -320,7 +349,7 @@ const ReviewDetailPage = () => {
           </div>
 
           {/* Date */}
-          <div className="flex items-center space-x-3 sm:space-x-4 lg:border-r lg:border-gray-200 lg:pr-4 pb-4 lg:pb-0 border-b lg:border-b-0 border-gray-200">
+          <div className="flex items-center col-span-2 space-x-3 sm:space-x-4 lg:border-r lg:border-gray-200 lg:pr-4 pb-4 lg:pb-0 border-b lg:border-b-0 border-gray-200">
             <div className="text-gray-400 bg-gray-100 p-2 rounded-full flex-shrink-0">
               <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
@@ -331,13 +360,13 @@ const ReviewDetailPage = () => {
           </div>
 
           {/* Rating */}
-          <div className="flex items-center space-x-3 sm:space-x-4 lg:border-r lg:border-gray-200 lg:pr-4 pb-4 lg:pb-0 border-b lg:border-b-0 border-gray-200">
+          <div className="flex items-center col-span-2 space-x-3 sm:space-x-4 lg:border-r lg:border-gray-200 lg:pr-4 pb-4 lg:pb-0 border-b lg:border-b-0 border-gray-200">
             <div className="text-gray-400 bg-gray-100 p-2 rounded-full flex-shrink-0">
               <Star className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0 flex-1">
               <span className="text-xs sm:text-sm font-medium text-gray-900 block">
-                ({review.overallRating}) {review.overallRating} out of 5
+                ({productTotalReviews}) {review.overallRating} out of 5
               </span>
               <div className="mt-1">
                 <StarRating rating={review.overallRating} />
@@ -353,9 +382,9 @@ const ReviewDetailPage = () => {
           </div>
         </div>
 
-
+ <hr className="mb-4 sm:mb-6 mt-6 sm:mt-8"/>
         {/* Product Section */}
-        <div className="mb-4 sm:mb-6 mt-6 sm:mt-8">
+        <div className=" ">
           <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Product</h3>
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Product Info */}
@@ -407,10 +436,10 @@ const ReviewDetailPage = () => {
             </div>
           </div>
         </div>
-
+        <hr className="mb-4 sm:mb-6 mt-6 sm:mt-8"/>
         {/* What's Included */}
         <div className="mb-4 sm:mb-6">
-          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">What's Included</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Rating Review</h3>
         </div>
 
         {/* Review Content */}
@@ -449,8 +478,63 @@ const ReviewDetailPage = () => {
           <Badge className="px-3 py-2 text-xs sm:text-sm font-medium bg-blue-100/50 h-8 sm:h-10 text-gray-600">
             {getVerificationMethod()}
           </Badge>
+
         </div>
 
+      {/* Show screenshot if verificationType is screenshot */}
+      {review.verification?.verificationType === "screenshot" && review.verification?.verificationData?.screenshot && (
+    <div className="mt-4 relative inline-block">
+      <img
+        src={review.verification?.verificationData.screenshot}
+        alt="Verification Screenshot"
+        className="max-w-xs rounded border border-gray-200 shadow h-40 w-40 cursor-pointer hover:opacity-90 transition-opacity"
+        onClick={() => openPreview(0)}
+      />
+      {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <ZoomIn className="w-8 h-8 text-white drop-shadow-lg opacity-80" />
+      </div> */}
+    </div>
+  )}
+  {/* LinkedIn Verification */}
+  {review.verification?.verificationType === "linkedin" && review.verification?.verificationData && (
+  <div className="mt-4 flex  gap-2 items-center">
+    <div className="flex items-center gap-2">
+      <a
+        href={review.verification.verificationData.profileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-700 underline break-all"
+      >
+     <img src={getAssetPath('icons/linkedin.svg')} alt="LinkedIn" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10" />
+
+      </a>
+    </div>
+ <div  className="text-sm">
+ <div>
+      <span className="font-semibold">Name:</span>{" "}
+      {review.verification.verificationData.firstName} {review.verification.verificationData.lastName}
+    </div>
+    <div>
+      <span className="font-semibold">Email:</span>{" "}
+      {review.verification.verificationData.email}
+    </div>
+    </div>
+  
+  </div>
+)}
+  {/* Company Email Verification */}
+  {review.verification?.verificationType === "company_email" && review.verification?.verificationData && (
+  <div className="mt-4 flex flex-col gap-2 text-sm">
+    <div>
+      <span className="font-semibold">Company Name:</span>{" "}
+      {review.verification.verificationData.companyName}
+    </div>
+    <div>
+      <span className="font-semibold">Company Email:</span>{" "}
+      {review.verification.verificationData.companyEmail}
+    </div>
+  </div>
+)}
         {/* Dispute Section - Only show if review is disputed and dispute data is available */}
         {isDisputed && dispute && (
           <div className="mt-6 sm:mt-8 p-0 sm:p-0 bg-white border-none rounded-none">
@@ -472,7 +556,7 @@ const ReviewDetailPage = () => {
                   {dispute.vendor.firstName} {dispute.vendor.lastName}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
-                  Senior Payroll Administrator, Enterprise(&gt; 1000 emp.)
+                  {dispute.vendor.email}
                 </div>
               </div>
             </div>
@@ -547,6 +631,18 @@ const ReviewDetailPage = () => {
             : deleteReviewMutation.isPending
         }
       />
+
+      {/* Media Preview Modal for screenshot verification */}
+      {review.verification?.verificationType === "screenshot" && review.verification?.verificationData?.screenshot && (
+        <MediaPreviewModal
+          isOpen={previewState.isOpen}
+          mediaUrls={[review.verification.verificationData.screenshot]}
+          currentIndex={previewState.currentIndex}
+          onClose={closePreview}
+          onNext={goToNext}
+          onPrevious={goToPrevious}
+        />
+      )}
     </div>
   );
 };
