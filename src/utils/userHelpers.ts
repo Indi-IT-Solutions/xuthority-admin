@@ -67,7 +67,7 @@ export const getUserInitials = (user: UserLike | null | undefined): string => {
  * @param maxLength - Maximum length before truncation
  * @returns Truncated display name with ellipsis if needed
  */
-export const getTruncatedDisplayName = (user: any | null, maxLength: number = 20): string => {
+export const getTruncatedDisplayName = (user: any | null, maxLength: number = 15): string => {
   const displayName = getUserDisplayName(user);
   if (displayName.length > maxLength) {
     return `${displayName.substring(0, maxLength)}...`;

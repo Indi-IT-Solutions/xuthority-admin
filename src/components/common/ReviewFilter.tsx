@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import StarRating from "../ui/StarRating";
 
 interface ReviewFilterProps {
   onFilterChange: (filters: ReviewFilters) => void;
@@ -97,10 +98,10 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-white rounded-xl shadow-lg border border-gray-200" 
+        className="w-80 p-0 bg-white rounded-xl shadow-lg border border-gray-200 max-h-[80vh] overflow-hidden" 
         align="end"
       >
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto max-h-[calc(80vh-2rem)]">
           {/* By Date Section */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900">By Date</h3>
@@ -171,6 +172,7 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
                     type="date"
                     value={localFilters.dateFrom || ''}
                     onChange={(e) => handleDateChange('dateFrom', e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
                     className="pl-10 h-10 bg-gray-50 border border-gray-200"
                   />
                 </div>
@@ -183,6 +185,8 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
                     type="date"
                     value={localFilters.dateTo || ''}
                     onChange={(e) => handleDateChange('dateTo', e.target.value)}
+                    min={localFilters.dateFrom || undefined}
+                    max={new Date().toISOString().split('T')[0]}
                     className="pl-10 h-10 bg-gray-50 border border-gray-200"
                   />
                 </div>
@@ -218,7 +222,9 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
                   onChange={() => handleRatingFilterChange(5)}
                   className="w-5 h-5 text-blue-600 border-2 border-gray-300"
                 />
-                <span className="ml-3 text-gray-700 font-medium">5 Stars</span>
+                <div className="ml-3 flex items-center">
+                  <StarRating rating={5} starClassName='h-4 w-4' size="sm" />
+                </div>
               </label>
 
               {/* 4 Stars */}
@@ -231,7 +237,9 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
                   onChange={() => handleRatingFilterChange(4)}
                   className="w-5 h-5 text-blue-600 border-2 border-gray-300"
                 />
-                <span className="ml-3 text-gray-700 font-medium">4 Stars</span>
+                <div className="ml-3 flex items-center">
+                  <StarRating rating={4} starClassName='h-4 w-4' size="sm" />
+                </div>
               </label>
 
               {/* 3 Stars */}
@@ -244,7 +252,9 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
                   onChange={() => handleRatingFilterChange(3)}
                   className="w-5 h-5 text-blue-600 border-2 border-gray-300"
                 />
-                <span className="ml-3 text-gray-700 font-medium">3 Stars</span>
+                <div className="ml-3 flex items-center">
+                  <StarRating rating={3} starClassName='h-4 w-4' size="sm" />
+                </div>
               </label>
 
               {/* 2 Stars */}
@@ -257,7 +267,9 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
                   onChange={() => handleRatingFilterChange(2)}
                   className="w-5 h-5 text-blue-600 border-2 border-gray-300"
                 />
-                <span className="ml-3 text-gray-700 font-medium">2 Stars</span>
+                <div className="ml-3 flex items-center">
+                  <StarRating rating={2} starClassName='h-4 w-4' size="sm" />
+                </div>
               </label>
 
               {/* 1 Star */}
@@ -270,7 +282,9 @@ const ReviewFilter: React.FC<ReviewFilterProps> = ({
                   onChange={() => handleRatingFilterChange(1)}
                   className="w-5 h-5 text-blue-600 border-2 border-gray-300"
                 />
-                <span className="ml-3 text-gray-700 font-medium">1 Star</span>
+                <div className="ml-3 flex items-center">
+                  <StarRating rating={1} starClassName='h-4 w-4' size="sm" />
+                </div>
               </label>
             </div>
           </div>

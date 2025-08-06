@@ -283,7 +283,7 @@ console.log('currentData?.data', currentData?.data)
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
           Badges
         </h1>
-        {activeTab === 'list' && (
+        {/* {activeTab === 'list' && (
           <Button 
             onClick={() => navigate('/badges/add')}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white cursor-pointer rounded-full"
@@ -291,7 +291,7 @@ console.log('currentData?.data', currentData?.data)
             <Plus className="w-4 h-4" />
             Add Badge
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Tabs and Search */}
@@ -376,7 +376,7 @@ console.log('currentData?.data', currentData?.data)
             <BadgesTable
               badges={displayItems}
               onViewDetails={handleViewDetails}
-              onEditBadge={handleEditBadge}
+              // onEditBadge={handleEditBadge}
               onDeleteBadge={handleDeleteBadge}
               onToggleStatus={handleToggleStatus}
               onSelectedBadgesChange={handleSelectedBadgesChange}

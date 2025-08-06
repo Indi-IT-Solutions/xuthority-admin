@@ -162,6 +162,7 @@ const VendorFilter: React.FC<VendorFilterProps> = ({
                     type="date"
                     value={localFilters.dateFrom || ''}
                     onChange={(e) => handleDateChange('dateFrom', e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
                     className="pl-10 h-10 bg-gray-50 border border-gray-200"
                   />
                 </div>
@@ -174,6 +175,8 @@ const VendorFilter: React.FC<VendorFilterProps> = ({
                     type="date"
                     value={localFilters.dateTo || ''}
                     onChange={(e) => handleDateChange('dateTo', e.target.value)}
+                    min={localFilters.dateFrom || undefined}
+                    max={new Date().toISOString().split('T')[0]}
                     className="pl-10 h-10 bg-gray-50 border border-gray-200"
                   />
                 </div>

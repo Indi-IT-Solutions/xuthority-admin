@@ -543,7 +543,7 @@ const VendorDetailPage = () => {
               <img src={getAssetPath('icons/star.svg')} alt="Dispute" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10 text-black mx-auto" />
               </div>
               <div className="text-base sm:text-lg lg:text-xl font-bold text-black mb-1 sm:mb-2">
-                {vendorStatsResponse.data.averageRating || '0.0'}
+                {vendorStatsResponse.data.vendorProductsAvgRating || '0.0'}
               </div>
               <div className="text-sm sm:text-base lg:text-lg text-black font-medium">Average Rating</div>
             </div>

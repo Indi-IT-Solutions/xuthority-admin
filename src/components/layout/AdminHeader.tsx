@@ -3,6 +3,7 @@ import useAdminStore from '@/store/useAdminStore';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/utils/getInitials';
+import { getTruncatedDisplayName } from '@/utils/userHelpers';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
 import { useUnreadCount } from '@/hooks/useNotifications';
@@ -60,7 +61,7 @@ const AdminHeader = () => {
           </Avatar>
           <div className="text-left hidden sm:flex justify-center items-left flex-col">
             <div className="text-sm md:text-lg font-semibold text-gray-900">
-              {user?.displayName || 'Admin User'}
+              {getTruncatedDisplayName(user)}
             </div>
             <div className="text-blue-600 hover:text-blue-500 text-xs md:text-sm font-medium cursor-pointer">
               View Profile

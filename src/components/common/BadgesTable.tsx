@@ -23,7 +23,7 @@ interface ActionMenuProps {
 const ActionMenu = ({ 
   badge, 
   onViewDetails, 
-  onEditBadge,
+  // onEditBadge,
   onDeleteBadge,
 }: ActionMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,12 +31,12 @@ const ActionMenu = ({
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   const actions = [
-    {
-      label: 'Edit Badge',
-      icon: Edit,
-      color: 'text-green-600',
-      onClick: () => onEditBadge?.(badge._id)
-    },
+    // {
+    //   label: 'Edit Badge',
+    //   icon: Edit,
+    //   color: 'text-green-600',
+    //   onClick: () => onEditBadge?.(badge._id)
+    // },
     {
       label: 'Delete Badge',
       icon: Trash2,
@@ -153,7 +153,7 @@ const ActionMenu = ({
 const BadgesTable = ({ 
   badges, 
   onViewDetails, 
-  onEditBadge,
+  // onEditBadge,
   onDeleteBadge,
   onToggleStatus,
   onSelectedBadgesChange,
@@ -251,7 +251,7 @@ console.log('badges', badges)
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Earned by</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Description</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Status</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th>
+              {/* <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th> */}
             </tr>
           </thead>
 
@@ -318,13 +318,13 @@ console.log('badges', badges)
                 </td>
 
                 {/* Actions */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
+                {/* <td className="py-3 px-3 md:py-4 md:px-6">
                   <ActionMenu 
                     badge={badge}
-                    onEditBadge={onEditBadge}
+                    // onEditBadge={onEditBadge}
                     onDeleteBadge={onDeleteBadge}
                   />
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
