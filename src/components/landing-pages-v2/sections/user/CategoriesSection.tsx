@@ -14,7 +14,7 @@ import { useProductsBySoftware } from '@/hooks/useProductsBySoftware';
 
 // Schema for categories section
 export const categoriesSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
   categories: z.array(z.object({
     id: z.string(),
     name: z.string().min(1, "Software selection is required"),
@@ -214,6 +214,7 @@ const CategoriesFormContent: React.FC<CategoriesFormContentProps> = ({ productDa
         placeholder="Enter section heading..."
         register={register}
         error={errors?.heading}
+        maxLength={200}
       />
 
       <div className="space-y-4 sm:space-y-6">

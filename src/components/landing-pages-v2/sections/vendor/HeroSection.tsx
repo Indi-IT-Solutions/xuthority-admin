@@ -9,8 +9,8 @@ import toast from 'react-hot-toast';
 
 // Schema for hero section
 export const heroSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
-  subtext: z.string().min(1, "Subtext is required"),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
+  subtext: z.string().min(1, "Subtext is required").trim().max(500),
 });
 
 interface HeroSectionProps {

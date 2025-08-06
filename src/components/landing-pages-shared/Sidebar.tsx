@@ -51,23 +51,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ sections, selectedSection, onS
         col-span-12
       `}>
         <div className="bg-gray-50 rounded-lg h-full md:h-auto overflow-y-auto">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold px-4 sm:px-6 md:px-8 py-4 md:py-6 mt-16 md:mt-0">
+          <h2 className="text-lg sm:text-xl md:text-xl font-bold px-4 sm:px-6 md:px-8 py-4 md:py-6 mt-16 md:mt-0">
             Manage Your Content<br />Effortlessly
           </h2>
-          <nav className="pb-4 md:pb-6">
+          <nav className="">
             {sections.map((section) => {
               const Icon = section.icon;
               return (
                 <button
                   key={section.id}
                   onClick={() => handleSectionChange(section.id)}
-                  className={`w-full flex items-center justify-between px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-base md:text-lg transition-all duration-200 cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-base text-left transition-all duration-200 cursor-pointer ${
                     selectedSection === section.id
-                      ? "bg-white text-gray-900 font-medium border-l-4 border-blue-500"
+                      ? "bg-gray-100 text-gray-900 font-medium border-l-4 border-blue-500"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                 >
-                  <span className="text-sm sm:text-base md:text-lg">{section.label}</span>
+                  <span className="text-sm sm:text-base ">{section.label}</span>
                   <Icon className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                 </button>
               );

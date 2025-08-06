@@ -11,12 +11,13 @@ import toast from 'react-hot-toast';
 
 // Schema for values section with dynamic cards
 export const valuesSchema = z.object({
+  heading: z.string().min(1, "Heading is required").trim().max(200),
   cards: z.array(z.object({
     id: z.string(),
-    heading: z.string().trim().min(1, "Heading is required"),
-    subtext: z.string().trim().min(1, "Subtext is required"),
+    heading: z.string().trim().min(1, "Heading is required").trim().max(200),
+    subtext: z.string().trim().min(1, "Subtext is required").trim().max(500),
   })).min(1, "At least one card is required"),
-  buttonText: z.string().trim().min(1, "Button text is required"),
+  buttonText: z.string().trim().min(1, "Button text is required").trim().max(30),
   buttonLink: z.string()
     .trim()
     .min(1, "Button link is required")
@@ -30,6 +31,7 @@ interface CardData {
 }
 
 type FormData = {
+  heading:string;
   cards: CardData[];
   buttonText: string;
   buttonLink: string;
@@ -52,6 +54,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
   const methods = useForm<FormData>({
     resolver: zodResolver(valuesSchema),
     defaultValues: {
+      heading:"",
       cards: [defaultCard],
       buttonText: '',
       buttonLink: '',
@@ -87,6 +90,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
         }));
         
         const formData = {
+          heading:sectionData.heading || '',
           cards: cards.length > 0 ? cards : [defaultCard],
           buttonText: sectionData.buttonText || '',
           buttonLink: sectionData.buttonLink || '',
@@ -96,6 +100,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
       } else {
         // Use new format directly
         const formData = {
+           heading:sectionData.heading || '',
           cards: sectionData.cards?.map((card: any, index: number) => ({
             ...card,
             id: card.id || `card-${index}`,
@@ -132,6 +137,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
           heading: card.heading.trim(),
           subtext: card.subtext.trim(),
         })),
+         heading:data.heading,
         buttonText: data.buttonText.trim(),
         buttonLink: data.buttonLink.trim(),
       };
@@ -171,6 +177,14 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
           {/* Cards Section */}
+          <FormField
+        id="heading"
+        label="Heading"
+        placeholder="Write heading..."
+        register={register}
+        error={errors?.heading}
+        maxLength={200}
+      />
           <div className="space-y-4 sm:space-y-6">
             {fields.map((field, index) => (
               <div key={field.id} className="border border-gray-200 rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -197,6 +211,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
                   placeholder="Write heading..."
                   register={register}
                   error={errors?.cards?.[index]?.heading}
+                  maxLength={200}
                 />
 
                 <FormField
@@ -207,6 +222,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
                   error={errors?.cards?.[index]?.subtext}
                   type="textarea"
                   rows={3}
+                  maxLength={500}
                 />
               </div>
             ))}
@@ -239,6 +255,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ pageType }) => {
                 placeholder="Enter button text..."
                 register={register}
                 error={errors?.buttonText}
+                maxLength={30}
               />
 
               <FormField

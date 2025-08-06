@@ -12,12 +12,12 @@ import { useLandingPageSection, useUpdateLandingPageSection } from '../../hooks/
 
 // Schema for testimonials section
 export const testimonialsSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
   testimonials: z.array(z.object({
     id: z.string(),
-    text: z.string().min(1, "Testimonial text is required"),
+    text: z.string().min(1, "Testimonial text is required").trim().max(500),
     userImage: z.string().optional(),
-    userName: z.string().min(1, "User name is required"),
+    userName: z.string().min(1, "User name is required").trim().max(70),
   })).min(1, "At least one testimonial is required")
 });
 
@@ -113,6 +113,7 @@ const TestimonialItem: React.FC<TestimonialItemProps> = ({
         error={error?.text}
         type="textarea"
         rows={4}
+        maxLength={500}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -156,6 +157,7 @@ const TestimonialItem: React.FC<TestimonialItemProps> = ({
           placeholder="Enter user name"
           register={register}
           error={error?.userName}
+          maxLength={70}
         />
       </div>
     </div>
@@ -228,6 +230,7 @@ const TestimonialsFormContent: React.FC<TestimonialsFormContentProps> = ({ onIma
         placeholder="Write heading..."
         register={register}
         error={errors?.heading}
+        maxLength={200}
       />
 
       <div className="space-y-6">

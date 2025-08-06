@@ -11,7 +11,9 @@ interface FormFieldProps {
   register: any;
   error?: any;
   className?: string;
+  maxLength?:number;
 }
+
 
 export const FormField: React.FC<FormFieldProps> = ({
   id,
@@ -21,7 +23,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   rows = 3,
   register,
   error,
-  className = "w-full"
+  className = "w-full",
+  maxLength
 }) => {
   const inputClassName = `${className} h-14 px-5 text-base border-gray-200 rounded-full focus:border-gray-300 focus:ring-0 placeholder:text-gray-400`;
   const textareaClassName = `${className} px-5 py-4 text-base border-gray-200 rounded-3xl resize-none focus:border-gray-300 focus:ring-0 placeholder:text-gray-400`;
@@ -38,6 +41,7 @@ export const FormField: React.FC<FormFieldProps> = ({
           rows={rows}
           {...register(id)}
           className={textareaClassName}
+          maxLength={maxLength}
         />
       ) : (
         <Input
@@ -46,6 +50,7 @@ export const FormField: React.FC<FormFieldProps> = ({
           placeholder={placeholder}
           {...register(id)}
           className={inputClassName}
+          maxLength={maxLength}
         />
       )}
       {error && (

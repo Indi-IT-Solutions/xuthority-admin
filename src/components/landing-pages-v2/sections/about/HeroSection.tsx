@@ -6,8 +6,8 @@ import { BaseSectionForm } from '../../components/BaseSectionForm';
 
 // Schema for hero section
 export const heroSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
-  subtext: z.string().min(1, "Subtext is required"),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
+  subtext: z.string().min(1, "Subtext is required").trim().max(500),
 });
 
 const HeroFormContent: React.FC = () => {
@@ -21,6 +21,7 @@ const HeroFormContent: React.FC = () => {
         placeholder="Write heading..."
         register={register}
         error={errors?.heading}
+        maxLength={200}
       />
 
       <FormField
@@ -31,6 +32,8 @@ const HeroFormContent: React.FC = () => {
         error={errors?.subtext}
         type="textarea"
         rows={4}
+        maxLength={500}
+      
       />
     </>
   );

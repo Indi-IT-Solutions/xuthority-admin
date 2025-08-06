@@ -7,12 +7,12 @@ import { isValidUrl } from '@/utils/validation';
 
 // Schema for hero section
 export const heroSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
-  subtext: z.string().min(1, "Subtext is required"),
-  buttonText: z.string().min(1, "Button text is required"),
-  buttonLink: z.string()
-    .min(1, "Button link is required")
-    .refine(isValidUrl, "Please enter a valid URL (e.g., https://example.com)"),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
+  subtext: z.string().min(1, "Subtext is required").trim().max(500),
+  // buttonText: z.string().min(1, "Button text is required"),
+  // buttonLink: z.string()
+  //   .min(1, "Button link is required")
+  //   .refine(isValidUrl, "Please enter a valid URL (e.g., https://example.com)"),
 });
 
 const HeroFormContent: React.FC = () => {
@@ -26,6 +26,7 @@ const HeroFormContent: React.FC = () => {
         placeholder="Write heading..."
         register={register}
         error={errors?.heading}
+        maxLength={200}
       />
       
       <FormField
@@ -36,9 +37,10 @@ const HeroFormContent: React.FC = () => {
         error={errors?.subtext}
         type="textarea"
         rows={4}
+        maxLength={500}
       />
       
-      <div className="space-y-4 sm:space-y-6">
+      {/* <div className="space-y-4 sm:space-y-6">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Add Button</h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -58,7 +60,7 @@ const HeroFormContent: React.FC = () => {
             error={errors?.buttonLink}
           />
         </div>
-      </div>
+      </div> */}
     </>
   );
 };

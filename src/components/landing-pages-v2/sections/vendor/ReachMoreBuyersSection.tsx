@@ -7,9 +7,9 @@ import { isValidUrl } from '@/utils/validation';
 
 // Schema for reach more buyers section
 export const reachMoreBuyersSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
-  subtext: z.string().min(1, "Subtext is required"),
-  buttonText: z.string().min(1, "Button text is required"),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
+  subtext: z.string().min(1, "Subtext is required").trim().max(500),
+  buttonText: z.string().min(1, "Button text is required").trim().max(30),
   buttonLink: z.string()
     .min(1, "Button link is required")
     .refine(isValidUrl, "Please enter a valid URL (e.g., https://example.com)"),
@@ -26,6 +26,7 @@ const ReachMoreBuyersFormContent: React.FC = () => {
         placeholder="Write heading..."
         register={register}
         error={errors?.heading}
+        maxLength={200}
       />
 
       <FormField
@@ -36,6 +37,7 @@ const ReachMoreBuyersFormContent: React.FC = () => {
         error={errors?.subtext}
         type="textarea"
         rows={4}
+        maxLength={500}
       />
 
       <div className="space-y-4 sm:space-y-6">
@@ -48,6 +50,7 @@ const ReachMoreBuyersFormContent: React.FC = () => {
             placeholder="Enter button text..."
             register={register}
             error={errors?.buttonText}
+            maxLength={30}
           />
 
           <FormField

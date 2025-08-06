@@ -8,12 +8,12 @@ import { BaseSectionForm } from '../../components/BaseSectionForm';
 
 // Schema for features section
 export const featuresSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
-  subheading: z.string().optional(),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
+  subheading: z.string().trim().max(500).optional(),
   features: z.array(z.object({
     id: z.string(),
-    title: z.string().min(1, "Title is required"),
-    description: z.string().min(1, "Description is required"),
+    title: z.string().min(1, "Title is required").trim().max(200),
+    description: z.string().min(1, "Description is required").trim().max(500),
     icon: z.string().optional(),
   })).min(1, "At least one feature is required").max(6, "Maximum 6 features allowed")
 });
@@ -59,6 +59,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ feature, index, onRemove, can
         placeholder="Enter feature title..."
         register={register}
         error={error?.title}
+        maxLength={200}
       />
 
       <FormField
@@ -67,8 +68,9 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ feature, index, onRemove, can
         placeholder="Enter feature description..."
         register={register}
         error={error?.description}
-        textarea
+          type="textarea"
         rows={3}
+        maxLength={500}
       />
 
       <FormField
@@ -111,6 +113,7 @@ const FeaturesFormContent: React.FC = () => {
         placeholder="Enter section heading..."
         register={register}
         error={errors?.heading}
+        maxLength={200}
       />
 
       <FormField
@@ -119,6 +122,7 @@ const FeaturesFormContent: React.FC = () => {
         placeholder="Enter section subheading..."
         register={register}
         error={errors?.subheading}
+        maxLength={500}
       />
 
       <div className="space-y-6">

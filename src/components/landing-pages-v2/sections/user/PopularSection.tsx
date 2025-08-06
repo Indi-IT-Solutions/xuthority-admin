@@ -13,7 +13,8 @@ import toast from 'react-hot-toast';
 
 // Schema for popular section
 export const popularSchema = z.object({
-  heading: z.string().min(1, "Heading is required"),
+  heading: z.string().min(1, "Heading is required").trim().max(200),
+  subtext: z.string().min(1, "Subtext is required").trim().max(500),
   solutions: z.array(z.object({
     id: z.string(),
     software: z.string().optional(),
@@ -255,8 +256,18 @@ const PopularFormContent: React.FC<PopularFormContentProps> = ({ productDataCach
         placeholder="Enter section heading..."
         register={register}
         error={errors?.heading}
+        maxLength={200}
       />
-
+   <FormField
+        id="subtext"
+        label="Subtext"
+        placeholder="Enter subtext here..."
+        register={register}
+        error={errors?.subtext}
+        type="textarea"
+        rows={4}
+        maxLength={500}
+      />
       <div className="space-y-6">
         {fields.map((field, index) => {
           const solutionField = field as SolutionData;
@@ -309,6 +320,7 @@ export const PopularSection: React.FC<PopularSectionProps> = ({ pageType }) => {
     resolver: zodResolver(popularSchema),
     defaultValues: {
       heading: '',
+      subtext:'',
       solutions: [{ id: '1', software: '', solution: '', products: [], tempSelection: '' }]
     },
   });
@@ -330,6 +342,7 @@ export const PopularSection: React.FC<PopularSectionProps> = ({ pageType }) => {
       // Transform backend data to frontend format
       const transformedData = {
         heading: sectionData.heading || '',
+        subtext:sectionData.subtext || '',
         solutions: sectionData.solutions?.map((sol: any, index: number) => {
           // Determine if it's software or solution
           const softwareId = typeof sol.software === 'object' && sol.software?._id 
@@ -411,6 +424,7 @@ export const PopularSection: React.FC<PopularSectionProps> = ({ pageType }) => {
       // Transform frontend data to backend format
       const transformedData = {
         heading: data.heading,
+        subtext:data.subtext,
         solutions: data.solutions.map((sol: any) => ({
           id: sol.id,
           software: sol.software || undefined,
