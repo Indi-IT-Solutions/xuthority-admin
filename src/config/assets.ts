@@ -13,15 +13,15 @@ export const ASSETS = {
   
   // Dashboard icons
   DASHBOARD: {
-    SPEEDOMETER: `${ADMIN_BASE_PATH}/dashboard/speedometer.svg`,
-    CATEGORY_2: `${ADMIN_BASE_PATH}/dashboard/category-2.svg`,
-    PEOPLE: `${ADMIN_BASE_PATH}/dashboard/people.svg`,
-    STAR: `${ADMIN_BASE_PATH}/dashboard/star.svg`,
-    MEDAL: `${ADMIN_BASE_PATH}/dashboard/medal.svg`,
-    TASK_SQUARE: `${ADMIN_BASE_PATH}/dashboard/task-square.svg`,
-    TAG_2: `${ADMIN_BASE_PATH}/dashboard/tag-2.svg`,
-    COMMAND_SQUARE: `${ADMIN_BASE_PATH}/dashboard/command-square.svg`,
-    SETTING_2: `${ADMIN_BASE_PATH}/dashboard/setting-2.svg`,
+    SPEEDOMETER: `${ADMIN_BASE_PATH}/assests/speedometer.svg`,
+    CATEGORY_2: `${ADMIN_BASE_PATH}/assests/category-2.svg`,
+    PEOPLE: `${ADMIN_BASE_PATH}/assests/people.svg`,
+    STAR: `${ADMIN_BASE_PATH}/assests/star.svg`,
+    MEDAL: `${ADMIN_BASE_PATH}/assests/medal.svg`,
+    TASK_SQUARE: `${ADMIN_BASE_PATH}/assests/task-square.svg`,
+    TAG_2: `${ADMIN_BASE_PATH}/assests/tag-2.svg`,
+    COMMAND_SQUARE: `${ADMIN_BASE_PATH}/assests/command-square.svg`,
+    SETTING_2: `${ADMIN_BASE_PATH}/assests/setting-2.svg`,
   },
   
   // Logos
