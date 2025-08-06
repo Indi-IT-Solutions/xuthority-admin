@@ -416,7 +416,9 @@ const ReviewsTable = ({
                             </span>
                             
                           </div>
-                         
+                          <div className="text-xs text-gray-500 truncate">
+                            {review.reviewer?.email || 'No email'}
+                          </div>
                         </div>
                       </div>
                     </td>
