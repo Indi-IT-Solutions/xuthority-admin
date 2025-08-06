@@ -294,7 +294,7 @@ const AppRoutes = createBrowserRouter([
     element: <NotFoundPage />
   },
 ], {
-  basename: "/admin"
+  basename: "/admin/"
 });
 
 export default AppRoutes;
