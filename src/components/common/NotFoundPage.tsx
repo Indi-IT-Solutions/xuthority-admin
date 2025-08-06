@@ -18,7 +18,7 @@ const NotFoundPage: React.FC<NotFoundPageProps> = ({
   const navigate = useNavigate();
 
   const handleGoHome = () => {
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const handleGoBack = () => {

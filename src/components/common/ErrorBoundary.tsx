@@ -76,7 +76,7 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   handleGoHome = () => {
-    window.location.href = '/admin/dashboard';
+    window.location.href = '/admin/';
   };
 
   handleGoBack = () => {

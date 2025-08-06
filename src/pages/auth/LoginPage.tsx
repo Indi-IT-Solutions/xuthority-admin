@@ -44,7 +44,7 @@ export default function LoginPage() {
         password: data.password,
       });
 
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       // Error is handled by the mutation hook
       console.error("Login error:", error);

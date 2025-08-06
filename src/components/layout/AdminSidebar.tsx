@@ -147,7 +147,7 @@ const AdminSidebar = () => {
           <div className="space-y-2 h-full">
             {navigationItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname==="/dashboard" && item.href==="/" ? true : location.pathname === item.href;
+              const isActive = location.pathname==="/" && item.href==="/" ? true : location.pathname === item.href;
 
               return (
                 <Link

@@ -36,16 +36,16 @@ export const useNotificationNavigation = () => {
       
       case 'PAYMENT_SUCCESS':
       case 'PAYMENT_FAILED':
-        navigate('/dashboard');
+        navigate('/');
         break;
       
       case 'DISPUTE_CREATED':
       case 'DISPUTE_RESOLVED':
-        navigate('/dashboard');
+        navigate('/');
         break;
       
       default:
-        navigate('/dashboard');
+        navigate('/');
         break;
     }
 
