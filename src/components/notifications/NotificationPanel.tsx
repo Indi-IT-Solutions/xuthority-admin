@@ -1,10 +1,10 @@
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SheetClose } from '@/components/ui/sheet';
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/hooks/useNotifications';
 import { useNotificationNavigation } from '@/utils/notificationNavigation';
 import { formatDistanceToNow } from 'date-fns';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Skeleton loading components for notifications
@@ -53,11 +53,27 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps) => {
-  const [page] = useState(1);
-  const { data, isLoading, isError } = useNotifications(page, 20);
+  const [page, setPage] = useState(1);
+  const [allNotifications, setAllNotifications] = useState<any[]>([]);
+  const { data, isLoading, isError, isFetching } = useNotifications(page, 10);
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
   const { handleNotificationClick } = useNotificationNavigation();
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    if (data?.data) {
+      if (page === 1) {
+        setAllNotifications(data.data);
+      } else {
+        setAllNotifications(prev => [...prev, ...data.data]);
+      }
+      
+      // Check if there are more notifications to load
+      const totalPages = Math.ceil((data.meta?.total || 0) / 10);
+      setHasMore(page < totalPages);
+    }
+  }, [data, page]);
 
   const formatTimestamp = (date: string) => {
     try {
@@ -84,7 +100,13 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
     }
   };
 
-  if (isLoading) {
+  const handleLoadMore = () => {
+    if (!isFetching && hasMore) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  if (isLoading && page === 1) {
     return (
       <div className="h-full flex flex-col bg-white">
         <HeaderSkeleton />
@@ -103,8 +125,7 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
     );
   }
 
-  const notifications = data?.data || [];
-  const allRead = notifications.length > 0 && notifications.every(n => n.isRead);
+  const allRead = allNotifications.length > 0 && allNotifications.every(n => n.isRead);
 
   return (
     <div className="h-full flex flex-col bg-white ">
@@ -122,7 +143,7 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
           variant="ghost"
           size="sm"
           onClick={handleMarkAllAsRead}
-          disabled={markAllAsRead.isPending || notifications.length === 0 || allRead}
+          disabled={markAllAsRead.isPending || allNotifications.length === 0 || allRead}
           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
         >
           {markAllAsRead.isPending ? (
@@ -138,7 +159,7 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
 
       {/* Notifications List */}
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        {notifications.length === 0 ? (
+        {allNotifications.length === 0 && !isLoading ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center space-y-3">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
@@ -149,8 +170,9 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {notifications.map((notification) => (
+          <>
+            <div className="divide-y divide-gray-100">
+              {allNotifications.map((notification) => (
               <div
                 key={notification._id}
                 className={`p-4 sm:p-5 hover:bg-gray-50 transition-colors cursor-pointer ${
@@ -182,8 +204,32 @@ const NotificationPanel = ({ onMarkAllAsRead, onClose }: NotificationPanelProps)
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            {hasMore && (
+              <div className="p-4 flex justify-center border-t border-gray-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadMore}
+                  disabled={isFetching}
+                  className="flex items-center gap-2"
+                >
+                  {isFetching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Load More
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

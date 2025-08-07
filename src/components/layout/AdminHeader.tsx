@@ -37,7 +37,7 @@ const AdminHeader = () => {
               <Bell className="w-5 h-5 md:w-6 md:h-6" />
               {unreadData?.data?.count > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center font-medium">
-                  {unreadData.data.count > 99 ? '99+' : unreadData.data.count}
+                  {unreadData.data.count > 9 ? '9+' : unreadData.data.count}
                 </span>
               )}
             </button>
