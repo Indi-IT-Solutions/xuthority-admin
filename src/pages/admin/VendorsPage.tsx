@@ -174,27 +174,34 @@ const VendorsPage = () => {
   };
 
   // Confirmation handler
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (!confirmModal.vendorId || !confirmModal.type) return;
 
-    switch (confirmModal.type) {
-      case 'approve':
-        approveVendorMutation.mutate(confirmModal.vendorId);
-        break;
-      case 'reject':
-        rejectVendorMutation.mutate({ vendorId: confirmModal.vendorId });
-        break;
-      case 'block':
-        blockVendorMutation.mutate(confirmModal.vendorId);
-        break;
-      case 'unblock':
-        unblockVendorMutation.mutate(confirmModal.vendorId);
-        break;
-      case 'delete':
-        deleteVendorMutation.mutate(confirmModal.vendorId);
-        break;
+    try {
+      switch (confirmModal.type) {
+        case 'approve':
+          await approveVendorMutation.mutateAsync(confirmModal.vendorId);
+          break;
+        case 'reject':
+          await rejectVendorMutation.mutateAsync({ vendorId: confirmModal.vendorId });
+          break;
+        case 'block':
+          await blockVendorMutation.mutateAsync(confirmModal.vendorId);
+          break;
+        case 'unblock':
+          await unblockVendorMutation.mutateAsync(confirmModal.vendorId);
+          break;
+        case 'delete':
+          await deleteVendorMutation.mutateAsync(confirmModal.vendorId);
+          break;
+      }
+      
+      // Close modal only after successful mutation
+      closeConfirmModal();
+    } catch (error) {
+      console.error('Error performing vendor action:', error);
+      // Modal stays open on error so user can retry
     }
-    closeConfirmModal();
   };
 
   const handleBlockVendor = (vendorId: string) => {

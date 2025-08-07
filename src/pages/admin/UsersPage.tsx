@@ -189,25 +189,28 @@ const UsersPage = () => {
     });
   };
 
+    const onSuccess = () => {
+      closeConfirmModal();
+    };
   // Confirmation handler
   const handleConfirmAction = () => {
     if (!confirmModal.userId || !confirmModal.type) return;
 
     switch (confirmModal.type) {
       case 'block':
-        blockUserMutation.mutate(confirmModal.userId);
+        blockUserMutation.mutate(confirmModal.userId,{onSuccess});
         break;
       case 'unblock':
-        unblockUserMutation.mutate(confirmModal.userId);
+        unblockUserMutation.mutate(confirmModal.userId,{onSuccess});
         break;
       case 'delete':
-        deleteUserMutation.mutate(confirmModal.userId);
+        deleteUserMutation.mutate(confirmModal.userId,{onSuccess});
         break;
       case 'verify':
-        verifyUserMutation.mutate(confirmModal.userId);
+        verifyUserMutation.mutate(confirmModal.userId,{onSuccess});
         break;
     }
-    closeConfirmModal();
+    // closeConfirmModal();
   };
 
   const handleBlockUser = (userId: string) => {

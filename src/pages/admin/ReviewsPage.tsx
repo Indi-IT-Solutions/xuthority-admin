@@ -172,26 +172,28 @@ const ReviewsPage = () => {
       reviewTitle: null,
     });
   };
-
+  const onSuccess = () => {
+    closeConfirmModal();
+  };
   // Confirmation handler
   const handleConfirmAction = () => {
     if (!confirmModal.reviewId || !confirmModal.type) return;
 
     switch (confirmModal.type) {
       case 'approve':
-        approveReviewMutation.mutate(confirmModal.reviewId);
+        approveReviewMutation.mutate(confirmModal.reviewId,{onSuccess});
         break;
       case 'reject':
-        rejectReviewMutation.mutate(confirmModal.reviewId);
+        rejectReviewMutation.mutate(confirmModal.reviewId,{onSuccess});
         break;
       case 'delete':
-        deleteReviewMutation.mutate(confirmModal.reviewId);
+        deleteReviewMutation.mutate(confirmModal.reviewId,{onSuccess});
         break;
       case 'resolve':
-        resolveDisputeMutation.mutate(confirmModal.reviewId);
+        resolveDisputeMutation.mutate(confirmModal.reviewId,{onSuccess});
         break;
     }
-    closeConfirmModal();
+    // closeConfirmModal();
   };
 
   const handleApproveReview = (reviewId: string) => {
