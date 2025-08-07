@@ -27,7 +27,7 @@ const ResourceCenterPage = lazy(() => import("@/pages/admin/ResourceCenterPage")
 const AddResourcePage = lazy(() => import("@/pages/admin/AddResourcePage"));
 const EditResourcePage = lazy(() => import("@/pages/admin/EditResourcePage"));
 const ResourceDetailPage = lazy(() => import("@/pages/admin/ResourceDetailPage"));
-// const EditBadgePage = lazy(() => import("@/pages/admin/EditBadgePage"));
+const EditBadgePage = lazy(() => import("@/pages/admin/EditBadgePage"));
 const AddBadgePage = lazy(() => import("@/pages/admin/AddBadgePage"));
 const PagesPage = lazy(() => import("@/pages/admin/PagesPage"));
 const PageDetailsPage = lazy(() => import("@/pages/admin/PageDetailsPage"));
@@ -139,14 +139,14 @@ const AppRoutes = createBrowserRouter([
           </SuspenseWrapper>
         ),
       },
-      // {
-      //   path: "badges/edit/:id",
-      //   element: (
-      //     <SuspenseWrapper>
-      //       <EditBadgePage />
-      //     </SuspenseWrapper>
-      //   ),
-      // },
+      {
+        path: "badges/edit/:id",
+        element: (
+          <SuspenseWrapper>
+            <EditBadgePage />
+          </SuspenseWrapper>
+        ),
+      },
       {
         path: "badges/add",
         element: (

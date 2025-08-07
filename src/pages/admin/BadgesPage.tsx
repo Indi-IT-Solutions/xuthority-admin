@@ -376,7 +376,7 @@ console.log('currentData?.data', currentData?.data)
             <BadgesTable
               badges={displayItems}
               onViewDetails={handleViewDetails}
-              // onEditBadge={handleEditBadge}
+              onEditBadge={handleEditBadge}
               onDeleteBadge={handleDeleteBadge}
               onToggleStatus={handleToggleStatus}
               onSelectedBadgesChange={handleSelectedBadgesChange}

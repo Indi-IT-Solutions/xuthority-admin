@@ -276,7 +276,6 @@ const ReviewsTable = ({
 
   const isAllSelected = reviews.length > 0 && selectedReviews.length === reviews.length;
   const isIndeterminate = selectedReviews.length > 0 && selectedReviews.length < reviews.length;
-
   // Handle select all checkbox
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -482,7 +481,7 @@ const ReviewsTable = ({
         
                     {/* Comments */}
                     <td className="py-3 px-3 md:py-4 md:px-6">
-                      <span className="text-xs md:text-sm text-gray-900 font-medium">{review.comments || 0}</span>
+                      <span className="text-xs md:text-sm text-gray-900 font-medium">{review.comments || review.totalReplies || 0}</span>
                     </td>
         
                     {/* Rating */}

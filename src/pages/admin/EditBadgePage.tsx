@@ -455,7 +455,7 @@ const EditBadgePage = () => {
         </div>
 
         {/* Badge Color */}
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="colorCode" className="text-sm font-medium text-gray-900">
             Badge Color <span className="text-red-500">*</span>
           </Label>
@@ -483,7 +483,7 @@ const EditBadgePage = () => {
           <p className="text-xs text-gray-500 mt-1">
             Dark colors will be automatically brightened to ensure 70% minimum brightness for better visibility.
           </p>
-        </div>
+        </div> */}
 
         {/* Active/Inactive Status */}
         <div className="flex items-center space-x-3">
