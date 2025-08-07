@@ -10,8 +10,8 @@ const FILE_UPLOAD_TIMEOUT = 300000; // 5 minutes for file uploads
 console.log('🔗 API Base URL:', API_BASE_URL);
 
 // Token storage keys
-const TOKEN_KEY = 'xuthority_access_token';
-const REFRESH_TOKEN_KEY = 'xuthority_refresh_token';
+const TOKEN_KEY = 'xuthority_admin_access_token';
+const REFRESH_TOKEN_KEY = 'xuthority_admin_refresh_token';
 
 // Custom error interface
 export interface ApiError {

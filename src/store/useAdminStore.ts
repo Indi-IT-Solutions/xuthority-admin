@@ -344,7 +344,7 @@ if (typeof window !== 'undefined') {
 
   // Listen for storage changes (e.g., logout in another tab)
   window.addEventListener('storage', (event) => {
-    if (event.key === 'xuthority_access_token') {
+    if (event.key === 'xuthority_admin_access_token') {
       syncAuthState();
     }
   });
