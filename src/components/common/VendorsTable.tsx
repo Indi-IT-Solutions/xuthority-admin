@@ -365,7 +365,7 @@ const VendorsTable = ({
 
                 {/* Company Details */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
-                  <div className="flex items-center space-x-2 md:space-x-3">
+                {vendor.company.name ?  <div className="flex items-center space-x-2 md:space-x-3">
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                       {vendor.company.logo ? (
                         <img 
@@ -377,7 +377,7 @@ const VendorsTable = ({
                         <span className="text-xs md:text-sm font-semibold text-gray-600">
                           {getInitials(vendor.company.name)}
                         </span>
-                      )}
+                      )}  
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs md:text-sm font-medium text-gray-900 truncate">
@@ -387,7 +387,7 @@ const VendorsTable = ({
                         {vendor.company.email}
                       </div>
                     </div>
-                  </div>
+                  </div> :''}
                 </td>
 
                 {/* Owner Details */}

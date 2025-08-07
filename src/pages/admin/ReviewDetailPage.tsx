@@ -51,7 +51,8 @@ const ReviewDetailPage = () => {
   });
 
   const { data: review, isLoading, error } = useReview(id || '');
-  const { data: dispute, isLoading: disputeLoading } = useDisputeByReviewId(id || '', review?.status === 'dispute');
+  console.log('review', review)
+  const { data: dispute, isLoading: disputeLoading } = useDisputeByReviewId(review?._id || '', !!review && review.status === 'dispute');
   const deleteReviewMutation = useDeleteReview();
   const approveReviewMutation = useApproveReview();
   const rejectReviewMutation = useRejectReview();
@@ -239,7 +240,7 @@ const ReviewDetailPage = () => {
   // Check review status
   const isPending = review.status === 'pending';
   const isDisputed = review.status === 'dispute';
-
+console.log('isDisputed', dispute)
   return (
     <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
       {/* Breadcrumb */}
@@ -499,15 +500,15 @@ const ReviewDetailPage = () => {
   {review.verification?.verificationType === "linkedin" && review.verification?.verificationData && (
   <div className="mt-4 flex  gap-2 items-center">
     <div className="flex items-center gap-2">
-      <a
-        href={review.verification.verificationData.profileUrl}
+      {/* <a
+        // href={review.verification.verificationData.profileUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="text-blue-700 underline break-all"
-      >
+      > */}
      <img src={getAssetPath('icons/linkedin.svg')} alt="LinkedIn" className="w-6 h-6 sm:w-7 sm:h-7 lg:w-10 lg:h-10" />
 
-      </a>
+      {/* </a> */}
     </div>
  <div  className="text-sm">
  <div>
@@ -525,10 +526,10 @@ const ReviewDetailPage = () => {
   {/* Company Email Verification */}
   {review.verification?.verificationType === "company_email" && review.verification?.verificationData && (
   <div className="mt-4 flex flex-col gap-2 text-sm">
-    <div>
+   {review?.verification?.verificationData?.companyName && <div>
       <span className="font-semibold">Company Name:</span>{" "}
       {review.verification.verificationData.companyName}
-    </div>
+    </div>}
     <div>
       <span className="font-semibold">Company Email:</span>{" "}
       {review.verification.verificationData.companyEmail}
@@ -589,6 +590,17 @@ const ReviewDetailPage = () => {
                 <p>{dispute.description}</p>
               )}
             </div>
+            {dispute?.explanations?.length>0 && (
+        <div className='mt-4'>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Explanation</h3>
+          <div className="mt-2 flex justify-between items-start text-gray-700 text-sm bg-gray-50 p-3 rounded-lg border border-gray-20 gap-4">
+            <p className="0">
+              {dispute?.explanations[0]?.content}
+            </p>
+           
+          </div>
+        </div>
+      )}
           </div>
         )}
       </div>

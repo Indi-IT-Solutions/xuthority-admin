@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { getAssetPath } from "@/config/assets";
 import { getUserInitials } from "@/utils/userHelpers";
 import ReadMoreText from "@/components/common/ReadMoreText";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const VendorDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -449,7 +450,19 @@ const VendorDetailPage = () => {
                   {getStatusText(vendor.status)}
                 </Badge>
               </div>
-
+              <div>
+                <label className="text-xs sm:text-sm text-gray-500 block mb-1">Compay Logo</label>
+                <Avatar className="w-10 h-10 flex-shrink-0">
+                          <AvatarImage 
+                            src={vendor?.companyAvatar || ''} 
+                            alt={vendor?.companyName || 'Reviewer'}
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
+                            {vendor.companyName?.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+              </div>
               <div className="sm:col-span-2 lg:col-span-3 xl:col-span-5">
               <label className="text-xs sm:text-sm text-gray-500 block mb-1">Company Description</label>
             <ReadMoreText

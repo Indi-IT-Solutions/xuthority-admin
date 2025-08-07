@@ -153,9 +153,9 @@ const transformVendorData = (rawVendor: RawVendorData, index: number): Transform
     _id: rawVendor._id, // Add the actual MongoDB ID for API calls
     slug: rawVendor.slug, // Add the slug for navigation
     company: {
-      name: rawVendor.companyName || 'Unknown Company',
-      email: rawVendor.companyEmail || rawVendor.email,
-      logo: rawVendor.companyAvatar || ''
+      name: rawVendor.companyName,
+      email: rawVendor.companyEmail ,
+      logo: rawVendor.companyAvatar
     },
     owner: {
       name: `${rawVendor.firstName} ${rawVendor.lastName}`,

@@ -8,6 +8,7 @@ export interface DisputeQueryParams {
   sortBy?: 'createdAt' | 'updatedAt' | 'status';
   sortOrder?: 'asc' | 'desc';
   productSlug?: string;
+  reviewId?: string;
 }
 
 export interface RawDisputeData {
@@ -100,6 +101,9 @@ export class DisputeService {
       
       // Add product slug filter
       if (params.productSlug) queryParams.append('productSlug', params.productSlug);
+      
+      // Add review ID filter
+      if (params.reviewId) queryParams.append('reviewId', params.reviewId);
 
       const url = `/disputes/all?${queryParams.toString()}`;
       console.log('Disputes API URL:', url);
@@ -145,15 +149,18 @@ export class DisputeService {
    */
   static async getDisputeByReviewId(reviewId: string): Promise<ApiResponse<RawDisputeData | null>> {
     try {
-      // Get all disputes and filter by review ID on frontend
-      // Since there's no specific endpoint for getting dispute by review ID
-      const response = await this.getAllDisputes({ limit: 5 }); // Get more disputes to find the one
+      // Use the getAllDisputes endpoint with reviewId parameter
+      const response = await this.getAllDisputes({ 
+        reviewId: reviewId,
+        limit: 1 // We only need one dispute for this review
+      });
       
       if (response.success && response.data) {
-        const dispute = response.data.disputes.find(d => d.review._id === reviewId);
+        // The API should return only the dispute for this review
+        const dispute = response.data.disputes.length > 0 ? response.data.disputes[0] : null;
         return {
           success: true,
-          data: dispute || null,
+          data: dispute,
           message: dispute ? 'Dispute found' : 'No dispute found for this review'
         };
       }

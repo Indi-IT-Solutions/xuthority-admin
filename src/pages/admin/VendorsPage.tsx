@@ -149,7 +149,7 @@ const VendorsPage = () => {
   // Helper function to get vendor name
   const getVendorName = (vendorId: string) => {
     const vendor = displayVendors.find(v => v._id === vendorId || v.id.toString() === vendorId);
-    return vendor ? vendor.company.name : 'Unknown Vendor';
+    return vendor ? vendor.owner.name : 'Unknown Vendor';
   };
 
   // Helper function to open confirmation modal

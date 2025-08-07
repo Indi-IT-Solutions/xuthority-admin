@@ -129,7 +129,7 @@ const ActionMenu = ({
               className="w-full flex items-center px-4 py-2 text-sm hover:bg-gray-50 transition-colors cursor-pointer"
             >
               <Eye className="w-4 h-4 mr-3 text-blue-600" />
-              <span className="text-gray-700">View Details</span>
+              <span className="text-gray-700">Edit Details</span>
             </button>
           </div>
         </>
