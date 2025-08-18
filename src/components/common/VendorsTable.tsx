@@ -20,6 +20,7 @@ interface Vendor {
   companySize: string;
   joinedOn: string;
   status: 'Active' | 'Blocked' | 'Pending';
+  loginType: 'Normal' | 'Google' | 'LinkedIn';
 }
 
 interface VendorsTableProps {
@@ -261,7 +262,20 @@ const VendorsTable = ({
   
   // Check if some vendors are selected (for indeterminate state)
   const isIndeterminate = selectedVendors.length > 0 && selectedVendors.length < vendors.length;
-
+  const getLoginTypeBadge = (loginType: string) => {
+    const baseClasses = "px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium";
+    
+    switch (loginType) {
+      case 'Normal':
+        return `${baseClasses} bg-blue-100 text-blue-700`;
+      case 'Google':
+        return `${baseClasses} bg-red-100 text-red-700`;
+      case 'LinkedIn':
+        return `${baseClasses} bg-blue-100 text-blue-700`;
+      default:
+        return `${baseClasses} bg-gray-100 text-gray-700`;
+    }
+  };
   // Handle select all checkbox
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -338,6 +352,7 @@ const VendorsTable = ({
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Owner Details</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Industry</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Company Size</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Login type</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Joined On</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Status</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th>
@@ -423,7 +438,12 @@ const VendorsTable = ({
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <span className="text-xs md:text-sm text-gray-900">{vendor.companySize}</span>
                 </td>
-
+     {/* Login Type */}
+     <td className="py-3 px-3 md:py-4 md:px-6">
+                  <span className={getLoginTypeBadge(vendor.loginType)}>
+                    {vendor.loginType}
+                  </span>
+                </td>
                 {/* Joined On */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">{vendor.joinedOn}</span>

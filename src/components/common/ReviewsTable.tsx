@@ -275,6 +275,7 @@ const ReviewsTable = ({
   onSelectedReviewsChange,
   onBulkDelete
 }: ReviewsTableProps) => {
+  console.log('reviews', reviews)
   const [selectedReviews, setSelectedReviews] = useState<string[]>([]);
 
   const isAllSelected = reviews.length > 0 && selectedReviews.length === reviews.length;

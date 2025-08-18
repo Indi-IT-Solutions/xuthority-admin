@@ -24,6 +24,7 @@ export interface RawReviewData {
   overallRating: number;
   status: 'pending' | 'approved' | 'rejected' | 'flagged' | 'dispute';
   submittedAt: string;
+  totalReplies?:number;
   reviewer: {
     _id: string;
     firstName: string;
@@ -206,7 +207,7 @@ export const transformReviewData = (rawReview: RawReviewData, index: number): Tr
     },
     review: rawReview.content || rawReview.title || '',
     rating: rawReview.overallRating || 0,
-    comments: rawReview.comments || 0,
+    comments: rawReview.comments  ||  rawReview.totalReplies || 0,
     date: formatDate(rawReview.submittedAt || rawReview.createdAt),
     status: statusMap[rawReview.status] || 'Pending',
     helpfulVotes: rawReview.helpfulVotes || { count: 0 }

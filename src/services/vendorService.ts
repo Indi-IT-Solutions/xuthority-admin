@@ -30,11 +30,12 @@ export interface RawVendorData {
   companyAvatar?: string;
   companyDescription?: string;
   companyWebsiteUrl?: string;
+  authProvider?: string;
   industry?: string | { _id: string; name: string; slug: string };
   companySize?: string;
   yearFounded?: string;
   hqLocation?: string;
-  socialLinks?: {
+  socialLinks?: { 
     linkedin?: string;
     twitter?: string;
   };
@@ -45,6 +46,7 @@ export interface RawVendorData {
   status: 'approved' | 'pending' | 'blocked';
   createdAt: string;
   updatedAt: string;
+  loginType: 'Normal' | 'Google' | 'LinkedIn';
 }
 
 export interface TransformedVendor {
@@ -65,6 +67,7 @@ export interface TransformedVendor {
   companySize: string;
   joinedOn: string;
   status: 'Active' | 'Blocked' | 'Pending';
+  loginType: 'Normal' | 'Google' | 'LinkedIn';
 }
 
 export interface VendorsApiResponse {
@@ -146,6 +149,13 @@ const transformVendorData = (rawVendor: RawVendorData, index: number): Transform
     'blocked': 'Blocked',
     'pending': 'Pending'
   };
+  // Map auth provider to login type
+  const loginTypeMap: Record<string, 'Normal' | 'Google' | 'LinkedIn'> = {
+    'email': 'Normal',
+    'google': 'Google',
+    'linkedin': 'LinkedIn'
+  };
+  const loginType = loginTypeMap[rawVendor.authProvider || 'email'] || 'Normal';
   const status = statusMap[rawVendor.status] || 'Pending';
 
   return {
@@ -165,7 +175,8 @@ const transformVendorData = (rawVendor: RawVendorData, index: number): Transform
     industry: typeof rawVendor.industry === 'object' ? rawVendor.industry.name : rawVendor.industry || 'Not specified',
     companySize: rawVendor.companySize || 'Not specified',
     joinedOn: joinedDate,
-    status
+    status,
+    loginType
   };
 };
 
@@ -247,7 +258,7 @@ export class VendorService {
               total: pagination.total || pagination.totalItems || response.data.length,
               totalPages: pagination.totalPages || Math.ceil((pagination.total || response.data.length) / (pagination.limit || 10))
             }
-          },
+        },
           message: response.message
         };
       }

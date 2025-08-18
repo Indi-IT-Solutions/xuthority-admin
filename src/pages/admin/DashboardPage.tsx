@@ -133,7 +133,7 @@ const DashboardPage = () => {
         status: (review.status === 'approved' ? 'Published' : 
                 review.status === 'pending' ? 'Pending' : 
                 review.status === 'dispute' ? 'Disputed' : 'Rejected') as 'Published' | 'Pending' | 'Disputed',
-        helpfulVotes: { count: 0 }
+        helpfulVotes: { count: review.helpfulVotes?.count || 0 }
       };
     });
   }, [analyticsData?.recentReviews]);
