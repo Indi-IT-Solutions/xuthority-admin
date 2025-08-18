@@ -138,17 +138,27 @@ const ReviewDetailPage = () => {
     setPreviewState({ isOpen: false, currentIndex: 0 });
   };
 
+  // Attachment URLs for preview modal
+  // Backend uses metaData for attachments on ProductReview
+  const attachmentUrls = ((review as any)?.metaData?.attachments || [])
+    .map((attachment: any) => attachment?.fileUrl)
+    .filter(Boolean);
+
   const goToNext = () => {
+    const total = attachmentUrls.length;
+    if (total === 0) return;
     setPreviewState(prev => ({
       ...prev,
-      currentIndex: Math.min(prev.currentIndex + 1, 0)
+      currentIndex: (prev.currentIndex + 1) % total,
     }));
   };
 
   const goToPrevious = () => {
+    const total = attachmentUrls.length;
+    if (total === 0) return;
     setPreviewState(prev => ({
       ...prev,
-      currentIndex: Math.max(prev.currentIndex - 1, 0)
+      currentIndex: (prev.currentIndex - 1 + total) % total,
     }));
   };
 
@@ -536,6 +546,23 @@ console.log('isDisputed', dispute)
     </div>
   </div>
 )}
+    {(attachmentUrls.length > 0) && <div className="flex flex-col gap-2 mt-4">
+      <div className="flex flex-col">
+        <span className="font-semibold">Attachments:</span>
+      </div>
+  <div className="flex gap-2">
+  {(attachmentUrls || []).map((url:string,index:number)=>(
+    <div className="inline-block" key={index}>
+      <img src={url}
+        alt="Verification Screenshot"
+        className="max-w-xs rounded border border-gray-200 shadow h-40 w-50 cursor-pointer hover:opacity-90 transition-opacity object-cover"
+        onClick={() => openPreview(index)}
+      />
+ 
+      </div>
+  ))}
+  </div>
+    </div>}
         {/* Dispute Section - Only show if review is disputed and dispute data is available */}
         {isDisputed && dispute && (
           <div className="mt-6 sm:mt-8 p-0 sm:p-0 bg-white border-none rounded-none">
@@ -644,11 +671,11 @@ console.log('isDisputed', dispute)
         }
       />
 
-      {/* Media Preview Modal for screenshot verification */}
-      {review.verification?.verificationType === "screenshot" && review.verification?.verificationData?.screenshot && (
+      {/* Media Preview Modal for attachments */}
+      {previewState.isOpen && attachmentUrls.length > 0 && (
         <MediaPreviewModal
           isOpen={previewState.isOpen}
-          mediaUrls={[review.verification.verificationData.screenshot]}
+          mediaUrls={attachmentUrls}
           currentIndex={previewState.currentIndex}
           onClose={closePreview}
           onNext={goToNext}

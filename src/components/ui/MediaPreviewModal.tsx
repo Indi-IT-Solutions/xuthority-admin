@@ -91,49 +91,37 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     >
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <div 
-          className="relative max-w-7xl max-h-[90vh] mx-auto"
+          className="relative w-[90vw] max-w-5xl max-h-[90vh] mx-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -top-12 right-0 text-white hover:bg-white/10 z-50"
+            className="absolute top-0 right-0 text-white hover:bg-white/10 z-50"
             onClick={onClose}
           >
-            <X className="h-6 w-6" />
+            <X className="h-10 w-10" />
           </Button>
 
-          {mediaUrls.length > 1 && (
-            <>
+          <div className="relative flex items-center justify-center gap-4">
+            {mediaUrls.length > 1 && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/10 z-50"
+                className="text-white hover:bg-white/10 "
                 onClick={onPrevious}
-                disabled={currentIndex === 0}
               >
-                <ChevronLeft className="h-8 w-8" />
+                <ChevronLeft className="h-10 w-10" />
               </Button>
+            )}
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/10 z-50"
-                onClick={onNext}
-                disabled={currentIndex === mediaUrls.length - 1}
-              >
-                <ChevronRight className="h-8 w-8" />
-              </Button>
-            </>
-          )}
-
-          <div className="relative">
+            <div className="relative flex-1 flex items-center justify-center ">
             {isVideo ? (
               <div className="relative">
                 <video
                   ref={videoRef}
                   src={currentMedia}
-                  className="max-w-full max-h-[80vh] rounded-lg"
+                  className="w-full h-auto max-h-[80vh] rounded-lg"
                   onClick={handleVideoPlay}
                   onPlay={() => setIsVideoPlaying(true)}
                   onPause={() => setIsVideoPlaying(false)}
@@ -153,8 +141,20 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
               <img
                 src={currentMedia}
                 alt={`Preview ${currentIndex + 1}`}
-                className="max-w-full max-h-[80vh] rounded-lg object-contain"
+                className="w-full h-[80vh] rounded-md object-contain bg-white/10"
               />
+            )}
+            </div>
+
+            {mediaUrls.length > 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10"
+                onClick={onNext}
+              >
+                <ChevronRight className="h-10 w-10" />
+              </Button>
             )}
           </div>
 
