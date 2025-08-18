@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ReviewService, ReviewQueryParams, ReviewsApiResponse } from '@/services/reviewService';
 import toast from 'react-hot-toast';
+import { queryClient } from '@/lib/queryClient';
 
 // Query keys for caching
 export const reviewKeys = {
@@ -94,7 +95,6 @@ export const useReviewStats = () => {
  * Hook for approving a review
  */
 export const useApproveReview = () => {
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (reviewId: string) => {
@@ -124,7 +124,6 @@ export const useApproveReview = () => {
  * Hook for rejecting a review
  */
 export const useRejectReview = () => {
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (reviewId: string) => {
@@ -154,7 +153,6 @@ export const useRejectReview = () => {
  * Hook for deleting a review
  */
 export const useDeleteReview = () => {
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (reviewId: string) => {
@@ -184,7 +182,6 @@ export const useDeleteReview = () => {
  * Hook for resolving a disputed review
  */
 export const useResolveDispute = () => {
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (reviewId: string) => {
@@ -214,7 +211,6 @@ export const useResolveDispute = () => {
  * Hook for bulk deleting reviews
  */
 export const useBulkDeleteReviews = () => {
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (reviewIds: string[]) => {

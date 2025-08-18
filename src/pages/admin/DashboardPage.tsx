@@ -5,19 +5,44 @@ import { StatsCard, TimeFilter, ReviewsTable, DashboardContentSkeleton } from '@
 import { UserGrowthChart, ReviewsChart } from '@/components/charts';
 import { useAnalytics } from '@/hooks/useAdminAuth';
 import { useNavigate } from 'react-router-dom';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import { 
+  useApproveReview,
+  useRejectReview,
+  useDeleteReview,
+  useResolveDispute
+} from '@/hooks/useReviews';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Weekly');
   const [selectedReviews, setSelectedReviews] = useState<number[]>([]);
 
+  // Conve  // Confirmation modal states
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: 'approve' | 'reject' | 'delete' | 'resolve' | null;
+    reviewId: string | null;
+    reviewTitle: string | null;
+  }>({
+    isOpen: false,
+    type: null,
+    reviewId: null,
+    reviewTitle: null,
+  });
+
+  // Mutations
+  const approveReviewMutation = useApproveReview();
+  const rejectReviewMutation = useRejectReview();
+  const deleteReviewMutation = useDeleteReview();
+  const resolveDisputeMutation = useResolveDispute();
   // Convert filter to lowercase for API
   const period = useMemo(() => {
     return activeFilter.toLowerCase() as 'weekly' | 'monthly' | 'yearly';
   }, [activeFilter]);
 
   // Fetch analytics data with time filtering
-  const { data: analyticsData, isLoading, error } = useAnalytics(period);
+  const { data: analyticsData, isLoading, error, refetch } = useAnalytics(period);
 
   // Format stats data for the UI
   const stats = useMemo(() => {
@@ -52,56 +77,65 @@ const DashboardPage = () => {
   const recentReviews = useMemo(() => {
     if (!analyticsData?.recentReviews) return [];
     
-    return analyticsData.recentReviews.map((review, index) => ({
-      id: index + 1, // Use index as ID since ReviewsTable expects number
-      _id: review._id, // MongoDB ID for API calls
-      reviewer: {
-        id: review.reviewer._id || review.reviewer.id || '',
-        firstName: review.reviewer.firstName || '',
-        lastName: review.reviewer.lastName || '',
-        email: review.reviewer.email || '',
-        avatar: review.reviewer.avatar || '',
-        slug: review.reviewer.slug,
-        companyName: review.reviewer.companyName,
-        isVerified: review.reviewer.isVerified
-      },
-      product: {
-        id: review.product._id || review.product.id || '',
-        name: review.product.name || 'Unknown Product',
-        slug: review.product.slug || '',
-        logo: review.product.logoUrl || review.product.logo,
-        totalReviews: review.product.totalReviews,
-        avgRating: review.product.avgRating,
-        userId: review.product.userId ? {
-          id: review.product.userId._id || review.product.userId.id || '',
-          firstName: review.product.userId.firstName || '',
-          lastName: review.product.userId.lastName || '',
-          email: review.product.userId.email || '',
-          avatar: review.product.userId.avatar || '',
-          slug: review.product.userId.slug,
-          companyName: review.product.userId.companyName
-        } : {
-          id: '',
-          firstName: 'Unknown',
-          lastName: 'Vendor',
-          email: '',
-          avatar: '',
-          slug: '',
-          companyName: ''
-        }
-      },
-      review: review.content || '',
-      rating: review.overallRating || 0,
-      comments: review.totalReplies || 0,
-      date: new Date(review.submittedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-      }),
-      status: (review.status === 'approved' ? 'Published' : 
-              review.status === 'pending' ? 'Pending' : 
-              review.status === 'dispute' ? 'Disputed' : 'Rejected') as 'Published' | 'Pending' | 'Disputed'
-    }));
+    return analyticsData.recentReviews.map((review: any, index: number) => {
+      const [firstName = '', ...restLast] = (review.reviewer?.firstName && review.reviewer?.lastName)
+        ? [review.reviewer.firstName, review.reviewer.lastName]
+        : (review.reviewer?.name ? review.reviewer.name.split(' ') : ['','']);
+      const lastName = restLast.join(' ');
+      const vendor = review.product?.userId || {};
+
+      return {
+        id: index + 1,
+        _id: review._id,
+        reviewer: {
+          id: vendor?._id || vendor?.id || '',
+          firstName,
+          lastName,
+          email: review.reviewer?.email || '',
+          avatar: review.reviewer?.avatar || '',
+          slug: review.reviewer?.slug,
+          companyName: review.reviewer?.companyName,
+          isVerified: review.reviewer?.isVerified
+        },
+        product: {
+          id: review.product?._id || review.product?.id || '',
+          name: review.product?.name || 'Unknown Product',
+          slug: review.product?.slug || '',
+          logo: review.product?.logoUrl,
+          totalReviews: review.product?.totalReviews,
+          avgRating: review.product?.avgRating,
+          userId: vendor?._id || vendor?.id ? {
+            id: vendor._id || vendor.id || '',
+            firstName: vendor.firstName || '',
+            lastName: vendor.lastName || '',
+            email: vendor.email || '',
+            avatar: vendor.avatar || '',
+            slug: vendor.slug,
+            companyName: vendor.companyName
+          } : {
+            id: '',
+            firstName: 'Unknown',
+            lastName: 'Vendor',
+            email: '',
+            avatar: '',
+            slug: '',
+            companyName: ''
+          }
+        },
+        review: review.content || '',
+        rating: review.overallRating || 0,
+        comments: review.totalReplies || 0,
+        date: new Date(review.submittedAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+        }),
+        status: (review.status === 'approved' ? 'Published' : 
+                review.status === 'pending' ? 'Pending' : 
+                review.status === 'dispute' ? 'Disputed' : 'Rejected') as 'Published' | 'Pending' | 'Disputed',
+        helpfulVotes: { count: 0 }
+      };
+    });
   }, [analyticsData?.recentReviews]);
 
   // Action handlers for reviews
@@ -116,23 +150,19 @@ const DashboardPage = () => {
   };
 
   const handleDeleteReview = (reviewId: string) => {
-    console.log('Delete review:', reviewId);
-    // Show confirmation dialog and delete review
+    openConfirmModal('delete', reviewId);
   };
 
   const handleApproveReview = (reviewId: string) => {
-    console.log('Approve review:', reviewId);
-    // Update review status to Published
+    openConfirmModal('approve', reviewId);
   };
 
   const handleRejectReview = (reviewId: string) => {
-    console.log('Reject review:', reviewId);
-    // Update review status to Rejected
+    openConfirmModal('reject', reviewId);
   };
 
   const handleResolveDispute = (reviewId: string) => {
-    console.log('Resolve dispute for review:', reviewId);
-    // Update review status to Published/Resolved
+    openConfirmModal('resolve', reviewId);
   };
 
   const handleSelectedReviewsChange = (selectedIds: string[]) => {
@@ -168,6 +198,121 @@ const DashboardPage = () => {
       // 1. Refresh the reviews list
       // 2. Show a toast notification
       // 3. Update the total review count
+    }
+  };
+
+  // Confirmation modal content
+  const getConfirmationTitle = () => {
+    switch (confirmModal.type) {
+      case 'approve':
+        return 'Approve Review';
+      case 'reject':
+        return 'Reject Review';
+      case 'delete':
+        return 'Delete Review';
+      case 'resolve':
+        return 'Resolve Dispute';
+      default:
+        return '';
+    }
+  };
+
+  const getConfirmationDescription = () => {
+    const action = confirmModal.type;
+    const title = confirmModal.reviewTitle;
+    
+    switch (action) {
+      case 'approve':
+        return `Are you sure you want to approve ${title}? This action will make the review visible to all users.`;
+      case 'reject':
+        return `Are you sure you want to reject ${title}? This action will prevent the review from being published.`;
+      case 'delete':
+        return `Are you sure you want to delete ${title}? This action cannot be undone.`;
+      case 'resolve':
+        return `Are you sure you want to resolve the dispute for ${title}? This will change the status to resolved.`;
+      default:
+        return '';
+    }
+  };
+
+  const getConfirmationButtonText = () => {
+    switch (confirmModal.type) {
+      case 'approve':
+        return 'Approve';
+      case 'reject':
+        return 'Reject';
+      case 'delete':
+        return 'Delete';
+      case 'resolve':
+        return 'Resolve';
+      default:
+        return 'Confirm';
+    }
+  };
+  // Helper function to get review title
+  const getReviewTitle = (reviewId: string) => {
+    const review = recentReviews.find((r: any) => r._id === reviewId);
+    return review ? `${review.reviewer.firstName}'s review` : 'Unknown Review';
+  };
+  // Helper function to open confirmation modal
+  const openConfirmModal = (type: 'approve' | 'reject' | 'delete' | 'resolve', reviewId: string) => {
+    const reviewTitle = getReviewTitle(reviewId);
+    setConfirmModal({
+      isOpen: true,
+      type,
+      reviewId,
+      reviewTitle,
+    });
+  };
+
+  // Helper function to close confirmation modal
+  const closeConfirmModal = () => {
+    setConfirmModal({
+      isOpen: false,
+      type: null,
+      reviewId: null,
+      reviewTitle: null,
+    });
+  };
+
+  const onSuccess = () => {
+    closeConfirmModal();
+    // Refresh dashboard analytics and recent reviews after action
+    refetch();
+  };
+
+  // Confirmation handler
+  const handleConfirmAction = () => {
+    if (!confirmModal.reviewId || !confirmModal.type) return;
+
+    switch (confirmModal.type) {
+      case 'approve':
+        approveReviewMutation.mutate(confirmModal.reviewId, { onSuccess });
+        break;
+      case 'reject':
+        rejectReviewMutation.mutate(confirmModal.reviewId, { onSuccess });
+        break;
+      case 'delete':
+        deleteReviewMutation.mutate(confirmModal.reviewId, { onSuccess });
+        break;
+      case 'resolve':
+        resolveDisputeMutation.mutate(confirmModal.reviewId, { onSuccess });
+        break;
+    }
+  };
+
+  const getIsLoading = () => {
+    switch (confirmModal.type) {
+      case 'approve':
+        return approveReviewMutation.isPending;
+      case 'reject':
+        return rejectReviewMutation.isPending;
+      case 'delete':
+        return deleteReviewMutation.isPending;
+      case 'resolve':
+        return resolveDisputeMutation.isPending;
+      default:
+        return false;
     }
   };
 
@@ -249,6 +394,17 @@ const DashboardPage = () => {
         onResolveDispute={handleResolveDispute}
         onSelectedReviewsChange={handleSelectedReviewsChange}
         onBulkDelete={handleBulkDelete}
+      />
+       {/* Confirmation Modal */}
+       <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onOpenChange={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title={getConfirmationTitle()}
+        description={getConfirmationDescription()}
+        confirmText={getConfirmationButtonText()}
+        confirmVariant={confirmModal.type === 'delete' || confirmModal.type === 'reject' ? 'destructive' : 'default'}
+        isLoading={getIsLoading()}
       />
     </div>
   );

@@ -17,6 +17,7 @@ interface Review {
     slug?: string;
     companyName?: string;
     isVerified?: boolean;
+    totalReplies?: number;
   };
   product: {
     id: string;
@@ -25,6 +26,7 @@ interface Review {
     logo?: string;
     totalReviews?: number;
     avgRating?: number;
+    totalReplies?: number;
     userId: {
       id: string;
       firstName: string;
@@ -35,6 +37,7 @@ interface Review {
       companyName?: string;
     };
   };
+  totalReplies?: number;
   review: string;
   rating: number;
   comments: number;

@@ -128,7 +128,7 @@ export const ChartSkeleton = ({ height = 300 }: { height?: number }) => (
       className="bg-gray-100 rounded-lg flex items-center justify-center"
       style={{ height: `${height}px` }}
     >
-      <div className="text-gray-400 text-sm">Chart loading...</div>
+      {/* <div className="text-gray-400 text-sm">Chart loading...</div> */}
     </div>
   </div>
 );

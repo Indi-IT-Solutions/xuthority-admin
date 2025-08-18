@@ -36,11 +36,23 @@ const ReviewsChart = ({ activeFilter, data }: ReviewsChartProps) => {
 
   const formatPeriodLabel = (period: string, filter: 'Weekly' | 'Monthly' | 'Yearly') => {
     try {
-      const date = new Date(period);
-      
+      let date: Date;
+      // Handle 'YYYY-MM-DD' and 'YYYY-MM' as local dates to avoid timezone shifts
+      if (/^\d{4}-\d{2}-\d{2}$/.test(period)) {
+        const [y, m, d] = period.split('-').map(Number);
+        date = new Date(y, m - 1, d);
+      } else if (/^\d{4}-\d{2}$/.test(period)) {
+        const [y, m] = period.split('-').map(Number);
+        date = new Date(y, m - 1, 1);
+      } else if (/^\d{4}$/.test(period)) {
+        date = new Date(Number(period), 0, 1);
+      } else {
+        date = new Date(period);
+      }
+
       switch (filter) {
         case 'Weekly':
-          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         case 'Monthly':
           return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
         case 'Yearly':

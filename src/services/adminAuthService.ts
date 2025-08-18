@@ -174,7 +174,7 @@ export class AdminAuthService {
         approved: number;
         pending: number;
         rejected: number;
-        flagged: number;
+        dispute: number;
       }>;
     };
     recentReviews: Array<{
@@ -184,15 +184,31 @@ export class AdminAuthService {
       overallRating: number;
       status: 'pending' | 'approved' | 'rejected' | 'dispute';
       submittedAt: string;
+      totalReplies?: number;
       reviewer: {
         name: string;
+        firstName?: string;
+        lastName?: string;
         avatar: string;
         email: string;
+        slug?: string;
+        companyName?: string;
+        isVerified?: boolean;
       };
       product: {
         name: string;
         slug: string;
         logoUrl: string;
+        userId?: {
+          _id?: string;
+          id?: string;
+          firstName: string;
+          lastName: string;
+          email: string;
+          avatar: string;
+          slug?: string;
+          companyName?: string;
+        };
       };
     }>;
   }>> {
