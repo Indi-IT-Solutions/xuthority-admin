@@ -91,7 +91,7 @@ export function EditPageContentDialog({
                   <Textarea
                     {...register("content")}
                     id="content"
-                    className="min-h-[300px]  text-sm resize-none max-h-[400px]"
+                    className={`min-h-[300px]  text-sm resize-none max-h-[400px] ${errors.content ? "border-red-500" : ""}`}
                     placeholder="Enter page content..."
                   />
                   {errors.content && (

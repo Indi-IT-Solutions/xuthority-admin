@@ -257,7 +257,7 @@ export default function ResetPasswordPage() {
                   type={passwordVisibility.password ? "text" : "password"}
                   placeholder="Enter Password"
                   {...register("newPassword")}
-                  className="rounded-full h-12 px-4 pr-12"
+                  className={`rounded-full h-12 px-4 pr-12 ${errors.newPassword ? "border-red-500" : ""}`}
                   disabled={resetPasswordMutation.isPending}
                 />
                 <button
@@ -291,7 +291,7 @@ export default function ResetPasswordPage() {
                   type={passwordVisibility.confirmPassword ? "text" : "password"}
                   placeholder="Enter Confirm Password"
                   {...register("confirmNewPassword")}
-                  className="rounded-full h-12 px-4 pr-12"
+                  className={`rounded-full h-12 px-4 pr-12 ${errors.confirmNewPassword ? "border-red-500" : ""}`}
                   disabled={resetPasswordMutation.isPending}
                 />
                 <button

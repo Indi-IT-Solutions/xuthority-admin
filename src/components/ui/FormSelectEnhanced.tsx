@@ -30,6 +30,7 @@ interface FormSelectEnhancedProps {
   maxSelections?: number;
   showSelectAll?: boolean;
   preserveSelectedLabels?: boolean; // New prop to preserve labels
+  customError?: any;
 }
 
 export const FormSelectEnhanced: React.FC<FormSelectEnhancedProps> = ({
@@ -45,6 +46,7 @@ export const FormSelectEnhanced: React.FC<FormSelectEnhancedProps> = ({
   maxSelections,
   showSelectAll = false,
   preserveSelectedLabels = true,
+  customError
 }) => {
   const {
     control,
@@ -57,7 +59,7 @@ export const FormSelectEnhanced: React.FC<FormSelectEnhancedProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [labelCache, setLabelCache] = useState<Map<string, string>>(new Map());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const error = errors[name];
+  const error = errors[name] || customError
 
   // Watch the current values
   const currentValues = watch(name);
@@ -234,6 +236,8 @@ export const FormSelectEnhanced: React.FC<FormSelectEnhancedProps> = ({
       </div>
     );
   };
+
+  console.log('error', error)
 
   return (
     <div className="w-full">

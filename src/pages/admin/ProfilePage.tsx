@@ -303,7 +303,7 @@ const ProfilePage = () => {
                   type="text"
                   {...register("firstName")}
                   disabled={updateProfileMutation.isPending}
-                  className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className={`w-full px-4 py-3   bg-white ${errors.firstName ? "border-red-500" : ""}`}
                 />
                 {errors.firstName && (
                   <p className="mt-1 text-sm text-red-600">
@@ -324,7 +324,7 @@ const ProfilePage = () => {
                   type="text"
                   {...register("lastName")}
                   disabled={updateProfileMutation.isPending}
-                  className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className={`w-full px-4 py-3bg-white ${errors.lastName ? "border-red-500" : ""}`}
                 />
                 {errors.lastName && (
                   <p className="mt-1 text-sm text-red-600">
@@ -345,7 +345,7 @@ const ProfilePage = () => {
                   type="email"
                   disabled
                   {...register("email")}
-                  className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className={`w-full px-4 py-3   bg-white ${errors.email ? "border-red-500" : ""}`}
                 />
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-600">

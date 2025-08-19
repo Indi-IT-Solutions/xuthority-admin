@@ -26,8 +26,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   className = "w-full",
   maxLength
 }) => {
-  const inputClassName = `${className} h-14 px-5 text-base border-gray-200 rounded-full focus:border-gray-300 focus:ring-0 placeholder:text-gray-400`;
-  const textareaClassName = `${className} px-5 py-4 text-base border-gray-200 rounded-3xl resize-none focus:border-gray-300 focus:ring-0 placeholder:text-gray-400`;
+  const inputClassName = `${className} h-14 px-5 text-base border-gray-200 rounded-full focus:border-gray-300 focus:ring-0 placeholder:text-gray-400 ${error ? "border-red-500" : ""}`;
+  const textareaClassName = `${className} px-5 py-4 text-base border-gray-200 rounded-3xl resize-none focus:border-gray-300 focus:ring-0 placeholder:text-gray-400 ${error ? "border-red-500" : ""}`;
 
   return (
     <div className="space-y-1">

@@ -148,10 +148,11 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
           options={filteredSoftwareOptions}
           searchable
           disabled={softwareLoading}
+          customError={errors?.categories?.[index]?.name}
         />
-        {errors?.categories?.[index]?.name && (
+        {/* {errors?.categories?.[index]?.name && (
           <p className="text-sm text-red-500">{errors.categories[index]?.name?.message}</p>
-        )}
+        )} */}
       </div>
 
       {/* Products Selection */}
@@ -166,10 +167,11 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
             multiple
             maxSelections={9}
             disabled={productsLoading}
+            customError={errors?.categories?.[index]?.products}
           />
-          {errors?.categories?.[index]?.products && (
+          {/* {errors?.categories?.[index]?.products && (
             <p className="text-sm text-red-500">{errors.categories[index]?.products?.message}</p>
-          )}
+          )} */}
         </div>
       )}
     </div>

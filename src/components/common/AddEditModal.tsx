@@ -338,8 +338,8 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
                   {...field}
                   type="text"
                   placeholder={`Enter ${collectionName.toLowerCase()} name`}
-                  className={`w-full px-4 py-3 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3  rounded-full  text-base ${
+                    errors.name ? 'border-red-500' : ''
                   }`}
                   disabled={isLoading || isUploading}
                   autoFocus={!collectionName.toLowerCase().includes('integration')}
@@ -365,8 +365,8 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
                     {...field}
                     type="url"
                     placeholder="Enter integration link"
-                    className={`w-full px-4 py-3 border rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base ${
-                      errors.link ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3  rounded-full  text-base ${
+                      errors.link ? 'border-red-500' : ''
                     }`}
                     disabled={isLoading || isUploading}
                   />
@@ -392,7 +392,9 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
                     {...field}
                     type="text"
                     placeholder={`Enter ${collectionName.toLowerCase()} description`}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                    className={`w-full px-4 py-3  rounded-full  text-base ${
+                      errors.description ? 'border-red-500' : ''
+                    }`}
                     disabled={isLoading || isUploading}
                   />
                 )}
@@ -418,7 +420,9 @@ const AddEditModal: React.FC<AddEditModalProps> = ({
                     onValueChange={field.onChange}
                     disabled={isLoading || isUploading}
                   >
-                    <SelectTrigger className="w-full px-4 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base h-14">
+                    <SelectTrigger className={`w-full px-4 py-3  rounded-full  text-base h-14 ${
+                      errors.category ? 'border-red-500' : ''
+                    }`}>
                       <SelectValue placeholder={`Select ${collectionName.toLowerCase()} category`} />
                     </SelectTrigger>
                     <SelectContent>

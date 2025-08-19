@@ -91,7 +91,7 @@ export default function LoginPage() {
                     id="email"
                     placeholder="Enter Email Address"
                     {...register("email")}
-                    className="rounded-full h-14 flex-1 px-5 py-3"
+                    className={`rounded-full h-14 flex-1 px-5 py-3  ${errors.email ? "border-red-500 focus-visible:border-red-500" : ""}`}
                     disabled={loginMutation.isPending}
                   />
                   {errors.email && (
@@ -108,7 +108,7 @@ export default function LoginPage() {
                       type={passwordVisible ? "text" : "password"}
                       placeholder="Enter Password"
                       {...register("password")}
-                      className="rounded-full h-14 flex-1 px-5 py-3"
+                      className={`rounded-full h-14 flex-1 px-5 py-3 ${errors.password ? "border-red-500" : ""}`}
                       disabled={loginMutation.isPending}
                     />
                     <button

@@ -426,7 +426,7 @@ const EditBadgePage = () => {
             type="text"
             value={formData.title}
             onChange={(e) => handleInputChange("title", e.target.value)}
-            className="w-full mt-2"
+            className={`w-full mt-2 ${errors.title ? "border-red-500" : ""}`}
             placeholder="Enter badge name"
             disabled={isFormDisabled}
           />
@@ -444,7 +444,7 @@ const EditBadgePage = () => {
             id="description"
             value={formData.description}
             onChange={(e) => handleInputChange("description", e.target.value)}
-            className="w-full min-h-[120px] resize-none mt-2"
+            className={`w-full min-h-[120px] resize-none mt-2 ${errors.description ? "border-red-500" : ""}`}
             placeholder="Enter badge description"
             disabled={isFormDisabled}
             maxLength={500}

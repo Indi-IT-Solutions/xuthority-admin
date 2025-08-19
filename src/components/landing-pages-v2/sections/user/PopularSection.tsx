@@ -185,10 +185,11 @@ const SolutionItem: React.FC<SolutionItemProps> = ({
           options={availableOptions}
           searchable
           disabled={optionsLoading}
+          customError={error?.tempSelection}
         />
-        {error && typeof error === 'object' && 'message' in error && (
+        {/* {error && typeof error === 'object' && 'message' in error && (
           <p className="text-sm text-red-500">{error.message}</p>
-        )}
+        )} */}
       </div>
 
       {selectedId && (
@@ -202,10 +203,11 @@ const SolutionItem: React.FC<SolutionItemProps> = ({
             maxSelections={4}
             disabled={productsLoading}
             searchable
+            customError={error?.products}
           />
-          {error?.products && (
+          {/* {error?.products && (
             <p className="text-sm text-red-500">{error.products?.message}</p>
-          )}
+          )} */}
         </div>
       )}
     </div>
