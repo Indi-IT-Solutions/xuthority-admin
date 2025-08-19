@@ -14,6 +14,7 @@ const ForgotPasswordPage = lazy(
 const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 const DashboardPage = lazy(() => import("@/pages/admin/DashboardPage"));
 const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
+const ContactsPage = lazy(() => import("@/pages/admin/ContactsPage"));
 const VendorsPage = lazy(() => import("@/pages/admin/VendorsPage"));
 const VendorDetailPage = lazy(() => import("@/pages/admin/VendorDetailPage"));
 const UserDetailPage = lazy(() => import("@/pages/admin/UserDetailPage"));
@@ -96,6 +97,14 @@ const AppRoutes = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <UsersPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "contacts",
+        element: (
+          <SuspenseWrapper>
+            <ContactsPage />
           </SuspenseWrapper>
         ),
       },

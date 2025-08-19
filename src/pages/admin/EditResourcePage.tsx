@@ -73,15 +73,26 @@ const editResourceSchema = z.object({
         return false;
       }
     }, 'Please enter a valid URL'),
-  mediaFile: z
+  bannerFile: z
     .instanceof(File)
     .optional()
     .refine((file) => {
-      if (!file) return true; // Optional for edits
-      return file.size <= 5 * 1024 * 1024; // 5MB
+      if (!file) return true;
+      return file.size <= 5 * 1024 * 1024;
     }, 'File size must be less than 5MB')
     .refine((file) => {
-      if (!file) return true; // Optional for edits
+      if (!file) return true;
+      return file.type.startsWith('image/');
+    }, 'File must be an image'),
+  thumbnailFile: z
+    .instanceof(File)
+    .optional()
+    .refine((file) => {
+      if (!file) return true;
+      return file.size <= 5 * 1024 * 1024;
+    }, 'File size must be less than 5MB')
+    .refine((file) => {
+      if (!file) return true;
       return file.type.startsWith('image/');
     }, 'File must be an image')
 });
@@ -92,12 +103,26 @@ const EditResourcePage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAdminStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const thumbInputRef = useRef<HTMLInputElement>(null);
+  const [selectedBanner, setSelectedBanner] = useState<File | null>(null);
+  const [selectedThumb, setSelectedThumb] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [thumbPreview, setThumbPreview] = useState<string | null>(null);
+  const [currentBannerUrl, setCurrentBannerUrl] = useState<string | null>(null);
+  const [currentThumbUrl, setCurrentThumbUrl] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isFileUploading, setIsFileUploading] = useState(false);
+
+  // Dimensions
+  const BANNER_MIN_WIDTH = 1200;
+  const BANNER_MIN_HEIGHT = 600;
+  const BANNER_MAX_WIDTH = 3840;
+  const BANNER_MAX_HEIGHT = 2160;
+  const THUMB_MIN_WIDTH = 300;
+  const THUMB_MIN_HEIGHT = 300;
+  const THUMB_MAX_WIDTH = 2000;
+  const THUMB_MAX_HEIGHT = 2000;
 
   // Fetch existing resource data
   const { data: resourceData, isLoading: isLoadingResource, error: resourceError, refetch } = useQuery({
@@ -120,23 +145,24 @@ const EditResourcePage: React.FC = () => {
     mutationFn: async (data: EditResourceFormData) => {
       if (!id) throw new Error('Resource ID is required');
       
-      let mediaUrl = currentImageUrl; // Keep existing image by default
+      let mediaUrl = currentBannerUrl; // Keep existing banner by default
+      let thumbnailUrl = currentThumbUrl; // Keep existing thumbnail by default
 
-      // Handle file upload if new file is selected
-      if (data.mediaFile) {
-        if (data.mediaFile.size > 5 * 1024 * 1024) {
-          toast.error('File size must be less than 5MB');
-          return;
+      // Upload changed files
+      setIsFileUploading(true);
+      try {
+        if (data.bannerFile) {
+          const uploadResponse = await FileUploadService.uploadFile(data.bannerFile);
+          if (!uploadResponse.success) throw new Error(uploadResponse.error?.message || 'Failed to upload banner');
+          mediaUrl = FileUploadService.getFileUrl(uploadResponse.data);
         }
-
-        setIsFileUploading(true);
-        const uploadResponse = await FileUploadService.uploadFile(data.mediaFile);
+        if (data.thumbnailFile) {
+          const uploadResponse = await FileUploadService.uploadFile(data.thumbnailFile);
+          if (!uploadResponse.success) throw new Error(uploadResponse.error?.message || 'Failed to upload thumbnail');
+          thumbnailUrl = FileUploadService.getFileUrl(uploadResponse.data);
+        }
+      } finally {
         setIsFileUploading(false);
-        
-        if (!uploadResponse.success) {
-          throw new Error(uploadResponse.error?.message || 'Failed to upload image');
-        }
-        mediaUrl = FileUploadService.getFileUrl(uploadResponse.data);
       }
 
       // Find resource category
@@ -153,7 +179,8 @@ const EditResourcePage: React.FC = () => {
         description: data.description.trim(),
         authorName: user.firstName + ' ' + user.lastName,
         designation: user.role || 'Admin',
-        mediaUrl: mediaUrl,
+        mediaUrl: mediaUrl || undefined,
+        thumbnailUrl: thumbnailUrl || undefined,
         watchUrl: data.videoLink?.trim() || undefined,
         tag: data.contentType,
         resourceCategoryId: ('_id' in resourceCategory) ? resourceCategory._id : resourceCategory.value,
@@ -204,6 +231,97 @@ const EditResourcePage: React.FC = () => {
     return errors[fieldName] && (touchedFields[fieldName] || isSubmitted);
   };
 
+  // Utility to read image dimensions
+  const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        const width = img.naturalWidth;
+        const height = img.naturalHeight;
+        URL.revokeObjectURL(objectUrl);
+        resolve({ width, height });
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(err);
+      };
+      img.src = objectUrl;
+    });
+  };
+
+  // Upload handlers
+  const handleBannerSelect = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+    const validation = FileUploadService.validateImageFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error || 'Invalid file');
+      return;
+    }
+    try {
+      const { width, height } = await getImageDimensions(file);
+      if (width < BANNER_MIN_WIDTH || height < BANNER_MIN_HEIGHT) {
+        toast.error(`Banner too small. Required at least ${BANNER_MIN_WIDTH}x${BANNER_MIN_HEIGHT}px. Uploaded: ${width}x${height}px`);
+        return;
+      }
+      if (width > BANNER_MAX_WIDTH || height > BANNER_MAX_HEIGHT) {
+        toast.error(`Banner too large. Max allowed ${BANNER_MAX_WIDTH}x${BANNER_MAX_HEIGHT}px. Uploaded: ${width}x${height}px`);
+        return;
+      }
+    } catch {
+      toast.error('Unable to read image dimensions. Please try a different image.');
+      return;
+    }
+    setSelectedBanner(file);
+    setBannerPreview(URL.createObjectURL(file));
+    setValue('bannerFile', file as any);
+    await trigger('bannerFile');
+  };
+
+  const handleThumbSelect = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+    const validation = FileUploadService.validateImageFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error || 'Invalid file');
+      return;
+    }
+    try {
+      const { width, height } = await getImageDimensions(file);
+      if (width < THUMB_MIN_WIDTH || height < THUMB_MIN_HEIGHT) {
+        toast.error(`Thumbnail too small. Required at least ${THUMB_MIN_WIDTH}x${THUMB_MIN_HEIGHT}px. Uploaded: ${width}x${height}px`);
+        return;
+      }
+      if (width > THUMB_MAX_WIDTH || height > THUMB_MAX_HEIGHT) {
+        toast.error(`Thumbnail too large. Max allowed ${THUMB_MAX_WIDTH}x${THUMB_MAX_HEIGHT}px. Uploaded: ${width}x${height}px`);
+        return;
+      }
+    } catch {
+      toast.error('Unable to read image dimensions. Please try a different image.');
+      return;
+    }
+    setSelectedThumb(file);
+    setThumbPreview(URL.createObjectURL(file));
+    setValue('thumbnailFile', file as any);
+    await trigger('thumbnailFile');
+  };
+
+  const handleBannerInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleBannerSelect(file);
+  };
+  const handleThumbInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleThumbSelect(file);
+  };
+  const handleUploadBannerClick = () => bannerInputRef.current?.click();
+  const handleUploadThumbClick = () => thumbInputRef.current?.click();
+
   // Memoize the form reset data to prevent unnecessary re-renders
   const formResetData = useMemo(() => {
     if (!resourceData) return null;
@@ -227,10 +345,6 @@ const EditResourcePage: React.FC = () => {
       videoLink: resourceData.watchUrl || ''
     };
 
-    // Debug: Log the data being loaded
-    console.log('Resource Data:', resourceData);
-    console.log('Form Reset Data:', resetData);
-
     return resetData;
   }, [resourceData, resourceCategories]);
 
@@ -244,9 +358,13 @@ const EditResourcePage: React.FC = () => {
   useEffect(() => {
     if (resourceData && formResetData) {
       // Set current image URL for preview
-      if (resourceData.mediaUrl && currentImageUrl !== resourceData.mediaUrl) {
-        setCurrentImageUrl(resourceData.mediaUrl);
-        setPreviewUrl(resourceData.mediaUrl);
+      if (resourceData.mediaUrl && currentBannerUrl !== resourceData.mediaUrl) {
+        setCurrentBannerUrl(resourceData.mediaUrl);
+        setBannerPreview(resourceData.mediaUrl);
+      }
+      if (resourceData.thumbnailUrl && currentThumbUrl !== resourceData.thumbnailUrl) {
+        setCurrentThumbUrl(resourceData.thumbnailUrl);
+        setThumbPreview(resourceData.thumbnailUrl);
       }
       
       // Only reset if the form data has actually changed
@@ -259,7 +377,7 @@ const EditResourcePage: React.FC = () => {
         resetForm(formResetData);
       }
     }
-  }, [resourceData, formResetData, resetForm, currentImageUrl, getValues]);
+  }, [resourceData, formResetData, resetForm, currentBannerUrl, currentThumbUrl, getValues]);
 
   // Refetch data when component mounts to ensure latest data
   useEffect(() => {
@@ -268,73 +386,14 @@ const EditResourcePage: React.FC = () => {
     }
   }, [id, refetch]);
 
-
-  // File upload handlers (same as AddResourcePage)
-  const handleFileSelect = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
-      return;
-    }
-    const validation = FileUploadService.validateImageFile(file);
-    if (!validation.isValid) {
-      toast.error(validation.error || 'Invalid file');
-      return;
-    }
-
-    setSelectedFile(file);
-    setValue('mediaFile', file);
-    setPreviewUrl(URL.createObjectURL(file));
-    
-    trigger('mediaFile');
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(false);
-    
-    const files = e.dataTransfer.files;
-    if (files && files[0]) {
-      handleFileSelect(files[0]);
-    }
-  };
-
-  const handleUploadAreaClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const onSubmit = async (data: EditResourceFormData) => {
     try {
-      // Trigger validation for all fields before submission
       const isValid = await trigger();
-      if (!isValid) {
-        return; // Stop submission if validation fails
-      }
-      
+      if (!isValid) return;
       await updateResourceMutation.mutateAsync(data);
     } catch (error) {
       console.error('Form submission error:', error);
     }
-  };
-
-  const handleGoBack = () => {
-    navigate('/resource-center');
   };
 
   // Loading state
@@ -402,66 +461,98 @@ const EditResourcePage: React.FC = () => {
               <h2 className="text-2xl font-semibold text-gray-900 mb-8">Resource Details</h2>
 
               {/* Upload Banner/Thumbnail Section */}
-              <div className="mb-8">
+              <div className="mb-8 min-w-full">
                 <Label className="text-base font-medium text-gray-900 mb-4 block">
-                  Upload Banner/Thumbnail Image 
+                  Upload Banner Image
                 </Label>
                 <div
                   className={cn(
-                    "border-2 border-dashed rounded-2xl h-46 text-center transition-colors bg-gray-50 max-w-md overflow-hidden",
+                    "border-2 border-dashed rounded-2xl relative bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-hidden h-48 sm:h-[500px] text-center transition-colors bg-gray-50 ",
                     !isFormDisabled && "cursor-pointer",
                     isFormDisabled && "opacity-50 cursor-not-allowed",
                     !isFormDisabled && isDragActive
                       ? 'border-blue-400 bg-blue-50'
                       : 'border-gray-300',
-                    !isFormDisabled && !isDragActive && 'hover:border-gray-400 hover:bg-gray-100',
-                    shouldShowError('mediaFile') && 'border-red-500 bg-red-50'
+                    !isFormDisabled && !isDragActive && 'hover:border-gray-400 hover:bg-gray-100'
                   )}
-                  onDragOver={!isFormDisabled ? handleDragOver : undefined}
-                  onDragLeave={!isFormDisabled ? handleDragLeave : undefined}
-                  onDrop={!isFormDisabled ? handleDrop : undefined}
-                  onClick={!isFormDisabled ? handleUploadAreaClick : undefined}
+                  onDragOver={!isFormDisabled ? (e) => { e.preventDefault(); setIsDragActive(true); } : undefined}
+                  onDragLeave={!isFormDisabled ? (e) => { e.preventDefault(); setIsDragActive(false); } : undefined}
+                  onDrop={!isFormDisabled ? (e) => { e.preventDefault(); setIsDragActive(false); const f = e.dataTransfer.files?.[0]; if (f) handleBannerSelect(f); } : undefined}
+                  onClick={!isFormDisabled ? handleUploadBannerClick : undefined}
                 >
-                  {previewUrl ? (
-                    <div className="relative h-46">
-                      <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="h-full w-full rounded-lg object-cover"
-                      />
-                   
-                  
-                    </div>
+                  {bannerPreview ? (
+                    <img className="w-full overflow-hidden h-48 sm:h-[500px]" src={bannerPreview} />
                   ) : (
-                    <div className="space-y-4 flex flex-col justify-center items-center h-46">
+                    <div className="space-y-4 flex flex-col justify-center items-center h-full">
                       <div className="mx-auto w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
                         <ImageIcon className="h-8 w-8 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-gray-600 font-medium text-lg">Upload Banner/Thumbnail</p>
+                        <p className="text-gray-600 font-medium text-lg">Upload Banner</p>
                         <p className="text-gray-600 font-medium text-xs">Drag and drop an image here, or click to select</p>
+                        <p className='text-gray-600 text-xs'>Required: min {BANNER_MIN_WIDTH}x{BANNER_MIN_HEIGHT}px, max {BANNER_MAX_WIDTH}x{BANNER_MAX_HEIGHT}px</p>
                         <p className='text-red-500 text-xs'> Max file size 5MB allowed </p>
                       </div>
                     </div>
                   )}
-                                  <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.svg"
-                  onChange={handleFileInputChange}
-                  disabled={isFormDisabled}
-                  className="hidden"
-                />
+                  <input
+                    ref={bannerInputRef}
+                    type="file"
+                    accept="image/*,.svg"
+                    onChange={handleBannerInputChange}
+                    disabled={isFormDisabled}
+                    className="hidden"
+                  />
                 </div>
-                {shouldShowError('mediaFile') && (
-                  <p className="mt-2 text-sm text-red-600">{errors.mediaFile?.message}</p>
-                )}
               </div>
 
-              {/* Form Fields Row */}
-              <div className="grid grid-cols-3 gap-6 mb-8">
+               <div className='flex flex-col lg:flex-row gap-4 '>
+                {/* Thumbnail Upload */}
+                <div className="lg:mb-8 ">
+                  <Label className="text-base font-medium text-gray-900 mb-4 block">
+                    Upload Thumbnail Image
+                  </Label>
+                  <div
+                    className={cn(
+                      "border-2 border-dashed rounded-2xl min-w-full max-w-[400px] md:w-[400px] h-[234px] text-center transition-colors bg-gray-50  overflow-hidden"
+                    )}
+                    onClick={!isFormDisabled ? handleUploadThumbClick : undefined}
+                  >
+                    {thumbPreview ? (
+                      <div className="relative  overflow-hidden bg-gray-100">
+                        <img
+                          src={thumbPreview}
+                          alt="Thumbnail Preview"
+                          className="w-full h-full object-cover transition-transform duration-300 "
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-4 flex flex-col justify-center items-center w-full h-[234px]" >
+                        <div className="mx-auto w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
+                          <ImageIcon className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-600 font-medium text-lg">Upload Thumbnail</p>
+                          <p className="text-gray-600 font-medium text-xs">Click to select a thumbnail image</p>
+                          <p className='text-gray-600 text-xs'>Required: min {THUMB_MIN_WIDTH}x{THUMB_MIN_HEIGHT}px, max {THUMB_MAX_WIDTH}x{THUMB_MAX_HEIGHT}px</p>
+                          <p className='text-red-500 text-xs'> Max file size 5MB allowed </p>
+                        </div>
+                      </div>
+                    )}
+                    <input
+                      ref={thumbInputRef}
+                      type="file"
+                      accept="image/*,.svg"
+                      onChange={handleThumbInputChange}
+                      disabled={isFormDisabled}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+                  {/* Form Fields Row */}
+              <div className="grid grid-cols-4 gap-6 lg:mb-8 py-10  w-full">
                 {/* Title */}
-                <div>
+                <div className='col-span-4  '>
                   <Label className="text-base font-medium text-gray-900 mb-3 block">
                     Title <span className="text-red-500">*</span>
                   </Label>
@@ -480,7 +571,7 @@ const EditResourcePage: React.FC = () => {
                 </div>
 
                 {/* Resource Type */}
-                <div>
+                <div className='col-span-4 lg:col-span-2 '>
                   <Label className="text-base font-medium text-gray-900 mb-3 block">
                     Resource Type <span className="text-red-500">*</span>
                   </Label>
@@ -522,7 +613,7 @@ const EditResourcePage: React.FC = () => {
                 </div>
 
                 {/* Content Type */}
-                <div>
+                <div className='col-span-4 lg:col-span-2 '>
                   <Label className="text-base font-medium text-gray-900 mb-3 block">
                     Content Type <span className="text-red-500">*</span>
                   </Label>
@@ -559,6 +650,9 @@ const EditResourcePage: React.FC = () => {
                   )}
                 </div>
               </div>
+
+            
+           </div>
 
               {/* Description */}
               <div className="mb-8">

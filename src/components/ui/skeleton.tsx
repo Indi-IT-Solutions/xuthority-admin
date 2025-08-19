@@ -566,67 +566,93 @@ export const CollectionTableSkeleton = () => (
 export const ResourceEditSkeleton = () => (
   <div className="min-h-screen bg-gray-50">
     {/* Header skeleton */}
-    <div className="mb-6">
+    <div className="">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-gray-500">
-          <div className="h-4 bg-gray-200 rounded w-32" />
-          <div className="h-4 bg-gray-200 rounded w-4" />
-          <div className="h-4 bg-gray-200 rounded w-40" />
+        <div className="flex items-center space-x-2">
+          <div className="h-4 bg-gray-200 rounded w-32 animate-pulse" />
+          <div className="h-4 bg-gray-200 rounded w-4 animate-pulse" />
+          <div className="h-4 bg-gray-300 rounded w-40 animate-pulse font-semibold" />
         </div>
-        <div className="h-10 bg-gray-200 rounded w-24" />
+        <div className="h-10 bg-blue-200 rounded-full w-24 animate-pulse" />
       </div>
     </div>
 
     {/* Main Content skeleton */}
     <div className="my-4">
       <div className="bg-white rounded-2xl border border-gray-200 p-8">
-        <div className="h-8 bg-gray-200 rounded w-48 mb-8" />
+        <div className="h-8 bg-gray-200 rounded w-48 mb-8 animate-pulse" />
         
-        {/* Upload section skeleton */}
-        <div className="mb-8">
-          <div className="h-5 bg-gray-200 rounded w-48 mb-4" />
-          <div className="border-2 border-dashed border-gray-300 rounded-2xl h-46 bg-gray-50 max-w-md">
+        {/* Banner Upload skeleton */}
+        <div className="mb-8 min-w-full">
+          <div className="h-5 bg-gray-200 rounded w-48 mb-4 animate-pulse" />
+          <div className="border-2 border-dashed border-gray-300 rounded-2xl h-48 sm:h-[500px] bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 animate-pulse">
             <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="h-12 w-12 bg-gray-200 rounded-full mx-auto mb-2" />
-                <div className="h-4 bg-gray-200 rounded w-32 mb-1" />
-                <div className="h-3 bg-gray-200 rounded w-48" />
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center animate-pulse">
+                  <div className="h-8 w-8 bg-blue-200 rounded" />
+                </div>
+                <div>
+                  <div className="h-4 bg-gray-200 rounded w-32 mx-auto mb-2 animate-pulse" />
+                  <div className="h-3 bg-gray-200 rounded w-48 mx-auto mb-1 animate-pulse" />
+                  <div className="h-2 bg-gray-200 rounded w-64 mx-auto animate-pulse" />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Form fields skeleton */}
-        <div className="space-y-6">
-          {/* Title field */}
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-16" />
-            <div className="h-10 bg-gray-200 rounded w-full" />
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Thumbnail Upload skeleton */}
+          <div className="lg:mb-8">
+            <div className="h-5 bg-gray-200 rounded w-48 mb-4 animate-pulse" />
+            <div className="border-2 border-dashed border-gray-300 rounded-2xl min-w-full max-w-[400px] md:w-[400px] h-[234px] bg-gray-50 animate-pulse">
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-4">
+                  <div className="mx-auto w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center animate-pulse">
+                    <div className="h-8 w-8 bg-blue-200 rounded" />
+                  </div>
+                  <div>
+                    <div className="h-4 bg-gray-200 rounded w-32 mx-auto mb-2 animate-pulse" />
+                    <div className="h-3 bg-gray-200 rounded w-40 mx-auto mb-1 animate-pulse" />
+                    <div className="h-2 bg-gray-200 rounded w-48 mx-auto animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Resource Type field */}
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-28" />
-            <div className="h-10 bg-gray-200 rounded w-full" />
-          </div>
+          {/* Form Fields skeleton */}
+          <div className="grid grid-cols-4 gap-6 lg:mb-8 py-10 w-full">
+            {/* Title field */}
+            <div className="col-span-4">
+              <div className="h-4 bg-gray-200 rounded w-16 mb-3 animate-pulse" />
+              <div className="h-14 bg-gray-200 rounded-full w-full animate-pulse" />
+            </div>
 
-          {/* Content Type field */}
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-28" />
-            <div className="h-10 bg-gray-200 rounded w-full" />
-          </div>
+            {/* Resource Type field */}
+            <div className="col-span-4 lg:col-span-2">
+              <div className="h-4 bg-gray-200 rounded w-28 mb-3 animate-pulse" />
+              <div className="h-14 bg-gray-200 rounded-full w-full animate-pulse" />
+            </div>
 
-          {/* Description field */}
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-24" />
-            <div className="h-24 bg-gray-200 rounded w-full" />
+            {/* Content Type field */}
+            <div className="col-span-4 lg:col-span-2">
+              <div className="h-4 bg-gray-200 rounded w-28 mb-3 animate-pulse" />
+              <div className="h-14 bg-gray-200 rounded-full w-full animate-pulse" />
+            </div>
           </div>
+        </div>
 
-          {/* Video Link field */}
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-24" />
-            <div className="h-10 bg-gray-200 rounded w-full" />
-          </div>
+        {/* Description field */}
+        <div className="mb-8">
+          <div className="h-4 bg-gray-200 rounded w-24 mb-3 animate-pulse" />
+          <div className="h-[200px] bg-gray-200 rounded-lg w-full animate-pulse" />
+        </div>
+
+        {/* Video Link field */}
+        <div>
+          <div className="h-4 bg-gray-200 rounded w-32 mb-3 animate-pulse" />
+          <div className="h-14 bg-gray-200 rounded-full w-full animate-pulse" />
         </div>
       </div>
     </div>

@@ -184,7 +184,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 type={passwordVisibility.current ? "text" : "password"}
                 placeholder="Enter Password"
                 {...register("currentPassword")}
-                className="rounded-full h-12 px-4 pr-12"
+                className={`rounded-full h-12 px-4 pr-12 ${errors.currentPassword ? "border-red-500" : ""}`}
                 disabled={changePasswordMutation.isPending}
               />
               <button
@@ -216,7 +216,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 type={passwordVisibility.new ? "text" : "password"}
                 placeholder="Enter New Password"
                 {...register("newPassword")}
-                className="rounded-full h-12 px-4 pr-12"
+                className={`rounded-full h-12 px-4 pr-12 ${errors.newPassword ? "border-red-500" : ""}`}
                 disabled={changePasswordMutation.isPending}
               />
               <button
@@ -250,7 +250,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 type={passwordVisibility.confirm ? "text" : "password"}
                 placeholder="Enter Confirm New Password"
                 {...register("confirmNewPassword")}
-                className="rounded-full h-12 px-4 pr-12"
+                className={`rounded-full h-12 px-4 pr-12 ${errors.confirmNewPassword ? "border-red-500" : ""}`}
                 disabled={changePasswordMutation.isPending}
               />
               <button

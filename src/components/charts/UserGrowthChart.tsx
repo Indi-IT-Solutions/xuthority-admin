@@ -77,7 +77,8 @@ const UserGrowthChart = ({ activeFilter, data }: UserGrowthChartProps) => {
       const data = payload[0].payload;
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900 mb-2">{label}</p>
+          <p className="font-medium text-gray-900  ">{label}</p>
+          <hr className='my-2'/>
           <div className="space-y-1">
             <p className="text-sm text-blue-600">
               <span className="font-medium">Total Growth: </span>

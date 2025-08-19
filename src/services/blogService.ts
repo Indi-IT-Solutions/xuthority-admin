@@ -9,6 +9,7 @@ export interface Blog {
   authorName: string;
   designation?: string;
   mediaUrl?: string;
+  thumbnailUrl?: string;
   watchUrl?: string;
   tag: string;
   status: 'active' | 'inactive';
@@ -41,6 +42,7 @@ export interface CreateBlogRequest {
   authorName: string;
   designation?: string;
   mediaUrl?: string;
+  thumbnailUrl?: string;
   watchUrl?: string;
   tag: string;
   resourceCategoryId: string;

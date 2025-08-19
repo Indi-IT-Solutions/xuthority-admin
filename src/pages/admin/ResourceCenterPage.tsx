@@ -100,7 +100,7 @@ const ResourceCenterPage: React.FC = () => {
       id: blog._id,
       title: blog.title,
       description: blog.description,
-      imageUrl: blog.mediaUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=80',
+      imageUrl: blog.thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=80',
       status: blog.status === 'active' ? 'On Demand' : 'Upcoming',
       contentType,
       author: {

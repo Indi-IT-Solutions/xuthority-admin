@@ -22,6 +22,7 @@ export const ASSETS = {
     TAG_2: `${ADMIN_BASE_PATH}/assests/tag-2.svg`,
     COMMAND_SQUARE: `${ADMIN_BASE_PATH}/assests/command-square.svg`,
     SETTING_2: `${ADMIN_BASE_PATH}/assests/setting-2.svg`,
+    MESSAGE: `${ADMIN_BASE_PATH}/assests/contact-round.svg`,
   },
   
   // Logos

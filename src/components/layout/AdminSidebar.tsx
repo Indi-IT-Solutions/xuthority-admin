@@ -38,6 +38,11 @@ const navigationItems = [
     icon: ASSETS.DASHBOARD.PEOPLE,
   },
   {
+    label: 'Contacts',
+    href: '/contacts',
+    icon: ASSETS.DASHBOARD.MESSAGE,
+  },
+  {
     label: 'Reviews',
     href: '/reviews',
     icon: ASSETS.DASHBOARD.STAR,
