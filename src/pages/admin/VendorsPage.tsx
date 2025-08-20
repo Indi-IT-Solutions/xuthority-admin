@@ -57,7 +57,7 @@ const VendorsPage = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchQuery,
-      status: activeTab === "approved" ? 'approved,blocked' as const : 'pending' as const,
+      // status: activeTab === "approved" ? 'approved,blocked' as const : 'pending' as const,
       sortBy: 'createdAt' as const,
       sortOrder: 'desc' as const,
     };
@@ -334,7 +334,7 @@ const VendorsPage = () => {
       </div>
       <div className="flex justify-between items-center gap-4 my-4">
         <div className="flex items-center bg-blue-50 rounded-full p-2 max-w-fit">
-          {["approved", "pending"].map((filter: "approved" | "pending") => (
+          {/* {["approved", "pending"].map((filter: "approved" | "pending") => (
             <button
               key={filter}
               onClick={() => handleTabChange(filter)}
@@ -346,7 +346,7 @@ const VendorsPage = () => {
             >
               {filter} Vendors
             </button>
-          ))}
+          ))} */}
         </div>
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

@@ -1,12 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Pagination, UserFilter } from "@/components/common";
+import { Pagination, UserFilter, TableSkeleton } from "@/components/common";
 import ContactsTable from "@/components/common/ContactsTable";
+import ContactDetailsModal from "@/components/common/ContactDetailsModal";
+import { ContactService } from "@/services/contactService";
+import toast from "react-hot-toast";
 import { useContacts } from "@/hooks/useContacts";
 import type { UserFilters } from "@/components/common/UserFilter";
 
 const ContactsPage = () => {
+  const [activeTab, setActiveTab] = useState<'all' | 'open' | 'pending' | 'resolved' | 'closed'>('all');
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -29,7 +33,8 @@ const ContactsPage = () => {
       sortOrder: 'desc',
     };
 
-    if (filters.status) params.status = filters.status; // reuse status toggle as contact status
+    // Map tab to status filter (omit for 'all')
+    if (activeTab !== 'all') params.status = activeTab;
     if (filters.dateFilter && filters.dateFilter !== 'custom') {
       params.period = filters.dateFilter;
     } else if (filters.dateFilter === 'custom') {
@@ -42,18 +47,55 @@ const ContactsPage = () => {
     }
     if (filters.appliedAt) params.appliedAt = filters.appliedAt;
     return params;
-  }, [currentPage, itemsPerPage, searchQuery, filters]);
+  }, [currentPage, itemsPerPage, searchQuery, filters, activeTab]);
 
   const { data, isLoading, error, refetch } = useContacts(apiParams);
   const contacts = data?.contacts || [];
   const pagination = data?.pagination || { page: 1, limit: itemsPerPage, total: 0, totalPages: 1 };
 
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, filters]);
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, filters, activeTab]);
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const openModal = async (id: string) => {
+    setSelectedId(id);
+    try {
+      const res = await ContactService.getContactById(id);
+      setSelectedTicket(res.data);
+      setModalOpen(true);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error?.message || 'Failed to load ticket');
+    }
+  };
+
+  const handleReply = async (message: string) => {
+    if (!selectedId) return;
+    await ContactService.replyToContact(selectedId, message);
+    toast.success('Reply sent');
+    // refresh detail (status may have changed to pending)
+    const res = await ContactService.getContactById(selectedId);
+    setSelectedTicket(res.data);
+    // Optionally refresh list
+    refetch();
+  };
+
+  const handleStatusChange = async (status: 'open' | 'pending' | 'resolved' | 'closed') => {
+    if (!selectedId) return;
+    await ContactService.updateStatus?.(selectedId, status);
+  };
+
+  const handleTabChange = (tab: 'all' | 'open' | 'pending' | 'resolved' | 'closed') => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    refetch();
+  };
 
   return (
     <div className="">
       <div className="flex justify-between items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Contacts</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Helpdesk</h1>
         <div className="flex justify-between items-center gap-4 my-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 w-6 h-6" />
@@ -69,7 +111,30 @@ const ContactsPage = () => {
         </div>
       </div>
 
-      {isLoading && <div className="min-h-[65vh]" />}
+      {/* Status Tabs */}
+      <div className="flex items-center bg-blue-50 rounded-full p-2 max-w-fit mb-4">
+        {[
+          { key: 'all', label: 'All' },
+          { key: 'open', label: 'Open' },
+          { key: 'pending', label: 'Pending' },
+          { key: 'resolved', label: 'Resolved' },
+          { key: 'closed', label: 'Closed' },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => handleTabChange(tab.key as any)}
+            className={`px-3 py-2 md:px-6 md:py-2 text-xs h-12 md:text-sm font-medium rounded-full capitalize transition-all duration-200 cursor-pointer ${
+              activeTab === tab.key
+                ? 'bg-blue-500 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading && <TableSkeleton rows={10} />}
       {error && (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="text-red-500 text-center mb-4">
@@ -94,12 +159,30 @@ const ContactsPage = () => {
 
       {!isLoading && !error && contacts.length > 0 && (
         <>
-          <ContactsTable contacts={contacts} onView={() => {}} />
+          <ContactsTable contacts={contacts} onViewDetails={openModal} />
           <Pagination
             currentPage={currentPage}
             totalItems={pagination.total}
             itemsPerPage={itemsPerPage}
             onPageChange={setCurrentPage}
+          />
+          <ContactDetailsModal
+            open={modalOpen}
+            onOpenChange={setModalOpen}
+            ticket={selectedTicket}
+            onReply={handleReply}
+            onStatusChange={async (status) => {
+              if (!selectedId) return;
+              try {
+                await ContactService.updateStatus?.(selectedId, status);
+                toast.success('Status updated');
+                const res = await ContactService.getContactById(selectedId);
+                setSelectedTicket(res.data);
+                refetch();
+              } catch (e: any) {
+                toast.error(e?.response?.data?.error?.message || 'Failed to update status');
+              }
+            }}
           />
         </>
       )}

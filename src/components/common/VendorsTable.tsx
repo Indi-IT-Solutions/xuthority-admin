@@ -67,12 +67,12 @@ const ActionMenu = ({
             color: 'text-blue-600',
             onClick: () => onViewDetails?.(vendor._id || vendor.id.toString())
           },
-          {
-            label: 'Block Vendor',
-            icon: Ban,
-            color: 'text-red-600',
-            onClick: () => onBlockVendor?.(vendor._id || vendor.id.toString())
-          },
+          // {
+          //   label: 'Block Vendor',
+          //   icon: Ban,
+          //   color: 'text-red-600',
+          //   onClick: () => onBlockVendor?.(vendor._id || vendor.id.toString())
+          // },
      
         ];
       case 'Blocked':
@@ -83,12 +83,12 @@ const ActionMenu = ({
             color: 'text-blue-600',
             onClick: () => onViewDetails?.(vendor._id || vendor.id.toString())
           },
-          {
-            label: 'Unblock',
-            icon: Check,
-            color: 'text-green-600',
-            onClick: () => onUnblockVendor?.(vendor._id || vendor.id.toString())
-          },
+          // {
+          //   label: 'Unblock',
+          //   icon: Check,
+          //   color: 'text-green-600',
+          //   onClick: () => onUnblockVendor?.(vendor._id || vendor.id.toString())
+          // },
       
         ];
       case 'Pending':
@@ -99,18 +99,18 @@ const ActionMenu = ({
             color: 'text-blue-600',
             onClick: () => onViewDetails?.(vendor._id || vendor.id.toString())
           },
-          {
-            label: 'Approve',
-            icon: Check,
-            color: 'text-green-600',
-            onClick: () => onApproveVendor?.(vendor._id || vendor.id.toString())
-          },
-          {
-            label: 'Reject',
-            icon: X,
-            color: 'text-red-600',
-            onClick: () => onRejectVendor?.(vendor._id || vendor.id.toString())
-          }
+          // {
+          //   label: 'Approve',
+          //   icon: Check,
+          //   color: 'text-green-600',
+          //   onClick: () => onApproveVendor?.(vendor._id || vendor.id.toString())
+          // },
+          // {
+          //   label: 'Reject',
+          //   icon: X,
+          //   color: 'text-red-600',
+          //   onClick: () => onRejectVendor?.(vendor._id || vendor.id.toString())
+          // }
         ];
       default:
         return [];

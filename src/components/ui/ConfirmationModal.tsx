@@ -21,6 +21,7 @@ interface ConfirmationModalProps {
   cancelText?: string;
   confirmVariant?: 'default' | 'destructive';
   isLoading?: boolean;
+  body?: React.ReactNode;
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -33,6 +34,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   cancelText = 'Cancel',
   confirmVariant = 'destructive',
   isLoading = false,
+  body,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -43,6 +45,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {description}
           </DialogDescription>
         </DialogHeader>
+        {body && (
+          <div className="w-full mt-2">
+            {body}
+          </div>
+        )}
         <DialogFooter className="pt-4 sm:justify-end gap-2">
           <DialogClose asChild>
             <Button type="button" className='rounded-full sm:min-w-44' variant="outline" >

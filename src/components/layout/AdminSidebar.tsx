@@ -32,16 +32,18 @@ const navigationItems = [
     href: '/vendors',
     icon: ASSETS.DASHBOARD.CATEGORY_2,
   },
+
   {
     label: 'Users Management',
     href: '/users',
     icon: ASSETS.DASHBOARD.PEOPLE,
   },
   {
-    label: 'Contacts',
-    href: '/contacts',
-    icon: ASSETS.DASHBOARD.MESSAGE,
+    label: 'Products',
+    href: '/products',
+    icon: ASSETS.DASHBOARD.PRODUCTS,
   },
+
   {
     label: 'Reviews',
     href: '/reviews',
@@ -76,6 +78,11 @@ const navigationItems = [
     label: 'Resource Center',
     href: '/resource-center',
     icon: ASSETS.DASHBOARD.COMMAND_SQUARE,
+  },
+  {
+    label: 'Helpdesk',
+    href: '/helpdesk',
+    icon: ASSETS.DASHBOARD.MESSAGE,
   },
   {
     label: 'Profile Settings',

@@ -43,7 +43,21 @@ export const useNotificationNavigation = () => {
       case 'DISPUTE_RESOLVED':
         navigate('/');
         break;
-      
+      case 'CONTACT_TICKET_CREATED':
+        navigate('/helpdesk');
+        break;
+      case 'PRODUCT_CREATED':
+        navigate('/products');
+        break;
+      case 'PRODUCT_UPDATE_PENDING':
+        navigate('/products');
+        break;
+      case 'PRODUCT_RESUBMITTED':
+        navigate('/products');
+        break;
+      case 'PRODUCT_UPDATE_REJECTED':
+        navigate('/products');
+        break;
       default:
         navigate('/');
         break;

@@ -119,4 +119,16 @@ export class ContactService {
 
     throw new Error(response.message || 'Failed to fetch contact tickets');
   }
+
+  static async getContactById(id: string) {
+    return ApiService.get(`/contact-tickets/${id}`);
+  }
+
+  static async replyToContact(id: string, message: string) {
+    return ApiService.post(`/contact-tickets/${id}/reply`, { message });
+  }
+
+  static async updateStatus(id: string, status: ContactStatus) {
+    return ApiService.patch(`/contact-tickets/${id}/status`, { status });
+  }
 }

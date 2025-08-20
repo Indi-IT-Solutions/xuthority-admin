@@ -332,7 +332,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ pageTy
           };
           
           toast.dismiss(toastId);
-          toast.success('Images uploaded successfully');
+          // toast.success('Images uploaded successfully');
         } catch (error) {
           toast.dismiss(toastId);
           toast.error('Failed to upload images');

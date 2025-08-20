@@ -110,8 +110,10 @@ export interface VendorProduct {
   avgRating: number;
   totalReviews: number;
   createdAt: string;
+  createdOn?: string;
   slug: string;
   brandColors: string;
+  status?: 'pending' | 'published' | 'rejected' | 'archived' | 'update_pending' | 'update_rejected';
 }
 
 export interface VendorProductsResponse {

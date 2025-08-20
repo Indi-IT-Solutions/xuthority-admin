@@ -22,6 +22,7 @@ const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
 const BadgesPage = lazy(() => import("@/pages/admin/BadgesPage"));
 const ReviewsPage = lazy(() => import("@/pages/admin/ReviewsPage"));
 const ReviewDetailPage = lazy(() => import("@/pages/admin/ReviewDetailPage"));
+const ProductDetailPage = lazy(() => import("@/pages/admin/ProductDetailPage"));
 const SettingsPage = lazy(() => import("@/pages/admin/SettingsPage"));
 const ProfilePage = lazy(() => import("@/pages/admin/ProfilePage"));
 const ResourceCenterPage = lazy(() => import("@/pages/admin/ResourceCenterPage"));
@@ -101,7 +102,7 @@ const AppRoutes = createBrowserRouter([
         ),
       },
       {
-        path: "contacts",
+        path: "helpdesk",
         element: (
           <SuspenseWrapper>
             <ContactsPage />
@@ -137,6 +138,14 @@ const AppRoutes = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <ProductsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "products/:slug",
+        element: (
+          <SuspenseWrapper>
+            <ProductDetailPage />
           </SuspenseWrapper>
         ),
       },

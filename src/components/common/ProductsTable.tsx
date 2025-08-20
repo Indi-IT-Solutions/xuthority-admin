@@ -1,13 +1,28 @@
 import React, { useState } from 'react';
-import { Star, MoreHorizontal, Eye, Trash2 } from 'lucide-react';
+import { Star, MoreHorizontal, Eye, Check, X} from 'lucide-react';
 import { VendorProduct } from '@/services/vendorService';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import StarRatingSingle from '../ui/StarRatingSingle';
+import { cn } from '@/lib/utils';
+import { Badge } from "@/components/ui/badge";
+export interface ProductRow {
+  id: number;
+  _id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string;
+  description: string;
+  avgRating: number;
+  totalReviews: number;
+  status: 'pending' | 'approved' | 'rejected' | 'draft' | 'published' | 'archived' | 'update_pending' | 'update_rejected';
+  createdOn: string;
+}
 
 interface ProductsTableProps {
   products: VendorProduct[];
   onViewDetails?: (productId: string) => void;
-  onDeleteProduct?: (productId: string) => void;
+  onApproveProduct?: (productId: string) => void;
+  onRejectProduct?: (productId: string) => void;
   onSelectedProductsChange?: (selectedIds: string[]) => void;
   onBulkDelete?: (selectedIds: string[]) => void;
 }
@@ -15,32 +30,50 @@ interface ProductsTableProps {
 interface ActionMenuProps {
   product: VendorProduct;
   onViewDetails?: (productId: string) => void;
-  onDeleteProduct?: (productId: string) => void;
+  onApproveProduct?: (productId: string) => void;
+  onRejectProduct?: (productId: string) => void;
 }
 
 const ActionMenu = ({ 
   product, 
   onViewDetails, 
-  onDeleteProduct
+  onApproveProduct,
+  onRejectProduct
 }: ActionMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
-  const actions = [
-    {
-      label: 'View Details',
-      icon: Eye,
-      color: 'text-blue-600',
-      onClick: () => onViewDetails?.(product.slug)
-    },
-    // {
-    //   label: 'Delete',
-    //   icon: Trash2,
-    //   color: 'text-red-600',
-    //   onClick: () => onDeleteProduct?.(product._id)
-    // }
-  ];
+  const actions = (() => {
+    const items: Array<{ label: string; icon: any; color: string; onClick: () => void }> = [
+      {
+        label: 'View Details',
+        icon: Eye,
+        color: 'text-blue-600',
+        onClick: () => onViewDetails?.(product.slug)
+      }
+    ];
+
+    // We support both 'pending' from admin API and 'published/approved' for other cases
+    if (['pending','update_pending'].includes((product as any).status)) {
+      items.push(
+        {
+          label: 'Approve',
+          icon: Check,
+          color: 'text-green-600',
+          onClick: () => onApproveProduct?.(product._id)
+        },
+        {
+          label: 'Reject',
+          icon: X,
+          color: 'text-red-600',
+          onClick: () => onRejectProduct?.(product._id)
+        }
+      );
+    }
+
+    return items;
+  })();
 
   const updateDropdownPosition = () => {
     if (buttonRef.current) {
@@ -155,7 +188,8 @@ const ActionMenu = ({
 const ProductsTable = ({ 
   products, 
   onViewDetails, 
-  onDeleteProduct,
+  onApproveProduct,
+  onRejectProduct,
   onSelectedProductsChange,
   onBulkDelete 
 }: ProductsTableProps) => {
@@ -217,6 +251,36 @@ console.log('products', products)
     }
   };
 
+
+  const productStatus = status as
+    | 'pending'
+    | 'published'
+    | 'rejected'
+    | 'archived'
+     | 'update_pending'
+     | 'update_rejected'
+    | undefined;
+
+    const getStatusBadgeProps = (
+      status?: string
+    ): { variant?: 'default' | 'secondary' | 'destructive' | 'outline'; className?: string } => {
+      switch ((status || '').toLowerCase()) {
+        case 'published':
+          return { variant: 'secondary', className: 'bg-green-100 text-green-800 border-green-200' };
+        case 'pending':
+          return { variant: 'secondary', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+        case 'archived':
+          return { variant: 'secondary', className: 'bg-amber-100 text-amber-800 border-amber-200' };
+        case 'rejected':
+          return { variant: 'destructive' };
+        case 'update_pending':
+          return { variant: 'secondary', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+        case 'update_rejected':
+          return { variant: 'destructive' };
+        default:
+          return { variant: 'outline', className: 'bg-gray-100 text-gray-800 border-gray-200' };
+      }}
+
   return (
     <div className="">
       {/* Header */}
@@ -229,13 +293,7 @@ console.log('products', products)
       {/* Bulk Delete Button */}
       {selectedProducts.length > 0 && (
         <div className='flex items-center gap-2 self-end w-full justify-end my-4'>
-          <button
-            onClick={handleBulkDelete}
-            className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-red-500 text-white text-xs md:text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
-          >
-            <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
-            Delete ({selectedProducts.length})
-          </button>
+          {/* Bulk actions can be added here if needed */}
         </div>
       )}
 
@@ -259,12 +317,13 @@ console.log('products', products)
                   <span>S. No.</span>
                 </div>
               </th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Product Name</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Market Segments</th>
-              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Industry</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600  w-[200px]">Product Name</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600  w-[200px]">Market Segments</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600 w-[200px]">Industry</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Avg. Rating</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Total Reviews</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Created On</th>
+              <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Status</th>
               <th className="text-left py-3 px-3 md:py-4 md:px-6 text-xs md:text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
@@ -289,16 +348,16 @@ console.log('products', products)
                 </td>
 
                 {/* Product Name with Logo */}
-                <td className="py-3 px-3 md:py-4 md:px-6">
+                <td className="py-3 px-3 md:py-4 md:px-6 ">
                   <div className="flex items-center space-x-3">
-                <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-md text-white flex-shrink-0 flex  justify-center items-center" style={{backgroundColor: product?.brandColors }}>
-                <AvatarImage src={product?.logoUrl} alt={product?.name} className="object-cover h-12 w-12 rounded-md"/>
-                <AvatarFallback>
+                <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-md text-gray-700 bg-gray-200 flex-shrink-0 flex  justify-center items-center" style={{backgroundColor: product?.brandColors }}>
+                <AvatarImage src={product?.logoUrl} alt={product?.name} className="object-cover h-12 w-12 rounded-md "/>
+                <AvatarFallback className='bg-gray-100 text-gray-500 rounded-md h-12 w-12'>
                   {product?.name?.charAt(0) || 'P'}
                 </AvatarFallback>
               </Avatar>
         
-                    <span className="text-xs md:text-sm font-medium text-gray-900 truncate">
+                    <span className="text-xs md:text-sm font-medium text-gray-900 truncate w-[200px]">
                       {product.name}
                     </span>
                   </div>
@@ -360,16 +419,28 @@ console.log('products', products)
                 {/* Created On */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <span className="text-xs md:text-sm text-gray-700">
-                    {formatDate(product.createdAt)}
+                    {formatDate(product.createdOn ||product.createdAt)}
                   </span>
                 </td>
 
+                {/* Status */}
+                <td className="py-3 px-3 md:py-4">
+              <Badge
+                  variant={getStatusBadgeProps(product.status).variant}
+                  className={cn('ml-2 capitalize !text-xs', getStatusBadgeProps(product.status).className)}
+                >
+              
+                
+                  {product.status.replace('_', ' ')}
+                </Badge>
+                </td>
                 {/* Actions */}
                 <td className="py-3 px-3 md:py-4 md:px-6">
                   <ActionMenu 
                     product={product}
                     onViewDetails={onViewDetails}
-                    onDeleteProduct={onDeleteProduct}
+                    onApproveProduct={onApproveProduct}
+                    onRejectProduct={onRejectProduct}
                   />
                 </td>
               </tr>
@@ -388,4 +459,4 @@ console.log('products', products)
   );
 };
 
-export default ProductsTable; 
+export default ProductsTable;
